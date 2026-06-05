@@ -910,23 +910,17 @@
 
     const cards = document.querySelectorAll('.service-category-card');
     if (category === 'all') {
+      activeCategory = 'all';
       cards.forEach(card => card.style.display = 'flex');
       
       // Deselect active card in categories grid
       cards.forEach(c => c.classList.remove('selected'));
       
-      // Set section title
-      document.getElementById('currentCategoryTitle').textContent = 'All Services';
-      
-      // Combine all services EXCEPT Human Resources
-      const allOtherServices = [
-        ...services.it,
-        ...services.facility,
-        ...services.admin,
-        ...services.knowledge,
-        ...services.comm
-      ];
-      populateServices(allOtherServices);
+      // Hide details section completely
+      const detailsSection = document.getElementById('serviceListSection');
+      if (detailsSection) {
+        detailsSection.style.display = 'none';
+      }
     } else {
       cards.forEach(card => {
         if (card.getAttribute('data-category') === category) {
@@ -956,6 +950,12 @@
 
     // Populate service rows
     populateServices(services[category]);
+
+    // Show details section
+    const detailsSection = document.getElementById('serviceListSection');
+    if (detailsSection) {
+      detailsSection.style.display = 'block';
+    }
   }
 
   function populateServices(list) {
@@ -1028,7 +1028,12 @@
     
     if (!q) {
       // Restore active category if search cleared
-      selectCategory(activeCategory, document.querySelector(`.service-category-card[data-category="${activeCategory}"]`));
+      if (activeCategory === 'all') {
+        const allTab = document.querySelector('.catalog-tab[onclick*="\'all\'"]');
+        filterCatalog('all', allTab);
+      } else {
+        selectCategory(activeCategory, document.querySelector(`.service-category-card[data-category="${activeCategory}"]`));
+      }
       document.getElementById('categoriesGrid').style.display = 'grid';
       return;
     }
@@ -1047,6 +1052,12 @@
     document.getElementById('categoriesGrid').style.display = 'none';
     document.getElementById('currentCategoryTitle').textContent = `Search Results for "${q}" (${matchingServices.length})`;
     populateServices(matchingServices);
+
+    // Show details section for search results
+    const detailsSection = document.getElementById('serviceListSection');
+    if (detailsSection) {
+      detailsSection.style.display = 'block';
+    }
   }
 
   // Initial load
