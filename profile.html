@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage your Lyceum Connect employee profile, settings, preferences and review your requested service history.">
+  <title>My Profile — Lyceum Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Profile Custom Styling */
+    .profile-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: var(--space-6);
+    }
+    @media (max-width: 1024px) {
+      .profile-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Profile Hero */
+    .profile-hero-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      margin-bottom: var(--space-6);
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+    @media (max-width: 600px) {
+      .profile-hero-card { flex-direction: column; text-align: center; }
+    }
+    
+    .profile-hero-avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 32px;
+      font-weight: 800;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    .profile-hero-info {
+      flex: 1;
+    }
+
+    /* Sub Tabs wrapper */
+    .profile-tabs-wrap {
+      margin-bottom: var(--space-5);
+    }
+    .p-tab-btn {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 2px solid transparent;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .p-tab-btn:hover {
+      color: var(--primary);
+    }
+    .p-tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* Profile Settings items */
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-4) 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .settings-row:last-child {
+      border-bottom: none;
+    }
+    
+    /* Toggle Switch Styling */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 22px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--border-strong);
+      transition: .3s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+    /* Tab content boxes */
+    .tab-content {
+      display: none;
+      animation: fadeIn var(--transition-base);
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Editable profile form fields */
+    .profile-form-val {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      padding: 8px 0;
+      border-bottom: 1.5px solid transparent;
+    }
+    .profile-form-val.editing {
+      border-bottom-color: var(--border-strong);
+    }
+
+    /* Favourites side chip list */
+    .fav-chips-panel {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .fav-chip-item {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all var(--transition-fast);
+    }
+    .fav-chip-item:hover {
+      background: var(--surface);
+      border-color: var(--primary);
+    }
+    .fav-chip-link {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex: 1;
+    }
+    .fav-chip-unpin {
+      color: var(--text-tertiary);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      transition: background var(--transition-fast);
+    }
+    .fav-chip-unpin:hover {
+      background: var(--error-light);
+      color: var(--error);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ========= SIDEBAR ========= -->
+  <aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <img src="assets/logo.png" alt="Lyceum" id="sidebarLogo"
+           onerror="this.style.display='none';document.getElementById('sidebarLogoFallback').style.display='flex'">
+      <div id="sidebarLogoFallback" style="width:36px;height:36px;background:linear-gradient(135deg,#14222E,#3A9AD9);border-radius:8px;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;display:none;flex-shrink:0">L</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-title">Lyceum Connect</span>
+        <span class="sidebar-logo-sub">Employee Portal</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main Menu</div>
+
+      <a href="index.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+
+      <a href="service-catalog.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span class="nav-item-text">Service Catalog</span>
+      </a>
+
+      <a href="request-tracking.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">My Requests</span>
+        <span class="nav-badge">3</span>
+      </a>
+
+      <div class="sidebar-section-label">Resources</div>
+
+      <a href="knowledge-center.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-item-text">Knowledge Center</span>
+      </a>
+
+      <a href="announcements.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Announcements</span>
+        <span class="nav-badge">5</span>
+      </a>
+
+      <a href="employee-directory.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Employee Directory</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="profile.html" class="sidebar-user active" style="background:rgba(255,255,255,0.08)">
+        <div class="sidebar-avatar">DJ</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">David Johns</div>
+          <div class="sidebar-user-role">HR Manager</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      <!-- Global Search -->
+      <div class="topbar-search relative">
+        <div class="search-input-wrap">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" placeholder="Search services, people, documents..." id="globalSearch" autocomplete="off">
+          <span class="search-shortcut">⌘K</span>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Notifications -->
+        <div class="relative">
+          <button class="topbar-btn" id="notifBtn" onclick="toggleNotifications()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-notif-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <span class="notif-title">Notifications</span>
+              <span class="notif-count">5</span>
+            </div>
+            <div class="notif-list">
+              <div class="notif-item">
+                <div class="notif-content">
+                  <div class="notif-text">Profile changes saved successfully</div>
+                  <div class="notif-time">Yesterday</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="topbar-btn" onclick="toggleDarkMode()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+
+        <a href="profile.html" class="topbar-user" id="topbarUser">
+          <div class="topbar-avatar">DJ</div>
+          <div class="topbar-user-info">
+            <div class="topbar-user-name">David Johns</div>
+            <div class="topbar-user-dept">HR Department</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">My Profile</span>
+      </nav>
+
+      <!-- Profile Hero Card -->
+      <div class="profile-hero-card">
+        <div class="profile-hero-avatar">DJ</div>
+        <div class="profile-hero-info">
+          <h1 style="font-family:var(--font-display); font-size:22px; font-weight:800; color:var(--text-primary)">David Johns</h1>
+          <p style="font-size:13px; color:var(--text-secondary); font-weight:500">HR Manager &nbsp;·&nbsp; Human Resources Department</p>
+          <p style="font-size:11px; color:var(--text-tertiary); margin-top:2px">Employee ID: <b style="color:var(--text-secondary)">EMP-2019-00142</b> &nbsp;·&nbsp; Joined: <b style="color:var(--text-secondary)">March 15, 2019</b></p>
+          
+          <div style="display:flex; gap:var(--space-2); margin-top:var(--space-4)">
+            <span class="badge badge-green">Active employee</span>
+            <span class="badge badge-blue">Full-time Regular</span>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:var(--space-2)">
+          <button class="btn btn-primary" onclick="toggleEditMode()" id="editSaveBtn">✍ Edit Profile</button>
+          <button class="btn btn-secondary btn-sm" onclick="showToast('Upload Avatar', 'Photo upload dialog triggered.', 'info')">📷 Upload Photo</button>
+        </div>
+      </div>
+
+      <!-- PROFILE LAYOUT -->
+      <div class="profile-layout">
+        
+        <!-- LEFT PANEL: Profile Details (Tabs) -->
+        <div>
+          
+          <!-- Tabs row -->
+          <div class="card profile-tabs-wrap" style="padding:0">
+            <div class="tabs-wrapper" data-tabs style="border-bottom: 1px solid var(--border-light); padding: 0 var(--space-4)">
+              <button class="p-tab-btn tab-btn active" data-tab="personal">Personal Info</button>
+              <button class="p-tab-btn tab-btn" data-tab="contact">Contact Details</button>
+              <button class="p-tab-btn tab-btn" data-tab="history">Service History</button>
+              <button class="p-tab-btn tab-btn" data-tab="settings">Settings</button>
+            </div>
+
+            <!-- Tab body -->
+            <div class="card-body" style="padding:var(--space-6)">
+              
+              <!-- Personal Info Tab -->
+              <div class="tab-content active" id="personal">
+                <h3 class="section-title mb-4" style="font-size:16px">Personal Information</h3>
+                
+                <div class="form-two-col">
+                  <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <div class="profile-form-val" id="firstNameVal">David</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <div class="profile-form-val" id="lastNameVal">Johns</div>
+                  </div>
+                </div>
+
+                <div class="form-two-col">
+                  <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <div class="profile-form-val" style="background:var(--bg-tertiary)">Human Resources (Read-only)</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Designation</label>
+                    <div class="profile-form-val" style="background:var(--bg-tertiary)">HR Manager (Read-only)</div>
+                  </div>
+                </div>
+
+                <div class="form-two-col">
+                  <div class="form-group">
+                    <label class="form-label">Reports to Manager</label>
+                    <div class="profile-form-val" style="background:var(--bg-tertiary); color:var(--primary); font-weight:600">Dr. Omar Khalid (Executive Principal)</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Office Location</label>
+                    <div class="profile-form-val" id="locationVal">HQ - Block A, Floor 2</div>
+                  </div>
+                </div>
+
+                <div class="form-two-col">
+                  <div class="form-group">
+                    <label class="form-label">Work Extension</label>
+                    <div class="profile-form-val" id="extVal">1142</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Join Date</label>
+                    <div class="profile-form-val" style="background:var(--bg-tertiary)">March 15, 2019 (Read-only)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact Details Tab -->
+              <div class="tab-content" id="contact">
+                <h3 class="section-title mb-4" style="font-size:16px">Contact Information</h3>
+
+                <div class="form-two-col">
+                  <div class="form-group">
+                    <label class="form-label">Work Email</label>
+                    <div class="profile-form-val" style="background:var(--bg-tertiary); font-family:monospace">david.johns@lyceum.edu</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Personal Email</label>
+                    <div class="profile-form-val" id="personalEmailVal">david.johns@gmail.com</div>
+                  </div>
+                </div>
+
+                <div class="form-two-col">
+                  <div class="form-group">
+                    <label class="form-label">Work Phone</label>
+                    <div class="profile-form-val" id="workPhoneVal">+968 2451 1142</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Personal Mobile</label>
+                    <div class="profile-form-val" id="personalPhoneVal">+968 9988 7766</div>
+                  </div>
+                </div>
+
+                <h3 class="section-title mb-4" style="font-size:14px; margin-top:var(--space-4); border-top:1px solid var(--border-light); padding-top:var(--space-4)">🚨 Emergency Contacts</h3>
+
+                <div class="form-two-col">
+                  <div class="form-group">
+                    <label class="form-label">Contact Name</label>
+                    <div class="profile-form-val" id="emergencyNameVal">Ahmed Al-Masry</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Relationship</label>
+                    <div class="profile-form-val" id="emergencyRelationVal">Spouse</div>
+                  </div>
+                </div>
+
+                <div class="form-group" style="max-width:50%">
+                  <label class="form-label">Emergency Phone</label>
+                  <div class="profile-form-val" id="emergencyPhoneVal">+968 9911 2233</div>
+                </div>
+              </div>
+
+              <!-- Service History Tab -->
+              <div class="tab-content" id="history">
+                
+                <!-- Service History mini KPI row -->
+                <div class="grid grid-4 mb-4" style="gap:var(--space-3)">
+                  <div style="background:var(--bg-tertiary); border-radius:var(--radius-md); padding:10px; text-align:center">
+                    <div style="font-size:18px; font-weight:700; color:var(--text-primary)">47</div>
+                    <div style="font-size:9px; color:var(--text-tertiary); text-transform:uppercase">Total Requests</div>
+                  </div>
+                  <div style="background:var(--bg-tertiary); border-radius:var(--radius-md); padding:10px; text-align:center">
+                    <div style="font-size:18px; font-weight:700; color:var(--success)">42</div>
+                    <div style="font-size:9px; color:var(--text-tertiary); text-transform:uppercase">Completed</div>
+                  </div>
+                  <div style="background:var(--bg-tertiary); border-radius:var(--radius-md); padding:10px; text-align:center">
+                    <div style="font-size:18px; font-weight:700; color:var(--primary)">3</div>
+                    <div style="font-size:9px; color:var(--text-tertiary); text-transform:uppercase">Pending</div>
+                  </div>
+                  <div style="background:var(--bg-tertiary); border-radius:var(--radius-md); padding:10px; text-align:center">
+                    <div style="font-size:18px; font-weight:700; color:var(--warning)">4.8/5</div>
+                    <div style="font-size:9px; color:var(--text-tertiary); text-transform:uppercase">CSAT Score</div>
+                  </div>
+                </div>
+
+                <h3 class="section-title mb-4" style="font-size:15px">Recent Requests History</h3>
+                
+                <!-- Simple Requests Table -->
+                <div style="border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden">
+                  <table class="perf-table" style="margin-top:0">
+                    <thead>
+                      <tr>
+                        <th class="perf-th">ID</th>
+                        <th class="perf-th">Service Type</th>
+                        <th class="perf-th">Status</th>
+                        <th class="perf-th">Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="perf-tr">
+                        <td class="perf-td"><a href="request-tracking.html" style="color:var(--primary); font-weight:600">REQ-047</a></td>
+                        <td class="perf-td">IT Laptop Overheating</td>
+                        <td class="perf-td"><span class="badge badge-purple" style="font-size:10px">In Progress</span></td>
+                        <td class="perf-td">May 28, 2025</td>
+                      </tr>
+                      <tr class="perf-tr">
+                        <td class="perf-td"><a href="request-tracking.html" style="color:var(--primary); font-weight:600">REQ-046</a></td>
+                        <td class="perf-td">Service Letter Request</td>
+                        <td class="perf-td"><span class="badge badge-amber" style="font-size:10px">Pending Approval</span></td>
+                        <td class="perf-td">May 27, 2025</td>
+                      </tr>
+                      <tr class="perf-tr">
+                        <td class="perf-td"><a href="request-tracking.html" style="color:var(--primary); font-weight:600">REQ-045</a></td>
+                        <td class="perf-td">Company Vehicle Booking</td>
+                        <td class="perf-td"><span class="badge badge-green" style="font-size:10px">Completed</span></td>
+                        <td class="perf-td">May 25, 2025</td>
+                      </tr>
+                      <tr class="perf-tr">
+                        <td class="perf-td"><a href="request-tracking.html" style="color:var(--primary); font-weight:600">REQ-042</a></td>
+                        <td class="perf-td">Bank Details Update</td>
+                        <td class="perf-td"><span class="badge badge-green" style="font-size:10px">Completed</span></td>
+                        <td class="perf-td">May 20, 2025</td>
+                      </tr>
+                      <tr class="perf-tr">
+                        <td class="perf-td"><a href="request-tracking.html" style="color:var(--primary); font-weight:600">REQ-041</a></td>
+                        <td class="perf-td">Stationery Request</td>
+                        <td class="perf-td"><span class="badge badge-green" style="font-size:10px">Completed</span></td>
+                        <td class="perf-td">May 18, 2025</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Settings Tab -->
+              <div class="tab-content" id="settings">
+                
+                <!-- NOTIFICATION CARD -->
+                <h3 class="section-title mb-3" style="font-size:15px">Notification Channels</h3>
+                <div class="card mb-5" style="border-radius:var(--radius-lg); padding: 0 var(--space-4)">
+                  <div class="settings-row">
+                    <div>
+                      <div style="font-size:13px; font-weight:600; color:var(--text-primary)">Email Notifications</div>
+                      <div style="font-size:11px; color:var(--text-tertiary)">Send status logs and files links to work inbox.</div>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" checked>
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="settings-row">
+                    <div>
+                      <div style="font-size:13px; font-weight:600; color:var(--text-primary)">In-App Toast Alerts</div>
+                      <div style="font-size:11px; color:var(--text-tertiary)">Receive real-time push prompts inside portal view.</div>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" checked>
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+
+                  <div class="settings-row">
+                    <div>
+                      <div style="font-size:13px; font-weight:600; color:var(--text-primary)">SMS Mobile Alerts</div>
+                      <div style="font-size:11px; color:var(--text-tertiary)">Receive SMS alerts for emergency announcements or approvals.</div>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- PREFERENCES CARD -->
+                <h3 class="section-title mb-3" style="font-size:15px">Display Preferences</h3>
+                <div class="card mb-5" style="border-radius:var(--radius-lg); padding: 0 var(--space-4)">
+                  <div class="settings-row">
+                    <div>
+                      <div style="font-size:13px; font-weight:600; color:var(--text-primary)">Dark Theme Option</div>
+                      <div style="font-size:11px; color:var(--text-tertiary)">Toggle display style sheets to dark contrast layout.</div>
+                    </div>
+                    <label class="switch">
+                      <input type="checkbox" id="darkThemeSwitch" onchange="toggleDarkMode()">
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                  <div class="settings-row">
+                    <div>
+                      <div style="font-size:13px; font-weight:600; color:var(--text-primary)">Language</div>
+                      <div style="font-size:11px; color:var(--text-tertiary)">Choose interface default dictionary.</div>
+                    </div>
+                    <select class="form-control form-select" style="width:130px; height:34px; font-size:12px">
+                      <option selected>English (US)</option>
+                      <option>Arabic (عربي)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- SECURITY CARD -->
+                <h3 class="section-title mb-3" style="font-size:15px">Portal Security</h3>
+                <div class="card" style="border-radius:var(--radius-lg); padding: 0 var(--space-4)">
+                  <div class="settings-row">
+                    <div>
+                      <div style="font-size:13px; font-weight:600; color:var(--text-primary)">Change Login Credentials</div>
+                      <div style="font-size:11px; color:var(--text-tertiary)">Update your Active Directory portal login password.</div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="openModal('passwordChangeModal')">Change Password</button>
+                  </div>
+
+                  <div class="settings-row">
+                    <div>
+                      <div style="font-size:13px; font-weight:600; color:var(--text-primary)">Active Browser Sessions</div>
+                      <div style="font-size:11px; color:var(--text-tertiary)">2 devices currently authorized to access.</div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--error)" onclick="showToast('Sessions Terminated', 'All other login sessions have been revoked.', 'success')">Logout All</button>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT PANEL: Favourite Pinned Services -->
+        <div style="display:flex; flex-direction:column; gap:var(--space-5)">
+          
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">⭐ Favorite Services</h3>
+            </div>
+            <div class="card-body">
+              <p style="font-size:11px; color:var(--text-tertiary); margin-bottom:12px">Direct shortcuts to forms you request frequently.</p>
+              
+              <div class="fav-chips-panel" id="favChipsPanel">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div><!-- /MAIN CONTENT -->
+</div><!-- /APP LAYOUT -->
+
+<!-- Password Change Modal -->
+<div class="modal-overlay" id="passwordChangeModal">
+  <div class="modal" style="max-width: 440px">
+    <div class="modal-header">
+      <h3 class="modal-title" style="font-size: 15px">Change Password</h3>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="closeModal('passwordChangeModal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding: var(--space-6)">
+      <form id="passwordForm" onsubmit="event.preventDefault()">
+        <div class="form-group">
+          <label class="form-label">Old Password</label>
+          <input type="password" class="form-control" id="oldPass" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" class="form-control" id="newPass" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <input type="password" class="form-control" id="confirmPass" required>
+        </div>
+        
+        <div style="margin-top:var(--space-6); display:flex; justify-content:flex-end; gap:var(--space-3)">
+          <button class="btn btn-secondary" type="button" onclick="closeModal('passwordChangeModal')">Cancel</button>
+          <button class="btn btn-primary" type="button" onclick="saveNewPassword()">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ========= AI ASSISTANT FAB ========= -->
+<div class="ai-fab" id="aiFab">
+  <div class="ai-chat-panel" id="aiChatPanel">
+    <div class="ai-chat-header">
+      <div class="ai-chat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l2 2"/><circle cx="18" cy="6" r="4" fill="white" stroke="none"/></svg>
+      </div>
+      <div>
+        <div class="ai-chat-name">Lexi — AI Assistant</div>
+        <div class="ai-chat-status">● Online · Powered by AI</div>
+      </div>
+      <button onclick="toggleAIChat()" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:28px;height:28px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ai-messages" id="aiMessages">
+      <div class="ai-msg bot">
+        <div class="ai-msg-bubble">I can help you update your notification preferences or edit contact details. Ask me!</div>
+      </div>
+    </div>
+    <div class="ai-chat-input-wrap">
+      <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Ask Lexi anything...">
+      <button class="ai-send-btn" onclick="sendAIMessage()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+  <button class="ai-fab-btn" onclick="toggleAIChat()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="white"/><circle cx="12" cy="10" r="1" fill="white"/><circle cx="15" cy="10" r="1" fill="white"/></svg>
+  </button>
+</div>
+
+<!-- ========= TOAST CONTAINER ========= -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ========= SCRIPTS ========= -->
+<script src="js/main.js"></script>
+<script>
+  let editing = false;
+
+  // Personal fields list
+  const personalFields = {
+    firstNameVal: 'David',
+    lastNameVal: 'Johns',
+    locationVal: 'HQ - Block A, Floor 2',
+    extVal: '1142'
+  };
+
+  // Contact fields list
+  const contactFields = {
+    personalEmailVal: 'david.johns@gmail.com',
+    workPhoneVal: '+968 2451 1142',
+    personalPhoneVal: '+968 9988 7766',
+    emergencyNameVal: 'Ahmed Al-Masry',
+    emergencyRelationVal: 'Spouse',
+    emergencyPhoneVal: '+968 9911 2233'
+  };
+
+  function toggleEditMode() {
+    editing = !editing;
+    
+    const btn = document.getElementById('editSaveBtn');
+    
+    if (editing) {
+      btn.textContent = '💾 Save Changes';
+      btn.className = 'btn btn-success';
+      
+      // Make fields editable
+      Object.keys(personalFields).forEach(id => makeEditable(id));
+      Object.keys(contactFields).forEach(id => makeEditable(id));
+      showToast('Edit Mode Enabled', 'You can now update your personal and contact fields.', 'info');
+    } else {
+      // Save data
+      btn.textContent = '✍ Edit Profile';
+      btn.className = 'btn btn-primary';
+
+      // Save and block fields
+      Object.keys(personalFields).forEach(id => saveAndLock(id, personalFields));
+      Object.keys(contactFields).forEach(id => saveAndLock(id, contactFields));
+      
+      showToast('Profile Updated Successfully', 'Your information has been updated.', 'success');
+      
+      // Update sidebar footer details
+      document.querySelectorAll('.sidebar-user-name').forEach(el => {
+        el.textContent = `${personalFields.firstNameVal} ${personalFields.lastNameVal}`;
+      });
+      document.querySelectorAll('.topbar-user-name').forEach(el => {
+        el.textContent = `${personalFields.firstNameVal} ${personalFields.lastNameVal}`;
+      });
+    }
+  }
+
+  function makeEditable(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = el.textContent;
+    el.innerHTML = `<input type="text" class="form-control" style="height:32px; font-size:13px" value="${val}">`;
+    el.classList.add('editing');
+  }
+
+  function saveAndLock(id, db) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const input = el.querySelector('input');
+    if (input) {
+      const val = input.value.trim();
+      db[id] = val;
+      el.textContent = val;
+    }
+    el.classList.remove('editing');
+  }
+
+  function saveNewPassword() {
+    const oldPass = document.getElementById('oldPass');
+    const newPass = document.getElementById('newPass');
+    const confirm = document.getElementById('confirmPass');
+
+    let valid = true;
+    [oldPass, newPass, confirm].forEach(i => {
+      if (!i.value.trim()) {
+        i.style.borderColor = 'var(--error)';
+        valid = false;
+        i.addEventListener('input', () => i.style.borderColor = '', { once: true });
+      }
+    });
+
+    if (!valid) {
+      showToast('Please fill all password fields', '', 'error');
+      return;
+    }
+
+    if (newPass.value !== confirm.value) {
+      newPass.style.borderColor = 'var(--error)';
+      confirm.style.borderColor = 'var(--error)';
+      showToast('New passwords do not match', '', 'error');
+      return;
+    }
+
+    closeModal('passwordChangeModal');
+    showToast('Password Updated Successfully', 'Your credentials have been updated.', 'success');
+    oldPass.value = '';
+    newPass.value = '';
+    confirm.value = '';
+  }
+
+  // Favourites list definitions
+  const favItemsMap = {
+    'it-ticket': { name: 'IT Support Ticket', icon: '💻', url: 'request-form.html?service=it-ticket' },
+    'service-letter': { name: 'Service Letter Request', icon: '📄', url: 'request-form.html?service=service-letter' },
+    'hr-policies': { name: 'HR Policies', icon: '📚', url: 'knowledge-center.html' }
+  };
+
+  function renderFavourites() {
+    const panel = document.getElementById('favChipsPanel');
+    if (!panel) return;
+
+    const favs = JSON.parse(localStorage.getItem('lc-favourites') || '["it-ticket", "service-letter", "hr-policies"]');
+    
+    if (favs.length === 0) {
+      panel.innerHTML = '<div style="font-size:12px; color:var(--text-tertiary); text-align:center; padding:12px">No favourite services. Pin them in the Service Catalog!</div>';
+      return;
+    }
+
+    panel.innerHTML = favs.map(id => {
+      const item = favItemsMap[id] || { name: id, icon: '⚙️', url: 'service-catalog.html' };
+      return `
+        <div class="fav-chip-item" id="fav-item-${id}">
+          <a href="${item.url}" class="fav-chip-link">
+            <span>${item.icon}</span>
+            <span>${item.name}</span>
+          </a>
+          <span class="fav-chip-unpin" onclick="unpinFavourite('${id}')" title="Unpin service">✕</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function unpinFavourite(id) {
+    const favs = JSON.parse(localStorage.getItem('lc-favourites') || '["it-ticket", "service-letter", "hr-policies"]');
+    const idx = favs.indexOf(id);
+    if (idx > -1) {
+      favs.splice(idx, 1);
+      localStorage.setItem('lc-favourites', JSON.stringify(favs));
+      const el = document.getElementById(`fav-item-${id}`);
+      if (el) el.remove();
+      showToast('Removed from Favourites', id, 'info');
+      
+      // If list now empty
+      if (favs.length === 0) renderFavourites();
+    }
+  }
+
+  // Theme checkbox initialization
+  function initThemeCheckbox() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const cb = document.getElementById('darkThemeSwitch');
+    if (cb) cb.checked = isDark;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderFavourites();
+    initThemeCheckbox();
+  });
+</script>
+</body>
+</html>

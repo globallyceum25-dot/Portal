@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Submit IT, HR, facility, or admin requests via Lyceum Connect. Dynamic forms with real-time tracking.">
+  <title>Submit a Request — Lyceum Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Step Indicator Styling */
+    .steps-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-8);
+      position: relative;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .steps-line {
+      position: absolute;
+      top: 50%;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: var(--border-strong);
+      transform: translateY(-50%);
+      z-index: 1;
+    }
+    .steps-line-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: var(--primary);
+      transition: width var(--transition-base);
+    }
+    .step-dot-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      cursor: pointer;
+    }
+    .step-dot {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      background: var(--surface);
+      border: 3px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      transition: all var(--transition-base);
+    }
+    .step-dot-wrap.active .step-dot {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+      box-shadow: var(--shadow-glow);
+    }
+    .step-dot-wrap.completed .step-dot {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+    .step-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-top: var(--space-2);
+      transition: color var(--transition-base);
+    }
+    .step-dot-wrap.active .step-label {
+      color: var(--primary);
+    }
+
+    /* Step Cards and Selection Grid */
+    .form-step {
+      display: none;
+      animation: fadeIn var(--transition-base);
+    }
+    .form-step.active {
+      display: block;
+    }
+    
+    .radio-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-5);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 900px) {
+      .radio-card-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .radio-card-grid { grid-template-columns: 1fr; }
+    }
+
+    .radio-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      cursor: pointer;
+      transition: all var(--transition-spring);
+      position: relative;
+    }
+    .radio-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--primary-300);
+    }
+    .radio-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-50);
+      box-shadow: var(--shadow-md);
+    }
+    [data-theme="dark"] .radio-card.selected {
+      background: rgba(58, 154, 217, 0.15);
+    }
+
+    .rc-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    .rc-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .rc-desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .rc-radio {
+      position: absolute;
+      top: var(--space-4);
+      right: var(--space-4);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .radio-card.selected .rc-radio {
+      border-color: var(--primary);
+      background: var(--primary);
+    }
+    .radio-card.selected .rc-radio::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    /* Form Details Page styling */
+    .form-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-5);
+    }
+    @media (max-width: 768px) {
+      .form-two-col { grid-template-columns: 1fr; }
+    }
+
+    /* Priority selector custom style */
+    .priority-select-wrap {
+      position: relative;
+    }
+    .priority-indicator {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: none;
+    }
+
+    /* Review Summary Styling */
+    .review-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+    .review-header {
+      font-size: 16px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: var(--space-3);
+      margin-bottom: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .review-grid {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      row-gap: 12px;
+      font-size: 14px;
+    }
+    .review-label {
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .review-value {
+      color: var(--text-primary);
+    }
+
+    /* Nav Buttons wrap */
+    .form-navigation {
+      display: flex;
+      justify-content: space-between;
+      margin-top: var(--space-6);
+      border-top: 1px solid var(--border);
+      padding-top: var(--space-5);
+    }
+
+    /* Loader styling on submit success */
+    .submit-success-panel {
+      text-align: center;
+      padding: var(--space-10) var(--space-6);
+    }
+    .success-icon-animated {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--success-light);
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto var(--space-6) auto;
+      font-size: 32px;
+      box-shadow: 0 0 0 6px rgba(16,185,129,0.15);
+      animation: scaleUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .loader-bar {
+      width: 180px;
+      height: 4px;
+      background: var(--border);
+      border-radius: var(--radius-full);
+      margin: var(--space-6) auto 0 auto;
+      overflow: hidden;
+    }
+    .loader-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--primary);
+      animation: loadProgress 2s linear forwards;
+    }
+    @keyframes loadProgress {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ========= SIDEBAR ========= -->
+  <aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <img src="assets/logo.png" alt="Lyceum" id="sidebarLogo"
+           onerror="this.style.display='none';document.getElementById('sidebarLogoFallback').style.display='flex'">
+      <div id="sidebarLogoFallback" style="width:36px;height:36px;background:linear-gradient(135deg,#14222E,#3A9AD9);border-radius:8px;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;display:none;flex-shrink:0">L</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-title">Lyceum Connect</span>
+        <span class="sidebar-logo-sub">Employee Portal</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main Menu</div>
+
+      <a href="index.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+
+      <a href="service-catalog.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span class="nav-item-text">Service Catalog</span>
+      </a>
+
+      <a href="request-tracking.html" class="nav-item active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">My Requests</span>
+        <span class="nav-badge">3</span>
+      </a>
+
+      <div class="sidebar-section-label">Resources</div>
+
+      <a href="knowledge-center.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-item-text">Knowledge Center</span>
+      </a>
+
+      <a href="announcements.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Announcements</span>
+        <span class="nav-badge">5</span>
+      </a>
+
+      <a href="employee-directory.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Employee Directory</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="profile.html" class="sidebar-user">
+        <div class="sidebar-avatar">DJ</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">David Johns</div>
+          <div class="sidebar-user-role">HR Manager</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      <!-- Global Search -->
+      <div class="topbar-search relative">
+        <div class="search-input-wrap">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" placeholder="Search services, people, documents..." id="globalSearch" autocomplete="off">
+          <span class="search-shortcut">⌘K</span>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Notifications -->
+        <div class="relative">
+          <button class="topbar-btn" id="notifBtn" onclick="toggleNotifications()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-notif-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <span class="notif-title">Notifications</span>
+              <span class="notif-count">5</span>
+            </div>
+            <div class="notif-list">
+              <div class="notif-item unread">
+                <div class="notif-icon" style="background:var(--primary-100);color:var(--primary)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                </div>
+                <div class="notif-content">
+                  <div class="notif-text">Your IT Support request (REQ-2025-047) is now In Progress</div>
+                  <div class="notif-time">2 minutes ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="topbar-btn" onclick="toggleDarkMode()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+
+        <a href="profile.html" class="topbar-user" id="topbarUser">
+          <div class="topbar-avatar">DJ</div>
+          <div class="topbar-user-info">
+            <div class="topbar-user-name">David Johns</div>
+            <div class="topbar-user-dept">HR Department</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="request-tracking.html">My Requests</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">New Request</span>
+      </nav>
+
+      <div class="page-header">
+        <h1 class="page-title">Submit a Request</h1>
+        <p class="page-subtitle">Submit self-service requests easily with guided steps.</p>
+      </div>
+
+      <!-- Step Indicator Bar -->
+      <div class="steps-container">
+        <div class="steps-line">
+          <div class="steps-line-fill" id="stepsLineFill"></div>
+        </div>
+        <div class="step-dot-wrap active" id="stepIndicator1" onclick="goToStep(1)">
+          <div class="step-dot">1</div>
+          <span class="step-label">Select Service</span>
+        </div>
+        <div class="step-dot-wrap" id="stepIndicator2" onclick="goToStep(2)">
+          <div class="step-dot">2</div>
+          <span class="step-label">Request Details</span>
+        </div>
+        <div class="step-dot-wrap" id="stepIndicator3" onclick="goToStep(3)">
+          <div class="step-dot">3</div>
+          <span class="step-label">Review & Submit</span>
+        </div>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card card-glass" style="max-width: 800px; margin: 0 auto">
+        <div class="card-body" style="padding: var(--space-8)">
+          
+          <form id="requestForm" onsubmit="event.preventDefault()">
+
+            <!-- ================= STEP 1 ================= -->
+            <div class="form-step active" id="step1">
+              <h2 class="section-title mb-4" style="font-size:18px">Step 1: Select Service Category</h2>
+              <p style="color:var(--text-secondary); font-size:14px; margin-bottom:var(--space-6)">Choose the type of service you wish to raise.</p>
+              
+              <div class="radio-card-grid">
+                
+                <div class="radio-card" data-service="it-support" onclick="selectRadioCard('it-support', 'Information Technology', 'IT Support Request')">
+                  <div class="rc-radio"></div>
+                  <div class="rc-icon" style="background:var(--primary-50);color:var(--primary)">💻</div>
+                  <div class="rc-title">IT Support Request</div>
+                  <div class="rc-desc">Software installation, accounts, email, password resets, and WiFi.</div>
+                </div>
+
+                <div class="radio-card" data-service="hr-request" onclick="selectRadioCard('hr-request', 'Human Resources', 'HR Service Request')">
+                  <div class="rc-radio"></div>
+                  <div class="rc-icon" style="background:#FFE4E6;color:#E11D48">👥</div>
+                  <div class="rc-title">HR Service Request</div>
+                  <div class="rc-desc">Letters requests, salary transfer, B card, benefits, emergency updates.</div>
+                </div>
+
+                <div class="radio-card" data-service="facility-request" onclick="selectRadioCard('facility-request', 'Group Facility Management', 'Facility Request')">
+                  <div class="rc-radio"></div>
+                  <div class="rc-icon" style="background:#CCFBF1;color:#0D9488">🏢</div>
+                  <div class="rc-title">Facility Request</div>
+                  <div class="rc-desc">Office repairs, AC controls, lights, cleaning, and moving furniture.</div>
+                </div>
+
+                <div class="radio-card" data-service="admin-request" onclick="selectRadioCard('admin-request', 'Administration', 'Administrative Request')">
+                  <div class="rc-radio"></div>
+                  <div class="rc-icon" style="background:#FEF3C7;color:#D97706">📋</div>
+                  <div class="rc-title">Administrative Request</div>
+                  <div class="rc-desc">Stationery stock, courier services, vehicle, room booking, driver logistics.</div>
+                </div>
+
+                <div class="radio-card" data-service="access-security" onclick="selectRadioCard('access-security', 'IT Security', 'Access & Security Request')">
+                  <div class="rc-radio"></div>
+                  <div class="rc-icon" style="background:#F3E8FF;color:#7C3AED">🔐</div>
+                  <div class="rc-title">Access & Security</div>
+                  <div class="rc-desc">VPN request, firewall updates, folder/server access permissions.</div>
+                </div>
+
+                <div class="radio-card" data-service="other-request" onclick="selectRadioCard('other-request', 'General Support', 'Other Request')">
+                  <div class="rc-radio"></div>
+                  <div class="rc-icon" style="background:#F1F5F9;color:#475569">⚙️</div>
+                  <div class="rc-title">Other Request</div>
+                  <div class="rc-desc">Miscellaneous requests that do not fall in specified categories.</div>
+                </div>
+
+              </div>
+
+              <!-- ===== SERVICE DROPDOWN PANEL (appears after category selection) ===== -->
+              <div id="serviceDropdownPanel" style="display:none; animation: fadeIn 0.3s ease">
+                <div style="height:1px; background:var(--border); margin: var(--space-5) 0"></div>
+                <div style="background:var(--primary-50); border:1px solid var(--primary-100); border-radius:var(--radius-xl); padding:var(--space-5)">
+                  <div style="display:flex; align-items:center; gap:10px; margin-bottom:var(--space-4)">
+                    <span id="sdpCategoryIcon" style="font-size:20px">💼</span>
+                    <div>
+                      <div style="font-size:13px; font-weight:700; color:var(--text-primary)" id="sdpCategoryTitle">Select a specific service</div>
+                      <div style="font-size:12px; color:var(--text-secondary)">Choose the service that best describes your request</div>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label" style="font-size:13px">Specific Service <span class="required">*</span></label>
+                    <select class="form-control form-select" id="specificServiceSelect" onchange="onSpecificServiceChange()" required>
+                      <option value="">— Select a service —</option>
+                    </select>
+                    <!-- Other: free text field -->
+                    <div id="otherServiceWrap" style="display:none; margin-top:var(--space-3)">
+                      <label class="form-label" style="font-size:13px">Please describe your request <span class="required">*</span></label>
+                      <input type="text" class="form-control" id="otherServiceText"
+                             placeholder="e.g. Request for employee clearance letter, uniform reimbursement..."
+                             oninput="onOtherServiceInput()">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ================= STEP 2 ================= -->
+            <div class="form-step" id="step2">
+              <h2 class="section-title mb-4" style="font-size:18px">Step 2: Request Details</h2>
+              <p style="color:var(--text-secondary); font-size:14px; margin-bottom:var(--space-6)">Please fill out the detailed parameters of your request.</p>
+
+              <div class="form-two-col">
+                <div class="form-group">
+                  <label class="form-label">Service Category</label>
+                  <input type="text" class="form-control" id="serviceCategory" readonly style="background:var(--bg-tertiary); cursor:not-allowed">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Request Title<span class="required">*</span></label>
+                  <input type="text" class="form-control" id="requestTitle" placeholder="e.g. WiFi issue in block B, Salary statement request" required>
+                </div>
+              </div>
+
+              <div class="form-two-col">
+                <div class="form-group">
+                  <label class="form-label">Priority Level<span class="required">*</span></label>
+                  <select class="form-control form-select" id="requestPriority" required>
+                    <option value="Low">🟢 Low — Minor issues, standard backlog</option>
+                    <option value="Medium" selected>🟡 Medium — Regular support ticket</option>
+                    <option value="High">🟠 High — Impacts productivity</option>
+                    <option value="Critical">🔴 Critical — Major outage, core service offline</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Department<span class="required">*</span></label>
+                  <select class="form-control form-select" id="requestDept" required>
+                    <option value="Human Resources" selected>Human Resources</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Operations">Operations</option>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Academic Staff">Academic Staff</option>
+                    <option value="Administration">Administration</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-two-col">
+                <div class="form-group">
+                  <label class="form-label">Needed By Date</label>
+                  <input type="date" class="form-control" id="neededDate">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Location<span class="required">*</span></label>
+                  <select class="form-control form-select" id="requestLocation" required>
+                    <option value="HQ - Main Building" selected>HQ - Main Building</option>
+                    <option value="Campus A">Campus A</option>
+                    <option value="Campus B">Campus B</option>
+                    <option value="Remote">Remote / Work from home</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Description of Request<span class="required">*</span></label>
+                <textarea class="form-control" id="requestDesc" placeholder="Describe your request in detail. Provide system logs, office numbers, or error details if applicable..." required></textarea>
+              </div>
+
+              <!-- File Upload Zone -->
+              <div class="form-group">
+                <label class="form-label">Attachments (Optional)</label>
+                <div class="upload-zone" style="border: 2px dashed var(--border-strong); border-radius: var(--radius-xl); padding: var(--space-6); text-align: center; cursor: pointer; transition: border-color var(--transition-fast)">
+                  <input type="file" id="fileUpload" multiple style="display:none">
+                  <span style="font-size:24px; display:block; margin-bottom:8px">📁</span>
+                  <div style="font-size:13px; font-weight:600; color:var(--text-primary)">Drag and drop files here, or click to browse</div>
+                  <div style="font-size:11px; color:var(--text-tertiary); margin-top:4px">Accepts PDF, PNG, JPG up to 10MB</div>
+                  <div class="file-list" id="fileListContainer" style="margin-top:12px"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Additional Notes</label>
+                <textarea class="form-control" id="additionalNotes" placeholder="Any secondary info or special remarks..."></textarea>
+              </div>
+            </div>
+
+            <!-- ================= STEP 3 ================= -->
+            <div class="form-step" id="step3">
+              <h2 class="section-title mb-4" style="font-size:18px">Step 3: Review & Submit</h2>
+              <p style="color:var(--text-secondary); font-size:14px; margin-bottom:var(--space-6)">Please verify the parameters below before confirming your request submission.</p>
+
+              <div class="review-card">
+                <div class="review-header">
+                  <span id="reviewIcon" style="font-size: 20px">⚙️</span>
+                  <div>
+                    <div id="reviewTitleVal" style="font-weight:700; color:var(--text-primary)">Request Title</div>
+                    <div id="reviewCatVal" style="font-size:12px; color:var(--text-tertiary)">Information Technology</div>
+                  </div>
+                </div>
+                <div class="review-grid">
+                  <div class="review-label">Priority:</div>
+                  <div class="review-value" id="reviewPriorityVal">-</div>
+
+                  <div class="review-label">Department:</div>
+                  <div class="review-value" id="reviewDeptVal">-</div>
+
+                  <div class="review-label">Needed By:</div>
+                  <div class="review-value" id="reviewDateVal">-</div>
+
+                  <div class="review-label">Location:</div>
+                  <div class="review-value" id="reviewLocationVal">-</div>
+
+                  <div class="review-label">Description:</div>
+                  <div class="review-value" id="reviewDescVal" style="white-space: pre-wrap">-</div>
+
+                  <div class="review-label">Attachments:</div>
+                  <div class="review-value" id="reviewFileVal">No files uploaded</div>
+
+                  <div class="review-label">Notes:</div>
+                  <div class="review-value" id="reviewNotesVal" style="white-space: pre-wrap">-</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ================= SUCCESS SCREEN ================= -->
+            <div id="successScreen" style="display:none">
+              <div class="submit-success-panel">
+                <div class="success-icon-animated">✓</div>
+                <h2 style="font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px">Request Raised Successfully!</h2>
+                <p style="color:var(--text-secondary); font-size:14px">Your request ID is <b id="generatedReqId" style="color:var(--primary)">REQ-2025-048</b>. We have notified the support team.</p>
+                <p style="color:var(--text-tertiary); font-size:12px; margin-top:4px">Redirecting to request tracking panel...</p>
+                <div class="loader-bar">
+                  <div class="loader-fill"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div class="form-navigation" id="formNavigation">
+              <button class="btn btn-secondary" type="button" id="backBtn" onclick="prevStep()" style="visibility:hidden">Back</button>
+              <button class="btn btn-primary" type="button" id="nextBtn" onclick="nextStep()">Continue</button>
+              <button class="btn btn-success" type="button" id="submitBtn" onclick="submitFinalForm()" style="display:none">Submit Request</button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /MAIN CONTENT -->
+</div><!-- /APP LAYOUT -->
+
+<!-- ========= AI ASSISTANT FAB ========= -->
+<div class="ai-fab" id="aiFab">
+  <div class="ai-chat-panel" id="aiChatPanel">
+    <div class="ai-chat-header">
+      <div class="ai-chat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l2 2"/><circle cx="18" cy="6" r="4" fill="white" stroke="none"/></svg>
+      </div>
+      <div>
+        <div class="ai-chat-name">Lexi — AI Assistant</div>
+        <div class="ai-chat-status">● Online · Powered by AI</div>
+      </div>
+      <button onclick="toggleAIChat()" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:28px;height:28px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ai-messages" id="aiMessages">
+      <div class="ai-msg bot">
+        <div class="ai-msg-bubble">I'm here to help you complete this request form. Let me know if you get stuck!</div>
+      </div>
+    </div>
+    <div class="ai-chat-input-wrap">
+      <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Ask Lexi anything...">
+      <button class="ai-send-btn" onclick="sendAIMessage()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+  <button class="ai-fab-btn" onclick="toggleAIChat()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="white"/><circle cx="12" cy="10" r="1" fill="white"/><circle cx="15" cy="10" r="1" fill="white"/></svg>
+  </button>
+</div>
+
+<!-- ========= TOAST CONTAINER ========= -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ========= SCRIPTS ========= -->
+<script src="js/main.js"></script>
+<script>
+  let currentStep = 1;
+  let selectedService = '';
+  let selectedCategoryText = '';
+  let selectedServiceLabel = '';
+  let specificServiceSelected = '';
+
+  const serviceIcons = {
+    'it-support':       '💻',
+    'hr-request':       '👥',
+    'facility-request': '🏢',
+    'admin-request':    '📋',
+    'access-security':  '🔐',
+    'other-request':    '⚙️'
+  };
+
+  // Per-category service lists — includes 'Other' at the end
+  const categoryServices = {
+    'hr-request': [
+      'Service Letter Request',
+      'Employment Confirmation Letter',
+      'B Card Services',
+      'Personnel Information Change',
+      'Bank Detail Update',
+      'Emergency Contact Update',
+      'Employee ID Card Request',
+      'Welfare Request',
+      'Internal Transfer Request',
+      'Exit Clearance Status',
+      'Other'
+    ],
+    'it-support': [
+      'IT Support Ticket',
+      'Hardware / Asset Request',
+      'Software Installation',
+      'Email Account Setup',
+      'System Access Request',
+      'Password Reset',
+      'Network / WiFi Issue',
+      'Printer / Peripheral Issue',
+      'Other'
+    ],
+    'facility-request': [
+      'General Maintenance Request',
+      'Electrical Issue',
+      'Air Conditioning Issue',
+      'Plumbing Issue',
+      'Cleaning Request',
+      'Furniture / Fixture Request',
+      'Safety Hazard Report',
+      'Other'
+    ],
+    'admin-request': [
+      'Stationery Request',
+      'Courier / Dispatch Service',
+      'Vehicle Booking',
+      'Driver Request',
+      'Other'
+    ],
+    'access-security': [
+      'VPN Access Request',
+      'Firewall Rule Update',
+      'Folder / Server Access',
+      'New User Account Setup',
+      'Account Modification',
+      'Access Card Request',
+      'Other'
+    ],
+    'other-request': [
+      'Other'
+    ]
+  };
+
+  function selectRadioCard(serviceKey, categoryLabel, serviceLabel) {
+    selectedService    = serviceKey;
+    selectedCategoryText = categoryLabel;
+    selectedServiceLabel = '';           // reset until dropdown picked
+    specificServiceSelected = '';
+
+    // Highlight card
+    document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+    const targetCard = document.querySelector(`.radio-card[data-service="${serviceKey}"]`);
+    if (targetCard) targetCard.classList.add('selected');
+
+    // Populate & show the service dropdown panel
+    populateServiceDropdown(serviceKey, categoryLabel);
+
+    // Fill Read-only Category in Step 2 (will be set again on service pick)
+    document.getElementById('serviceCategory').value = categoryLabel;
+  }
+
+  function populateServiceDropdown(serviceKey, categoryLabel) {
+    const panel  = document.getElementById('serviceDropdownPanel');
+    const select = document.getElementById('specificServiceSelect');
+    const icons  = { 'hr-request':'👥', 'it-support':'💻', 'facility-request':'🏢',
+                     'admin-request':'📋', 'access-security':'🔐', 'other-request':'⚙️' };
+
+    // Reset
+    select.innerHTML = '<option value="">— Select a service —</option>';
+    document.getElementById('otherServiceWrap').style.display = 'none';
+    document.getElementById('otherServiceText').value = '';
+
+    // Populate options
+    const services = categoryServices[serviceKey] || ['Other'];
+    services.forEach(svc => {
+      const opt = document.createElement('option');
+      opt.value = svc;
+      opt.textContent = svc;
+      select.appendChild(opt);
+    });
+
+    // Update panel header
+    document.getElementById('sdpCategoryIcon').textContent  = icons[serviceKey] || '💼';
+    document.getElementById('sdpCategoryTitle').textContent = categoryLabel + ' Services';
+
+    // Show panel
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function onSpecificServiceChange() {
+    const val = document.getElementById('specificServiceSelect').value;
+    const otherWrap = document.getElementById('otherServiceWrap');
+
+    if (val === 'Other') {
+      otherWrap.style.display = 'block';
+      document.getElementById('otherServiceText').focus();
+      specificServiceSelected = '';
+    } else {
+      otherWrap.style.display = 'none';
+      specificServiceSelected = val;
+      selectedServiceLabel    = val;
+    }
+  }
+
+  function onOtherServiceInput() {
+    const txt = document.getElementById('otherServiceText').value.trim();
+    specificServiceSelected = txt;
+    selectedServiceLabel    = txt || 'Other';
+  }
+
+  function goToStep(step) {
+    if (step === currentStep) return;
+
+    // Validation
+    if (step > currentStep) {
+      if (currentStep === 1) {
+        if (!selectedService) {
+          showToast('Please select a service category first', '', 'warning');
+          return;
+        }
+        const selectEl = document.getElementById('specificServiceSelect');
+        if (!selectEl.value) {
+          showToast('Please select a specific service', '', 'warning');
+          selectEl.focus();
+          return;
+        }
+        if (selectEl.value === 'Other') {
+          const otherTxt = document.getElementById('otherServiceText').value.trim();
+          if (!otherTxt) {
+            showToast('Please describe your request in the text field', '', 'warning');
+            document.getElementById('otherServiceText').focus();
+            return;
+          }
+          selectedServiceLabel = otherTxt;
+          specificServiceSelected = otherTxt;
+        }
+      }
+      if (currentStep === 2) {
+        if (!validateStep2()) return;
+      }
+    }
+
+    currentStep = step;
+    
+    // Toggle active step templates
+    document.querySelectorAll('.form-step').forEach((el, index) => {
+      el.classList.toggle('active', index + 1 === currentStep);
+    });
+
+    // Update Indicators
+    document.querySelectorAll('.step-dot-wrap').forEach((el, index) => {
+      el.classList.toggle('active', index + 1 === currentStep);
+      el.classList.toggle('completed', index + 1 < currentStep);
+    });
+
+    // Animate Indicator line
+    const progressPercents = { 1: 0, 2: 50, 3: 100 };
+    document.getElementById('stepsLineFill').style.width = `${progressPercents[currentStep]}%`;
+
+    // Toggle navigation buttons visibility
+    const backBtn = document.getElementById('backBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+
+    backBtn.style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+    
+    if (currentStep === 3) {
+      nextBtn.style.display = 'none';
+      submitBtn.style.display = 'inline-flex';
+      prepareSummary();
+    } else {
+      nextBtn.style.display = 'inline-flex';
+      submitBtn.style.display = 'none';
+    }
+  }
+
+  function nextStep() {
+    goToStep(currentStep + 1);
+  }
+
+  function prevStep() {
+    goToStep(currentStep - 1);
+  }
+
+  function validateStep2() {
+    const title = document.getElementById('requestTitle');
+    const desc = document.getElementById('requestDesc');
+    let valid = true;
+
+    if (!title.value.trim()) {
+      title.style.borderColor = 'var(--error)';
+      valid = false;
+      title.addEventListener('input', () => title.style.borderColor = '', { once: true });
+    }
+    if (!desc.value.trim()) {
+      desc.style.borderColor = 'var(--error)';
+      valid = false;
+      desc.addEventListener('input', () => desc.style.borderColor = '', { once: true });
+    }
+
+    if (!valid) {
+      showToast('Please fill out all required fields', '', 'error');
+    }
+    return valid;
+  }
+
+  function prepareSummary() {
+    document.getElementById('reviewIcon').textContent = serviceIcons[selectedService] || '⚙️';
+    document.getElementById('reviewTitleVal').textContent = document.getElementById('requestTitle').value;
+    document.getElementById('reviewCatVal').textContent = `${selectedCategoryText} — ${selectedServiceLabel}`;
+    
+    const priority = document.getElementById('requestPriority').value;
+    const priBadgeColors = {
+      Low: '<span class="badge badge-green">Low</span>',
+      Medium: '<span class="badge badge-blue">Medium</span>',
+      High: '<span class="badge badge-amber">High</span>',
+      Critical: '<span class="badge badge-red">Critical</span>'
+    };
+    document.getElementById('reviewPriorityVal').innerHTML = priBadgeColors[priority] || priority;
+    
+    document.getElementById('reviewDeptVal').textContent = document.getElementById('requestDept').value;
+    
+    const rawDate = document.getElementById('neededDate').value;
+    document.getElementById('reviewDateVal').textContent = rawDate ? new Date(rawDate).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No preference';
+    
+    document.getElementById('reviewLocationVal').textContent = document.getElementById('requestLocation').value;
+    document.getElementById('reviewDescVal').textContent = document.getElementById('requestDesc').value;
+
+    // Files summary
+    const fileInput = document.getElementById('fileUpload');
+    if (fileInput && fileInput.files.length > 0) {
+      const names = Array.from(fileInput.files).map(f => f.name).join(', ');
+      document.getElementById('reviewFileVal').innerHTML = `📎 <span style="font-weight:600">${names}</span>`;
+    } else {
+      document.getElementById('reviewFileVal').textContent = 'No files uploaded';
+    }
+
+    const notes = document.getElementById('additionalNotes').value.trim();
+    document.getElementById('reviewNotesVal').textContent = notes || 'No additional remarks';
+  }
+
+  function submitFinalForm() {
+    // Hide active step panel and navs
+    document.getElementById('step3').style.display = 'none';
+    document.getElementById('formNavigation').style.display = 'none';
+    
+    // Show success panel
+    const successScreen = document.getElementById('successScreen');
+    successScreen.style.display = 'block';
+
+    showToast('Request Raised Successfully!', 'Your request ID is REQ-2025-048.', 'success');
+
+    // Add new request to mock database or trigger a refresh in request-tracking.html
+    // For prototype purposes, let's store the new ticket parameters in sessionStorage
+    const newRequest = {
+      id: 'REQ-2025-048',
+      title: document.getElementById('requestTitle').value,
+      service: selectedServiceLabel,
+      category: selectedCategoryText,
+      priority: document.getElementById('requestPriority').value,
+      status: 'Open',
+      created: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
+      due: document.getElementById('neededDate').value || 'Flexible'
+    };
+    
+    const mockRequests = JSON.parse(sessionStorage.getItem('lc-mock-requests') || '[]');
+    mockRequests.unshift(newRequest);
+    sessionStorage.setItem('lc-mock-requests', JSON.stringify(mockRequests));
+
+    // Redirect to tracking page after animation finishes
+    setTimeout(() => {
+      window.location.href = 'request-tracking.html';
+    }, 2000);
+  }
+
+  // Per-param → [categoryKey, categoryLabel, specificService]
+  const urlServiceMap = {
+    'it-ticket':      ['it-support',        'Information Technology',     'IT Support Ticket'],
+    'service-letter': ['hr-request',        'Human Resources',            'Service Letter Request'],
+    'facility':       ['facility-request',  'Group Facility Management',  'General Maintenance Request'],
+    'password':       ['access-security',   'IT Security',                'Password Reset'],
+    'asset':          ['it-support',        'Information Technology',     'Hardware / Asset Request'],
+    'software':       ['it-support',        'Information Technology',     'Software Installation'],
+    'hr':             ['hr-request',        'Human Resources',            ''],
+    'admin':          ['admin-request',     'Administration',             ''],
+    'vpn':            ['access-security',   'IT Security',                'VPN Access Request'],
+    'b-card':         ['hr-request',        'Human Resources',            'B Card Services'],
+    'bank-update':    ['hr-request',        'Human Resources',            'Bank Detail Update'],
+  };
+
+  // Pre-load logic based on URL params
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const serviceType = params.get('service');
+
+    if (serviceType && urlServiceMap[serviceType]) {
+      const [catKey, catLabel, specificSvc] = urlServiceMap[serviceType];
+
+      // 1. Select the category card
+      selectedService      = catKey;
+      selectedCategoryText = catLabel;
+      document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
+      const card = document.querySelector(`.radio-card[data-service="${catKey}"]`);
+      if (card) card.classList.add('selected');
+      document.getElementById('serviceCategory').value = catLabel;
+
+      // 2. Populate the dropdown
+      populateServiceDropdown(catKey, catLabel);
+
+      // 3. Pre-select the specific service if provided
+      if (specificSvc) {
+        const sel = document.getElementById('specificServiceSelect');
+        sel.value = specificSvc;
+        onSpecificServiceChange();
+        // Smoothly advance to step 2 after a short delay
+        setTimeout(() => goToStep(2), 400);
+      }
+    }
+  });
+</script>
+</body>
+</html>

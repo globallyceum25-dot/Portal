@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Requests — Lyceum Connect</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ── Page-specific overrides ───────────────────────────── */
+    .requests-header {
+      margin-bottom: var(--space-6);
+    }
+    .requests-header h1 {
+      font-size: 1.625rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      margin: 0 0 var(--space-1);
+    }
+    .requests-header p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    /* ── Stat cards row ──────────────────────────────────────── */
+    .req-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+    @media (max-width: 900px) {
+      .req-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .req-stats-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Filter bar ──────────────────────────────────────────── */
+    .filter-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4) var(--space-5);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      align-items: center;
+      margin-bottom: var(--space-5);
+      box-shadow: var(--shadow-xs);
+    }
+    .filter-bar .search-input-wrap {
+      flex: 1;
+      min-width: 200px;
+    }
+    .filter-bar .form-select {
+      min-width: 160px;
+      flex: 0 0 auto;
+    }
+    .filter-bar input[type="date"] {
+      flex: 0 0 auto;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .filter-bar input[type="date"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+    }
+    .filter-bar-actions {
+      display: flex;
+      gap: var(--space-2);
+      flex: 0 0 auto;
+    }
+
+    /* ── Tabs ────────────────────────────────────────────────── */
+    .req-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: var(--space-5);
+    }
+    .req-tab {
+      padding: var(--space-3) var(--space-5);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      white-space: nowrap;
+    }
+    .req-tab:hover { color: var(--primary); }
+    .req-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+    .tab-count {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: var(--radius-full);
+    }
+    .req-tab.active .tab-count {
+      background: rgba(37,99,235,0.1);
+      color: var(--primary);
+    }
+
+    /* ── Table ───────────────────────────────────────────────── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xs);
+      overflow: hidden;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .table thead tr {
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border);
+    }
+    .table thead th {
+      padding: var(--space-3) var(--space-4);
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+    .table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+      cursor: pointer;
+    }
+    .table tbody tr:last-child { border-bottom: none; }
+    .table tbody tr:hover { background: rgba(37,99,235,0.03); }
+    .table tbody td {
+      padding: var(--space-3) var(--space-4);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+    .req-id {
+      font-weight: 600;
+      color: var(--primary);
+      font-family: var(--font-mono, monospace);
+      font-size: 0.8rem;
+    }
+    .req-service {
+      font-weight: 500;
+      color: var(--text-primary);
+      max-width: 220px;
+    }
+    .req-service small {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      font-weight: 400;
+      margin-top: 1px;
+    }
+    .priority-dot {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+    .priority-dot span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .priority-dot.high span { background: #EF4444; }
+    .priority-dot.medium span { background: #F59E0B; }
+    .priority-dot.low span { background: #22C55E; }
+    .priority-dot.high { color: #DC2626; }
+    .priority-dot.medium { color: #D97706; }
+    .priority-dot.low { color: #16A34A; }
+
+    .sla-due { font-size: 0.82rem; color: var(--text-secondary); }
+    .sla-due.overdue { color: #DC2626; font-weight: 600; }
+
+    .cat-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .cat-it { background: var(--primary-100); color: var(--primary); }
+    .cat-hr { background: rgba(168,85,247,0.1); color: #9333EA; }
+    .cat-fm { background: rgba(249,115,22,0.1); color: #EA580C; }
+    .cat-admin { background: rgba(20,184,166,0.1); color: #0D9488; }
+
+    /* ── Detail modal / side panel ──────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      backdrop-filter: blur(2px);
+      align-items: flex-start;
+      justify-content: flex-end;
+    }
+    .modal-overlay.open { display: flex; }
+    .side-panel {
+      width: 520px;
+      max-width: 100vw;
+      height: 100vh;
+      background: var(--surface);
+      box-shadow: var(--shadow-2xl);
+      display: flex;
+      flex-direction: column;
+      animation: slideIn 0.25s cubic-bezier(0.16,1,0.3,1);
+      overflow: hidden;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+    .sp-header {
+      padding: var(--space-5) var(--space-6);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
+    .sp-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-tertiary);
+      padding: var(--space-1);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .sp-close:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+    .sp-title-block { flex: 1; }
+    .sp-req-id {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: monospace;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-1);
+    }
+    .sp-req-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 var(--space-2);
+    }
+    .sp-meta-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .sp-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-5) var(--space-6);
+    }
+    .sp-section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-tertiary);
+      margin-bottom: var(--space-3);
+      margin-top: var(--space-5);
+    }
+    .sp-section-label:first-child { margin-top: 0; }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 9px;
+      top: 10px;
+      bottom: 10px;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: var(--space-5);
+    }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-dot {
+      position: absolute;
+      left: -22px;
+      top: 4px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .timeline-dot.done { border-color: #22C55E; background: #22C55E; }
+    .timeline-dot.active { border-color: var(--primary); background: var(--primary); }
+    .timeline-dot.pending { border-color: var(--border); background: var(--bg-tertiary); }
+    .timeline-dot svg { color: #fff; display: none; }
+    .timeline-dot.done svg, .timeline-dot.active svg { display: block; }
+    .timeline-title {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+    }
+    .timeline-item.pending-step .timeline-title { color: var(--text-tertiary); }
+    .timeline-time {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: 2px;
+    }
+    .timeline-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: var(--space-1);
+      line-height: 1.5;
+    }
+
+    /* Info cards */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+    .info-card {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+    }
+    .info-card-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: var(--space-1);
+    }
+    .info-card-value {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .info-card-sub {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    /* SLA bar */
+    .sla-bar-wrap {
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+    }
+    .sla-bar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-2);
+      font-size: 0.82rem;
+    }
+    .sla-bar-header span:first-child { font-weight: 600; color: var(--text-primary); }
+    .sla-bar-header span:last-child { color: var(--text-tertiary); }
+    .sla-track {
+      height: 8px;
+      background: var(--border);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .sla-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.5s ease;
+    }
+    .sla-fill.good { background: #22C55E; }
+    .sla-fill.warn { background: #F59E0B; }
+    .sla-fill.over { background: #EF4444; }
+
+    /* Comments */
+    .comment-list { margin-bottom: var(--space-4); }
+    .comment-item {
+      display: flex;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .comment-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--brand-dark), var(--primary));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .comment-bubble {
+      flex: 1;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+    }
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--space-1);
+    }
+    .comment-name { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
+    .comment-time { font-size: 0.72rem; color: var(--text-tertiary); }
+    .comment-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; }
+    .comment-input-wrap {
+      display: flex;
+      gap: var(--space-2);
+      align-items: flex-end;
+    }
+    .comment-input-wrap textarea {
+      flex: 1;
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      resize: vertical;
+      min-height: 70px;
+      font-family: var(--font-sans);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .comment-input-wrap textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+    }
+
+    /* Footer actions */
+    .sp-footer {
+      padding: var(--space-4) var(--space-6);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: var(--space-3);
+      background: var(--surface);
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: var(--space-16) var(--space-8);
+    }
+    .empty-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto var(--space-4);
+      color: var(--text-tertiary);
+    }
+    .empty-state h3 { font-size: 1rem; color: var(--text-secondary); margin: 0 0 var(--space-2); }
+    .empty-state p { font-size: 0.875rem; color: var(--text-tertiary); margin: 0; }
+
+    /* Notification dropdown */
+    .notif-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 380px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-2xl);
+      z-index: 500;
+      display: none;
+    }
+    .notif-dropdown.open { display: block; }
+    .notif-header {
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .notif-header h4 { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+    .notif-item {
+      padding: var(--space-3) var(--space-5);
+      display: flex;
+      gap: var(--space-3);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    .notif-item:hover { background: var(--bg-tertiary); }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-dot-badge {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+    .notif-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.4; }
+    .notif-text strong { color: var(--text-primary); }
+    .notif-time { font-size: 0.72rem; color: var(--text-tertiary); margin-top: 2px; display: block; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ══════════════════ SIDEBAR ══════════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <img src="assets/logo.png" alt="Lyceum" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div id="sidebarLogoFallback" style="width:36px;height:36px;background:linear-gradient(135deg,#14222E,#3A9AD9);border-radius:8px;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;display:none;flex-shrink:0">L</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-title">Lyceum Connect</span>
+        <span class="sidebar-logo-sub">Employee Portal</span>
+      </div>
+    </a>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main Menu</div>
+      <a href="index.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+      <a href="service-catalog.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span class="nav-item-text">Service Catalog</span>
+      </a>
+      <a href="request-tracking.html" class="nav-item active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span class="nav-item-text">My Requests</span>
+        <span class="nav-badge">3</span>
+      </a>
+      <div class="sidebar-section-label">Resources</div>
+      <a href="knowledge-center.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-item-text">Knowledge Center</span>
+      </a>
+      <a href="announcements.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Announcements</span>
+        <span class="nav-badge">5</span>
+      </a>
+      <a href="employee-directory.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Employee Directory</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="profile.html" class="sidebar-user">
+        <div class="sidebar-avatar">DJ</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">David Johns</div>
+          <div class="sidebar-user-role">HR Manager</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-search">
+        <div class="search-input-wrap">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" placeholder="Search services, people, documents..." id="globalSearch">
+          <span class="search-shortcut">⌘K</span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <div class="relative" style="position:relative">
+          <button class="topbar-btn" id="notifBtn" onclick="toggleNotifications()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-notif-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <h4>Notifications</h4>
+              <button class="btn btn-ghost btn-sm">Mark all read</button>
+            </div>
+            <div class="notif-item">
+              <div class="notif-dot-badge"></div>
+              <div>
+                <div class="notif-text"><strong>REQ-2025-047</strong> has been assigned to IT Support team.</div>
+                <span class="notif-time">2 hours ago</span>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-dot-badge"></div>
+              <div>
+                <div class="notif-text"><strong>REQ-2025-046</strong> is pending your approval.</div>
+                <span class="notif-time">5 hours ago</span>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-dot-badge" style="background:#22C55E"></div>
+              <div>
+                <div class="notif-text"><strong>REQ-2025-045</strong> has been completed.</div>
+                <span class="notif-time">Yesterday</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="topbar-btn" onclick="toggleDarkMode()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="topbar-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        </button>
+        <div class="topbar-divider"></div>
+        <a href="profile.html" class="topbar-user">
+          <div class="topbar-avatar">DJ</div>
+          <div class="topbar-user-info">
+            <div class="topbar-user-name">David Johns</div>
+            <div class="topbar-user-dept">HR Department</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- Header -->
+      <div class="requests-header">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-3)">
+          <div>
+            <h1>My Requests</h1>
+            <p>Track and manage all your service requests in one place.</p>
+          </div>
+          <a href="service-catalog.html" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Request
+          </a>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="req-stats-grid">
+        <div class="stat-card" onclick="filterByTab('open')" style="cursor:pointer">
+          <div class="stat-icon stat-icon-blue">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <div class="stat-value">2</div>
+            <div class="stat-label">Open</div>
+          </div>
+        </div>
+        <div class="stat-card" onclick="filterByTab('pending')" style="cursor:pointer">
+          <div class="stat-icon stat-icon-amber">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div>
+            <div class="stat-value">1</div>
+            <div class="stat-label">Pending Approval</div>
+          </div>
+        </div>
+        <div class="stat-card" onclick="filterByTab('inprogress')" style="cursor:pointer">
+          <div class="stat-icon stat-icon-purple">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          </div>
+          <div>
+            <div class="stat-value">3</div>
+            <div class="stat-label">In Progress</div>
+          </div>
+        </div>
+        <div class="stat-card" onclick="filterByTab('completed')" style="cursor:pointer">
+          <div class="stat-icon stat-icon-green">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div>
+            <div class="stat-value">14</div>
+            <div class="stat-label">Completed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="search-input-wrap">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" placeholder="Search requests..." id="tableSearch" oninput="filterTable()">
+        </div>
+        <select class="form-select" id="statusFilter" onchange="filterTable()">
+          <option value="">All Statuses</option>
+          <option value="open">Open</option>
+          <option value="pending">Pending Approval</option>
+          <option value="inprogress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select class="form-select" id="deptFilter" onchange="filterTable()">
+          <option value="">All Departments</option>
+          <option value="IT">IT</option>
+          <option value="HR">HR</option>
+          <option value="FM">Facilities</option>
+          <option value="Admin">Admin</option>
+        </select>
+        <input type="date" id="dateFrom" onchange="filterTable()" title="From date">
+        <input type="date" id="dateTo" onchange="filterTable()" title="To date">
+        <div class="filter-bar-actions">
+          <button class="btn btn-outline btn-sm" onclick="clearFilters()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+            Clear
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="exportCSV()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="req-tabs">
+        <div class="req-tab active" data-tab="all" onclick="switchTab('all')">All Requests <span class="tab-count">8</span></div>
+        <div class="req-tab" data-tab="open" onclick="switchTab('open')">Open <span class="tab-count">2</span></div>
+        <div class="req-tab" data-tab="pending" onclick="switchTab('pending')">Pending <span class="tab-count">1</span></div>
+        <div class="req-tab" data-tab="inprogress" onclick="switchTab('inprogress')">In Progress <span class="tab-count">3</span></div>
+        <div class="req-tab" data-tab="completed" onclick="switchTab('completed')">Completed <span class="tab-count">14</span></div>
+      </div>
+
+      <!-- Requests Table -->
+      <div class="table-wrap">
+        <table class="table" id="requestsTable">
+          <thead>
+            <tr>
+              <th>Request ID</th>
+              <th>Service / Description</th>
+              <th>Category</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>SLA Due</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="requestsBody">
+            <!-- Rows rendered by JS -->
+          </tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display:none">
+          <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <h3>No requests found</h3>
+          <p>Try adjusting your filters or search query.</p>
+        </div>
+      </div>
+
+    </main><!-- /page-content -->
+  </div><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<!-- ══════════════════ DETAIL SIDE PANEL ══════════════════ -->
+<div class="modal-overlay" id="detailOverlay" onclick="closePanelOnOverlay(event)">
+  <div class="side-panel" id="detailPanel">
+    <div class="sp-header">
+      <div class="sp-title-block">
+        <div class="sp-req-id" id="sp-id">REQ-2025-047</div>
+        <div class="sp-req-title" id="sp-title">IT Support - Laptop Overheating</div>
+        <div class="sp-meta-row">
+          <span id="sp-status-pill"></span>
+          <span id="sp-priority-badge"></span>
+          <span style="font-size:0.75rem;color:var(--text-tertiary)" id="sp-date"></span>
+        </div>
+      </div>
+      <button class="sp-close" onclick="closePanel()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="sp-body">
+
+      <!-- Timeline -->
+      <div class="sp-section-label">Request Timeline</div>
+      <div class="timeline" id="sp-timeline">
+        <!-- rendered by JS -->
+      </div>
+
+      <!-- Info grid -->
+      <div class="sp-section-label" style="margin-top:var(--space-6)">Request Details</div>
+      <div class="info-grid" id="sp-info-grid">
+        <!-- rendered by JS -->
+      </div>
+
+      <!-- SLA Bar -->
+      <div class="sp-section-label" style="margin-top:var(--space-5)">SLA Progress</div>
+      <div class="sla-bar-wrap">
+        <div class="sla-bar-header">
+          <span id="sp-sla-label">On Track</span>
+          <span id="sp-sla-pct">68%</span>
+        </div>
+        <div class="sla-track">
+          <div class="sla-fill good" id="sp-sla-fill" style="width:68%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:var(--space-1);font-size:0.72rem;color:var(--text-tertiary)">
+          <span id="sp-sla-start"></span>
+          <span id="sp-sla-due"></span>
+        </div>
+      </div>
+
+      <!-- Comments -->
+      <div class="sp-section-label" style="margin-top:var(--space-6)">Activity & Comments</div>
+      <div class="comment-list" id="sp-comments">
+        <!-- rendered by JS -->
+      </div>
+
+      <div class="comment-input-wrap">
+        <textarea placeholder="Add a comment or update…" id="newComment"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="addComment()">Post</button>
+      </div>
+
+    </div>
+    <div class="sp-footer">
+      <button class="btn btn-outline" onclick="closePanel()">Close</button>
+      <button class="btn btn-primary" onclick="addComment()">Add Comment</button>
+      <button class="btn btn-secondary" style="margin-left:auto" onclick="closeRequest()">Close Request</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+let requests = [
+  {
+    id: 'REQ-2025-047', service: 'IT Support - Laptop Overheating', cat: 'IT',
+    priority: 'high', status: 'inprogress',
+    created: '28 May 2025', sla: '29 May 2025', slaOverdue: true,
+    assignedTo: 'Mark Johnson', assignedDept: 'IT Support',
+    requestor: 'David Johns', requestorDept: 'HR Department',
+    slaPct: 95,
+    comments: [
+      { initials: 'MJ', name: 'Mark Johnson', time: '28 May, 10:42 AM', text: 'Ticket received and assigned. Reviewing hardware diagnostics.' },
+      { initials: 'DJ', name: 'David Johns', time: '28 May, 11:15 AM', text: 'Please note the laptop also shuts down intermittently under load.' },
+      { initials: 'MJ', name: 'Mark Johnson', time: '28 May, 3:00 PM', text: 'Running thermal tests. Likely dust clog in cooling fan — will clean or replace.' }
+    ],
+    timeline: [
+      { label: 'Submitted', time: '28 May 2025, 09:30 AM', desc: 'Request submitted via Service Portal', state: 'done' },
+      { label: 'Under Review', time: '28 May 2025, 09:45 AM', desc: 'Ticket reviewed and categorised as hardware issue', state: 'done' },
+      { label: 'Approved', time: '28 May 2025, 10:00 AM', desc: 'Approved by IT Manager for hardware intervention', state: 'done' },
+      { label: 'In Progress', time: '28 May 2025, 10:42 AM', desc: 'Assigned to Mark Johnson, IT Support Level 2', state: 'active' },
+      { label: 'Completed', time: '—', desc: 'Pending resolution', state: 'pending' }
+    ]
+  },
+  {
+    id: 'REQ-2025-046', service: 'Service Letter Request', cat: 'HR',
+    priority: 'medium', status: 'pending',
+    created: '27 May 2025', sla: '30 May 2025', slaOverdue: false,
+    assignedTo: 'Fatima Al-Rashid', assignedDept: 'HR Department',
+    requestor: 'David Johns', requestorDept: 'HR Department',
+    slaPct: 45,
+    comments: [
+      { initials: 'FA', name: 'Fatima Al-Rashid', time: '27 May, 2:15 PM', text: 'Request received. Pending line manager approval before processing.' }
+    ],
+    timeline: [
+      { label: 'Submitted', time: '27 May 2025, 01:20 PM', desc: 'Request submitted via Service Portal', state: 'done' },
+      { label: 'Under Review', time: '27 May 2025, 02:10 PM', desc: 'Request reviewed by HR team', state: 'done' },
+      { label: 'Approved', time: '—', desc: 'Awaiting line manager approval', state: 'active' },
+      { label: 'In Progress', time: '—', desc: 'Pending approval', state: 'pending' },
+      { label: 'Completed', time: '—', desc: 'Pending', state: 'pending' }
+    ]
+  },
+  {
+    id: 'REQ-2025-045', service: 'Company Vehicle Booking - VIP Shuttle', cat: 'Admin',
+    priority: 'low', status: 'completed',
+    created: '25 May 2025', sla: '25 May 2025', slaOverdue: false,
+    assignedTo: 'Omar Hassan', assignedDept: 'Admin & Facilities',
+    requestor: 'David Johns', requestorDept: 'HR Department',
+    slaPct: 100,
+    comments: [
+      { initials: 'OH', name: 'Omar Hassan', time: '25 May, 08:55 AM', text: 'Shuttle vehicle booking confirmed for VIP delegation.' }
+    ],
+    timeline: [
+      { label: 'Submitted', time: '25 May 2025, 08:00 AM', desc: 'Vehicle booking request submitted', state: 'done' },
+      { label: 'Under Review', time: '25 May 2025, 08:30 AM', desc: 'Vehicle availability checked', state: 'done' },
+      { label: 'Approved', time: '25 May 2025, 08:45 AM', desc: 'Booking approved and vehicle assigned', state: 'done' },
+      { label: 'In Progress', time: '25 May 2025, 10:00 AM', desc: 'Driver assigned and route mapped', state: 'done' },
+      { label: 'Completed', time: '25 May 2025, 01:00 PM', desc: 'Shuttle transport completed successfully', state: 'done' }
+    ]
+  },
+  {
+    id: 'REQ-2025-044', service: 'AC Not Working - Office 3B', cat: 'FM',
+    priority: 'high', status: 'inprogress',
+    created: '24 May 2025', sla: '25 May 2025', slaOverdue: true,
+    assignedTo: 'Ravi Kumar', assignedDept: 'Facilities Management',
+    requestor: 'David Johns', requestorDept: 'HR Department',
+    slaPct: 110,
+    comments: [
+      { initials: 'RK', name: 'Ravi Kumar', time: '24 May, 11:00 AM', text: 'Technician dispatched. Identified compressor fault — spare part ordered.' },
+      { initials: 'DJ', name: 'David Johns', time: '25 May, 09:00 AM', text: 'Temperature in office 3B is unbearable. Please escalate.' }
+    ],
+    timeline: [
+      { label: 'Submitted', time: '24 May 2025, 09:30 AM', desc: 'AC fault reported via portal', state: 'done' },
+      { label: 'Under Review', time: '24 May 2025, 10:00 AM', desc: 'FM team acknowledged and dispatched technician', state: 'done' },
+      { label: 'Approved', time: '24 May 2025, 10:30 AM', desc: 'Repair work approved', state: 'done' },
+      { label: 'In Progress', time: '24 May 2025, 11:00 AM', desc: 'Awaiting spare part delivery', state: 'active' },
+      { label: 'Completed', time: '—', desc: 'Pending part replacement', state: 'pending' }
+    ]
+  },
+  {
+    id: 'REQ-2025-043', service: 'Software Installation - Adobe', cat: 'IT',
+    priority: 'medium', status: 'open',
+    created: '23 May 2025', sla: '28 May 2025', slaOverdue: false,
+    assignedTo: 'Unassigned', assignedDept: 'IT Department',
+    requestor: 'David Johns', requestorDept: 'HR Department',
+    slaPct: 20,
+    comments: [],
+    timeline: [
+      { label: 'Submitted', time: '23 May 2025, 02:15 PM', desc: 'Software request submitted with license justification', state: 'done' },
+      { label: 'Under Review', time: '—', desc: 'Awaiting IT team review', state: 'active' },
+      { label: 'Approved', time: '—', desc: 'Pending approval', state: 'pending' },
+      { label: 'In Progress', time: '—', desc: 'Pending', state: 'pending' },
+      { label: 'Completed', time: '—', desc: 'Pending', state: 'pending' }
+    ]
+  },
+  {
+    id: 'REQ-2025-042', service: 'Bank Detail Update', cat: 'HR',
+    priority: 'low', status: 'completed',
+    created: '20 May 2025', sla: '22 May 2025', slaOverdue: false,
+    assignedTo: 'Fatima Al-Rashid', assignedDept: 'HR Department',
+    requestor: 'David Johns', requestorDept: 'HR Department',
+    slaPct: 100,
+    comments: [
+      { initials: 'FA', name: 'Fatima Al-Rashid', time: '21 May, 10:00 AM', text: 'Bank details have been updated in the payroll system. Changes effective next cycle.' }
+    ],
+    timeline: [
+      { label: 'Submitted', time: '20 May 2025, 09:00 AM', desc: 'Bank detail update request submitted', state: 'done' },
+      { label: 'Under Review', time: '20 May 2025, 10:30 AM', desc: 'Documents verified', state: 'done' },
+      { label: 'Approved', time: '21 May 2025, 09:00 AM', desc: 'Approved by Payroll Manager', state: 'done' },
+      { label: 'In Progress', time: '21 May 2025, 09:30 AM', desc: 'Updating records in HR system', state: 'done' },
+      { label: 'Completed', time: '21 May 2025, 10:00 AM', desc: 'Bank details updated successfully', state: 'done' }
+    ]
+  },
+  {
+    id: 'REQ-2025-041', service: 'Stationery Request', cat: 'Admin',
+    priority: 'low', status: 'completed',
+    created: '18 May 2025', sla: '20 May 2025', slaOverdue: false,
+    assignedTo: 'Omar Hassan', assignedDept: 'Admin & Facilities',
+    requestor: 'David Johns', requestorDept: 'HR Department',
+    slaPct: 100,
+    comments: [
+      { initials: 'OH', name: 'Omar Hassan', time: '19 May, 03:30 PM', text: 'Stationery items delivered to HR office.' }
+    ],
+    timeline: [
+      { label: 'Submitted', time: '18 May 2025, 10:00 AM', desc: 'Stationery list submitted', state: 'done' },
+      { label: 'Under Review', time: '18 May 2025, 11:00 AM', desc: 'Stock availability confirmed', state: 'done' },
+      { label: 'Approved', time: '18 May 2025, 11:30 AM', desc: 'Request approved', state: 'done' },
+      { label: 'In Progress', time: '19 May 2025, 02:00 PM', desc: 'Items being prepared for delivery', state: 'done' },
+      { label: 'Completed', time: '19 May 2025, 03:30 PM', desc: 'Items delivered to HR office', state: 'done' }
+    ]
+  },
+  {
+    id: 'REQ-2025-040', service: 'VPN Access Request', cat: 'IT',
+    priority: 'high', status: 'completed',
+    created: '15 May 2025', sla: '17 May 2025', slaOverdue: false,
+    assignedTo: 'Mark Johnson', assignedDept: 'IT Support',
+    requestor: 'David Johns', requestorDept: 'HR Department',
+    slaPct: 100,
+    comments: [
+      { initials: 'MJ', name: 'Mark Johnson', time: '16 May, 09:00 AM', text: 'VPN credentials provisioned and sent to your email.' }
+    ],
+    timeline: [
+      { label: 'Submitted', time: '15 May 2025, 08:00 AM', desc: 'VPN access request submitted', state: 'done' },
+      { label: 'Under Review', time: '15 May 2025, 09:00 AM', desc: 'Security review conducted', state: 'done' },
+      { label: 'Approved', time: '15 May 2025, 02:00 PM', desc: 'Access approved by IT Security', state: 'done' },
+      { label: 'In Progress', time: '16 May 2025, 08:30 AM', desc: 'Provisioning VPN account', state: 'done' },
+      { label: 'Completed', time: '16 May 2025, 09:00 AM', desc: 'VPN credentials sent to user email', state: 'done' }
+    ]
+  }
+];
+
+// Load session storage requests
+(function loadSessionRequests() {
+  const mockSession = JSON.parse(sessionStorage.getItem('lc-mock-requests') || '[]');
+  const catMap = {
+    'Information Technology': 'IT',
+    'Human Resources': 'HR',
+    'Group Facility Management': 'FM',
+    'Administration': 'Admin',
+    'IT Security': 'IT',
+    'General Support': 'Admin',
+    'IT Support Request': 'IT',
+    'HR Service Request': 'HR',
+    'Facility Request': 'FM',
+    'Administrative Request': 'Admin',
+    'Access & Security Request': 'IT'
+  };
+  mockSession.forEach(r => {
+    if (requests.some(req => req.id === r.id)) return;
+    
+    const mappedCat = catMap[r.category] || catMap[r.service] || 'Admin';
+    const cleanPriority = (r.priority || 'medium').toLowerCase();
+    const cleanStatus = (r.status || 'open').toLowerCase();
+
+    requests.unshift({
+      id: r.id,
+      service: r.title,
+      cat: mappedCat,
+      priority: cleanPriority,
+      status: cleanStatus,
+      created: r.created,
+      sla: r.due === 'Flexible' ? '30 May 2025' : r.due,
+      slaOverdue: false,
+      assignedTo: 'Unassigned',
+      assignedDept: mappedCat + ' Support Desk',
+      requestor: 'David Johns',
+      requestorDept: 'HR Department',
+      slaPct: 10,
+      comments: [],
+      timeline: [
+        { label: 'Submitted', time: r.created + ', 02:00 PM', desc: 'Request submitted via Service Portal', state: 'done' },
+        { label: 'Under Review', time: '—', desc: 'Awaiting team review', state: 'active' },
+        { label: 'Approved', time: '—', desc: 'Pending', state: 'pending' },
+        { label: 'In Progress', time: '—', desc: 'Pending', state: 'pending' },
+        { label: 'Completed', time: '—', desc: 'Pending', state: 'pending' }
+      ]
+    });
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════
+// RENDER TABLE
+// ═══════════════════════════════════════════════════════════
+const statusConfig = {
+  open:        { label: 'Open',             cls: 'status-pill status-open' },
+  pending:     { label: 'Pending Approval', cls: 'status-pill status-pending' },
+  inprogress:  { label: 'In Progress',      cls: 'status-pill status-inprogress' },
+  completed:   { label: 'Completed',        cls: 'status-pill status-completed' }
+};
+const catConfig = {
+  IT:    'cat-it',
+  HR:    'cat-hr',
+  FM:    'cat-fm',
+  Admin: 'cat-admin'
+};
+const priorityConfig = {
+  high:   { label: 'High',   cls: 'high'   },
+  medium: { label: 'Medium', cls: 'medium' },
+  low:    { label: 'Low',    cls: 'low'    }
+};
+
+let activeTab = 'all';
+let currentRequests = [...requests];
+
+function renderTable(data) {
+  const tbody = document.getElementById('requestsBody');
+  const empty = document.getElementById('emptyState');
+  if (!data.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = data.map(r => {
+    const sc = statusConfig[r.status];
+    const pc = priorityConfig[r.priority];
+    return `
+    <tr onclick="openPanel('${r.id}')">
+      <td><span class="req-id">${r.id}</span></td>
+      <td><div class="req-service">${r.service}</div></td>
+      <td><span class="cat-badge ${catConfig[r.cat]}">${r.cat}</span></td>
+      <td>
+        <span class="priority-dot ${pc.cls}">
+          <span></span>${pc.label}
+        </span>
+      </td>
+      <td><span class="${sc.cls}">${sc.label}</span></td>
+      <td style="font-size:0.82rem;color:var(--text-secondary)">${r.created}</td>
+      <td><span class="sla-due ${r.slaOverdue ? 'overdue' : ''}">${r.sla}${r.slaOverdue ? ' ⚠' : ''}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openPanel('${r.id}')">
+          View
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterTable() {
+  const q = document.getElementById('tableSearch').value.toLowerCase();
+  const s = document.getElementById('statusFilter').value;
+  const d = document.getElementById('deptFilter').value;
+
+  let filtered = requests.filter(r => {
+    const matchTab = activeTab === 'all' || r.status === activeTab;
+    const matchQ   = !q || r.id.toLowerCase().includes(q) || r.service.toLowerCase().includes(q);
+    const matchS   = !s || r.status === s;
+    const matchD   = !d || r.cat === d;
+    return matchTab && matchQ && matchS && matchD;
+  });
+  currentRequests = filtered;
+  renderTable(filtered);
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.req-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  filterTable();
+}
+
+function filterByTab(tab) {
+  switchTab(tab);
+  document.getElementById('statusFilter').value = tab;
+}
+
+function clearFilters() {
+  document.getElementById('tableSearch').value = '';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('deptFilter').value = '';
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value = '';
+  activeTab = 'all';
+  document.querySelectorAll('.req-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'all'));
+  renderTable(requests);
+}
+
+function exportCSV() {
+  const rows = [['Request ID','Service','Category','Priority','Status','Created','SLA Due']];
+  currentRequests.forEach(r => {
+    rows.push([r.id, `"${r.service}"`, r.cat, r.priority, r.status, r.created, r.sla]);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'my-requests.csv';
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDE PANEL
+// ═══════════════════════════════════════════════════════════
+function openPanel(id) {
+  const r = requests.find(x => x.id === id);
+  if (!r) return;
+
+  const sc = statusConfig[r.status];
+  const pc = priorityConfig[r.priority];
+
+  document.getElementById('sp-id').textContent    = r.id;
+  document.getElementById('sp-title').textContent = r.service;
+  document.getElementById('sp-date').textContent  = 'Created: ' + r.created;
+
+  const statusEl = document.getElementById('sp-status-pill');
+  statusEl.className = sc.cls;
+  statusEl.textContent = sc.label;
+
+  const priEl = document.getElementById('sp-priority-badge');
+  priEl.className = `priority-dot ${pc.cls}`;
+  priEl.innerHTML = `<span></span>${pc.label} Priority`;
+
+  // Timeline
+  document.getElementById('sp-timeline').innerHTML = r.timeline.map(t => `
+    <div class="timeline-item ${t.state === 'pending' ? 'pending-step' : ''}">
+      <div class="timeline-dot ${t.state}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="timeline-title">${t.label}</div>
+      <div class="timeline-time">${t.time}</div>
+      <div class="timeline-desc">${t.desc}</div>
+    </div>
+  `).join('');
+
+  // Info grid
+  document.getElementById('sp-info-grid').innerHTML = `
+    <div class="info-card">
+      <div class="info-card-label">Requested By</div>
+      <div class="info-card-value">${r.requestor}</div>
+      <div class="info-card-sub">${r.requestorDept}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Assigned To</div>
+      <div class="info-card-value">${r.assignedTo}</div>
+      <div class="info-card-sub">${r.assignedDept}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">Category</div>
+      <div class="info-card-value">${r.cat}</div>
+      <div class="info-card-sub">${r.assignedDept}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-card-label">SLA Deadline</div>
+      <div class="info-card-value" style="${r.slaOverdue ? 'color:#DC2626' : ''}">${r.sla}</div>
+      <div class="info-card-sub">${r.slaOverdue ? '⚠ Overdue' : 'On Track'}</div>
+    </div>
+  `;
+
+  // SLA
+  const pct = Math.min(r.slaPct, 110);
+  const fillCls = pct >= 100 ? 'over' : pct >= 70 ? 'warn' : 'good';
+  const fillW   = Math.min(pct, 100);
+  document.getElementById('sp-sla-label').textContent = pct >= 100 ? 'Overdue' : pct >= 70 ? 'At Risk' : 'On Track';
+  document.getElementById('sp-sla-pct').textContent   = pct + '%';
+  const fill = document.getElementById('sp-sla-fill');
+  fill.className = `sla-fill ${fillCls}`;
+  fill.style.width = fillW + '%';
+  document.getElementById('sp-sla-start').textContent = 'Started: ' + r.created;
+  document.getElementById('sp-sla-due').textContent   = 'Due: ' + r.sla;
+
+  // Comments
+  const cList = document.getElementById('sp-comments');
+  if (r.comments.length) {
+    cList.innerHTML = r.comments.map(c => `
+      <div class="comment-item">
+        <div class="comment-avatar">${c.initials}</div>
+        <div class="comment-bubble">
+          <div class="comment-header">
+            <span class="comment-name">${c.name}</span>
+            <span class="comment-time">${c.time}</span>
+          </div>
+          <div class="comment-text">${c.text}</div>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    cList.innerHTML = '<p style="font-size:0.82rem;color:var(--text-tertiary);text-align:center;padding:var(--space-4)">No comments yet. Be the first to add one.</p>';
+  }
+
+  document.getElementById('detailOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePanel() {
+  document.getElementById('detailOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closePanelOnOverlay(e) {
+  if (e.target === document.getElementById('detailOverlay')) closePanel();
+}
+
+function addComment() {
+  const ta = document.getElementById('newComment');
+  const text = ta.value.trim();
+  if (!text) return;
+  const cList = document.getElementById('sp-comments');
+  const p = cList.querySelector('p');
+  if (p) p.remove();
+  const now = new Date();
+  const timeStr = now.toLocaleString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  const div = document.createElement('div');
+  div.className = 'comment-item';
+  div.innerHTML = `
+    <div class="comment-avatar">DJ</div>
+    <div class="comment-bubble">
+      <div class="comment-header">
+        <span class="comment-name">David Johns</span>
+        <span class="comment-time">${timeStr}</span>
+      </div>
+      <div class="comment-text">${text}</div>
+    </div>
+  `;
+  cList.appendChild(div);
+  ta.value = '';
+  cList.scrollTop = cList.scrollHeight;
+}
+
+function closeRequest() {
+  closePanel();
+  alert('Request closed successfully.');
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+function toggleNotifications() {
+  document.getElementById('notifDropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const btn = document.getElementById('notifBtn');
+  const dd  = document.getElementById('notifDropdown');
+  if (!btn.contains(e.target) && !dd.contains(e.target)) dd.classList.remove('open');
+});
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+renderTable(requests);
+lucide.createIcons();
+</script>
+</body>
+</html>

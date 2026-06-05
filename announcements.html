@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lyceum Connect News and Announcements. Stay updated with HR policies, IT maintenance alerts, and staff achievements.">
+  <title>Announcements & News — Lyceum Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Announcements Page Custom Styling */
+    .annc-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: var(--space-6);
+    }
+    @media (max-width: 1024px) {
+      .annc-layout { grid-template-columns: 1fr; }
+    }
+
+    /* Tabs */
+    .annc-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--space-5);
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .annc-tabs::-webkit-scrollbar { display: none; }
+    .annc-tab {
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-radius: var(--radius-full);
+      background: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+    }
+    .annc-tab:hover {
+      color: var(--primary);
+      background: var(--bg-tertiary);
+    }
+    .annc-tab.active {
+      background: var(--primary-50);
+      color: var(--primary);
+      border-color: var(--primary-200);
+    }
+
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+      flex-wrap: wrap;
+    }
+    .filter-search {
+      flex: 1;
+      min-width: 200px;
+    }
+    .filter-select {
+      width: 160px;
+    }
+    
+    /* Pinned Post Card */
+    .pinned-card {
+      background: linear-gradient(135deg, var(--primary-50) 0%, rgba(255,255,255,0.9) 100%);
+      border: 1.5px solid var(--primary-300);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      margin-bottom: var(--space-6);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      animation: fadeIn var(--transition-base);
+    }
+    [data-theme="dark"] .pinned-card {
+      background: linear-gradient(135deg, rgba(58,154,217,0.15) 0%, var(--surface) 100%);
+      border-color: var(--primary-800);
+    }
+    .pinned-badge {
+      position: absolute;
+      top: var(--space-4);
+      right: var(--space-4);
+      background: var(--primary);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Social Feed Cards */
+    .feed-container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+    .feed-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+      position: relative;
+      animation: slideUp var(--transition-base);
+    }
+    .feed-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-3);
+    }
+    .feed-badge-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .unread-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: inline-block;
+    }
+    .feed-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: var(--space-2);
+    }
+    .feed-preview {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: var(--space-4);
+    }
+    .feed-meta {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      border-top: 1px solid var(--border-light);
+      padding-top: var(--space-3);
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .social-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color var(--transition-fast);
+    }
+    .social-btn:hover {
+      color: var(--primary);
+    }
+    .social-btn.liked {
+      color: var(--error);
+      font-weight: 700;
+    }
+    .bookmark-btn {
+      margin-left: auto;
+      cursor: pointer;
+      color: var(--text-tertiary);
+      font-size: 14px;
+      transition: color var(--transition-fast);
+    }
+    .bookmark-btn:hover, .bookmark-btn.active {
+      color: var(--primary);
+    }
+
+    /* Event Widgets */
+    .event-widget-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .event-widget-item:last-child {
+      border-bottom: none;
+    }
+    .event-date-box {
+      width: 48px;
+      height: 48px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      flex-shrink: 0;
+    }
+    .ed-day { font-size: 16px; font-weight: 800; color: var(--primary); line-height: 1; }
+    .ed-month { font-size: 9px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-top: 2px; }
+
+    /* Photo Gallery */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+    }
+    .gallery-item {
+      border-radius: var(--radius-md);
+      height: 72px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-end;
+      padding: 6px;
+      box-shadow: var(--shadow-xs);
+      transition: all var(--transition-fast);
+    }
+    .gallery-item:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-sm);
+    }
+    .gallery-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.65) 100%);
+    }
+    .gallery-title {
+      position: relative;
+      z-index: 1;
+      font-size: 9px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ========= SIDEBAR ========= -->
+  <aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <img src="assets/logo.png" alt="Lyceum" id="sidebarLogo"
+           onerror="this.style.display='none';document.getElementById('sidebarLogoFallback').style.display='flex'">
+      <div id="sidebarLogoFallback" style="width:36px;height:36px;background:linear-gradient(135deg,#14222E,#3A9AD9);border-radius:8px;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;display:none;flex-shrink:0">L</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-title">Lyceum Connect</span>
+        <span class="sidebar-logo-sub">Employee Portal</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main Menu</div>
+
+      <a href="index.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+
+      <a href="service-catalog.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span class="nav-item-text">Service Catalog</span>
+      </a>
+
+      <a href="request-tracking.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">My Requests</span>
+        <span class="nav-badge">3</span>
+      </a>
+
+      <div class="sidebar-section-label">Resources</div>
+
+      <a href="knowledge-center.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-item-text">Knowledge Center</span>
+      </a>
+
+      <a href="announcements.html" class="nav-item active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Announcements</span>
+        <span class="nav-badge">5</span>
+      </a>
+
+      <a href="employee-directory.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Employee Directory</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="profile.html" class="sidebar-user">
+        <div class="sidebar-avatar">DJ</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">David Johns</div>
+          <div class="sidebar-user-role">HR Manager</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      <!-- Global Search -->
+      <div class="topbar-search relative">
+        <div class="search-input-wrap">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" placeholder="Search services, people, documents..." id="globalSearch" autocomplete="off">
+          <span class="search-shortcut">⌘K</span>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Notifications -->
+        <div class="relative">
+          <button class="topbar-btn" id="notifBtn" onclick="toggleNotifications()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-notif-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <span class="notif-title">Notifications</span>
+              <span class="notif-count">5</span>
+            </div>
+            <div class="notif-list">
+              <div class="notif-item unread">
+                <div class="notif-content">
+                  <div class="notif-text">Maintenance update: Saturday June 7</div>
+                  <div class="notif-time">2 hours ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="topbar-btn" onclick="toggleDarkMode()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+
+        <a href="profile.html" class="topbar-user" id="topbarUser">
+          <div class="topbar-avatar">DJ</div>
+          <div class="topbar-user-info">
+            <div class="topbar-user-name">David Johns</div>
+            <div class="topbar-user-dept">HR Department</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Announcements & News</span>
+      </nav>
+
+      <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-4)">
+        <div>
+          <h1 class="page-title">Announcements & News</h1>
+          <p class="page-subtitle">Stay up to date with the latest organization highlights, alerts, and achievements.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="markAllAsRead()">✓ Mark all as read</button>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="annc-tabs">
+        <button class="annc-tab active" onclick="filterCategory('all', this)">All News</button>
+        <button class="annc-tab" onclick="filterCategory('hr', this)">HR Notices</button>
+        <button class="annc-tab" onclick="filterCategory('it', this)">IT Notices</button>
+        <button class="annc-tab" onclick="filterCategory('facility', this)">Facility Notices</button>
+        <button class="annc-tab" onclick="filterCategory('circular', this)">Company Circulars</button>
+        <button class="annc-tab" onclick="filterCategory('event', this)">Events</button>
+        <button class="annc-tab" onclick="filterCategory('achievement', this)">Achievements</button>
+      </div>
+
+      <!-- Feed Layout Grid -->
+      <div class="annc-layout">
+        
+        <!-- LEFT COLUMN: Announcements feed -->
+        <div>
+          
+          <!-- FEATURED / PINNED ANNOUNCEMENT -->
+          <div class="pinned-card" id="pinnedPost" data-cat="hr">
+            <span class="pinned-badge">📌 Pinned Announcement</span>
+            <div class="annc-tag" style="color:var(--primary); font-weight:700">HR Notice</div>
+            <h2 class="feed-title" style="font-size:20px; margin-top:8px">Annual Performance Reviews — June 2025</h2>
+            <p class="feed-preview">
+              The annual performance evaluation cycle begins this June. All department leads are requested to coordinate with their team members for self-assessments. Initial scoring templates must be completed and submitted to the HR desk by June 30, 2025. Please review the performance guidelines in the Knowledge Center for further details on evaluation parameters.
+            </p>
+            <div class="feed-meta">
+              <span class="meta-item">🕒 June 2, 2025</span>
+              <span class="meta-item">👤 Posted by: HR Department</span>
+              <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="openAnnouncementModal('Annual Performance Reviews — June 2025', 'HR Notice', 'The annual performance evaluation cycle begins this June. All department leads are requested to coordinate with their team members for self-assessments. Initial scoring templates must be completed and submitted to the HR desk by June 30, 2025. Please review the performance guidelines in the Knowledge Center for further details on evaluation parameters.', 'HR Department', 'June 2, 2025')">Read Full Notice</button>
+            </div>
+          </div>
+
+          <!-- Feed Filter search -->
+          <div class="filter-bar">
+            <div class="topbar-search filter-search" style="max-width:none">
+              <div class="search-input-wrap">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" class="search-input" placeholder="Filter announcements by keyword..." id="feedSearch" oninput="searchFeed(this.value)">
+              </div>
+            </div>
+            <select class="form-control form-select filter-select" id="feedOrder" onchange="orderFeed(this.value)">
+              <option value="newest">Newest First</option>
+              <option value="popular">Most Liked</option>
+            </select>
+          </div>
+
+          <!-- FEED CONTAINER -->
+          <div class="feed-container" id="feedContainer">
+            <!-- Feed items dynamically populated or statically listed -->
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Sidebars -->
+        <div style="display:flex; flex-direction:column; gap:var(--space-5)">
+
+          <!-- Upcoming Events Widget -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📅 Events Calendar</h3>
+            </div>
+            <div class="card-body">
+              
+              <div class="event-widget-item">
+                <div class="event-date-box">
+                  <span class="ed-day">07</span>
+                  <span class="ed-month">Jun</span>
+                </div>
+                <div>
+                  <div style="font-size:13px; font-weight:700; color:var(--text-primary)">IT System Maintenance</div>
+                  <div style="font-size:11px; color:var(--text-secondary)">Saturday, 11:00 PM - 03:00 AM</div>
+                </div>
+              </div>
+
+              <div class="event-widget-item">
+                <div class="event-date-box" style="background:#FFE4E6">
+                  <span class="ed-day" style="color:#EF4444">10</span>
+                  <span class="ed-month">Jun</span>
+                </div>
+                <div>
+                  <div style="font-size:13px; font-weight:700; color:var(--text-primary)">Mandatory Fire Drill</div>
+                  <div style="font-size:11px; color:var(--text-secondary)">HQ Office Building, 10:00 AM</div>
+                </div>
+              </div>
+
+              <div class="event-widget-item">
+                <div class="event-date-box" style="background:#F3E8FF">
+                  <span class="ed-day" style="color:#7C3AED">15</span>
+                  <span class="ed-month">Jun</span>
+                </div>
+                <div>
+                  <div style="font-size:13px; font-weight:700; color:var(--text-primary)">Q2 All-Hands Meeting</div>
+                  <div style="font-size:11px; color:var(--text-secondary)">Auditorium / Online, 02:00 PM</div>
+                </div>
+              </div>
+
+              <div class="event-widget-item">
+                <div class="event-date-box" style="background:#FEF3C7">
+                  <span class="ed-day" style="color:#D97706">20</span>
+                  <span class="ed-month">Jun</span>
+                </div>
+                <div>
+                  <div style="font-size:13px; font-weight:700; color:var(--text-primary)">Annual Sports Day</div>
+                  <div style="font-size:11px; color:var(--text-secondary)">Lyceum Sports Ground, All Day</div>
+                </div>
+              </div>
+
+              <div class="event-widget-item">
+                <div class="event-date-box" style="background:#D1FAE5">
+                  <span class="ed-day" style="color:#10B981">30</span>
+                  <span class="ed-month">Jun</span>
+                </div>
+                <div>
+                  <div style="font-size:13px; font-weight:700; color:var(--text-primary)">Q2 Town Hall Meeting</div>
+                  <div style="font-size:11px; color:var(--text-secondary)">Virtual Stream, 11:00 AM</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Photo Gallery Widget -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">📸 Recent Photos</h3>
+            </div>
+            <div class="card-body">
+              <p style="font-size:11px; color:var(--text-tertiary)">Snapshots from our corporate community events.</p>
+              
+              <div class="gallery-grid">
+                
+                <div class="gallery-item" style="background-image: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)" onclick="viewPhoto('Sports Day Kickoff', 'linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)')">
+                  <div class="gallery-overlay"></div>
+                  <span class="gallery-title">Sports Day Kickoff</span>
+                </div>
+
+                <div class="gallery-item" style="background-image: linear-gradient(135deg, #10B981 0%, #065F46 100%)" onclick="viewPhoto('Office Redesign', 'linear-gradient(135deg, #10B981 0%, #065F46 100%)')">
+                  <div class="gallery-overlay"></div>
+                  <span class="gallery-title">Office Redesign</span>
+                </div>
+
+                <div class="gallery-item" style="background-image: linear-gradient(135deg, #F59E0B 0%, #92400E 100%)" onclick="viewPhoto('Q1 Townhall Q&A', 'linear-gradient(135deg, #F59E0B 0%, #92400E 100%)')">
+                  <div class="gallery-overlay"></div>
+                  <span class="gallery-title">Q1 Townhall Q&A</span>
+                </div>
+
+                <div class="gallery-item" style="background-image: linear-gradient(135deg, #EC4899 0%, #9D174D 100%)" onclick="viewPhoto('Staff Induction', 'linear-gradient(135deg, #EC4899 0%, #9D174D 100%)')">
+                  <div class="gallery-overlay"></div>
+                  <span class="gallery-title">Staff Induction</span>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div><!-- /MAIN CONTENT -->
+</div><!-- /APP LAYOUT -->
+
+<!-- Announcement Detail Modal -->
+<div class="modal-overlay" id="anncModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title" style="font-size: 16px" id="modalAnncTitle">Title</h3>
+        <span class="badge badge-blue" style="font-size: 10px; margin-top:4px" id="modalAnncTag">Tag</span>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="closeModal('anncModal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding: var(--space-6)">
+      <p style="font-size: 14px; color: var(--text-primary); line-height: 1.6; white-space: pre-wrap" id="modalAnncContent">
+        Announcement text details...
+      </p>
+      
+      <!-- Mock Comments -->
+      <div style="margin-top:var(--space-6); border-top:1px solid var(--border); padding-top:var(--space-4)">
+        <h4 style="font-size:13px; font-weight:700; color:var(--text-secondary); margin-bottom:12px">Comments (1)</h4>
+        <div style="display:flex; gap:10px; margin-bottom:12px">
+          <div style="width:28px; height:28px; border-radius:50%; background:#7C3AED; color:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700">JW</div>
+          <div style="background:var(--bg-tertiary); border-radius:var(--radius-md); padding:8px 12px; flex:1">
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:600; color:var(--text-primary)">
+              <span>James Wilson (IT Support)</span>
+              <span style="color:var(--text-tertiary)">3 hrs ago</span>
+            </div>
+            <p style="font-size:12px; color:var(--text-secondary); margin-top:2px">Noted, will make sure our self-assessments are complete in time!</p>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px">
+          <input type="text" class="form-control" style="height:34px; font-size:12px" placeholder="Add a comment...">
+          <button class="btn btn-primary btn-sm" onclick="showToast('Comment Posted', 'Your comment has been published.', 'success')">Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Photo Viewer Modal -->
+<div class="modal-overlay" id="photoModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <h3 class="modal-title" style="font-size: 15px" id="photoModalTitle">Photo</h3>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="closeModal('photoModal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:var(--space-4)">
+      <div id="photoModalImg" style="width:100%; height:260px; border-radius:var(--radius-lg); display:flex; align-items:center; justify-content:center; color:#fff; font-size:24px; font-weight:700">Photo Mockup</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= AI ASSISTANT FAB ========= -->
+<div class="ai-fab" id="aiFab">
+  <div class="ai-chat-panel" id="aiChatPanel">
+    <div class="ai-chat-header">
+      <div class="ai-chat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l2 2"/><circle cx="18" cy="6" r="4" fill="white" stroke="none"/></svg>
+      </div>
+      <div>
+        <div class="ai-chat-name">Lexi — AI Assistant</div>
+        <div class="ai-chat-status">● Online · Powered by AI</div>
+      </div>
+      <button onclick="toggleAIChat()" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:28px;height:28px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ai-messages" id="aiMessages">
+      <div class="ai-msg bot">
+        <div class="ai-msg-bubble">I can help you review announcements or upcoming events. Type a query!</div>
+      </div>
+    </div>
+    <div class="ai-chat-input-wrap">
+      <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Ask Lexi anything...">
+      <button class="ai-send-btn" onclick="sendAIMessage()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+  <button class="ai-fab-btn" onclick="toggleAIChat()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="white"/><circle cx="12" cy="10" r="1" fill="white"/><circle cx="15" cy="10" r="1" fill="white"/></svg>
+  </button>
+</div>
+
+<!-- ========= TOAST CONTAINER ========= -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ========= SCRIPTS ========= -->
+<script src="js/main.js"></script>
+<script>
+  // Feed Database
+  const announcementsData = [
+    {
+      id: 'annc-1',
+      title: 'IT System Maintenance — Saturday June 7',
+      category: 'it',
+      tag: 'IT Notice',
+      tagColor: '#7C3AED',
+      tagBg: '#F3E8FF',
+      preview: 'Please be advised that the Group IT Infrastructure department has scheduled a system maintenance window this Saturday, June 7, from 11:00 PM until 03:00 AM. During this 4-hour slot, all core network services, email forwarding, portal access, and network servers will be offline. We apologize for any inconvenience caused.',
+      date: 'June 3, 2025',
+      author: 'IT Infrastructure',
+      likes: 12,
+      comments: 3,
+      unread: true,
+      timestamp: 1748991600000
+    },
+    {
+      id: 'annc-2',
+      title: 'New Medical Insurance Policy Effective July 2025',
+      category: 'hr',
+      tag: 'HR Notice',
+      tagColor: '#3A9AD9',
+      tagBg: '#F0F8FD',
+      preview: 'The Group HR Board has successfully signed the new Health benefits tier policies for the 2025-2026 tenure. Effective July 1, all staff members will be enrolled in the Premium Care tier, which features lower copays, wider network hospitals, and dental updates. Information booklets will be sent out next week.',
+      date: 'June 1, 2025',
+      author: 'HR Welfare Board',
+      likes: 48,
+      comments: 8,
+      unread: false,
+      timestamp: 1748818800000
+    },
+    {
+      id: 'annc-3',
+      title: 'Fire Drill Scheduled — June 10, 2025',
+      category: 'facility',
+      tag: 'Facility Notice',
+      tagColor: '#0D9488',
+      tagBg: '#CCFBF1',
+      preview: 'In coordination with local Civil Defense, the HQ facilities team will conduct a mandatory fire drill on Tuesday, June 10, at 10:00 AM. Elevators will lock automatically, and alarms will ring. Please review the evacuation points and proceed to the designated parking lot area muster zones immediately.',
+      date: 'June 1, 2025',
+      author: 'Facilities Management',
+      likes: 8,
+      comments: 2,
+      unread: true,
+      timestamp: 1748818800000
+    },
+    {
+      id: 'annc-4',
+      title: 'Welcome to Lyceum Connect Portal!',
+      category: 'circular',
+      tag: 'Company Circular',
+      tagColor: '#475569',
+      tagBg: '#F1F5F9',
+      preview: 'We are thrilled to present Lyceum Connect, our single unified digital workplace interface. Built for seamless self-service, you can request letters, IT hardware, book rooms, explore directories, and view dashboard statistics. Share your thoughts using Lexi or submit feedback tickets.',
+      date: 'May 30, 2025',
+      author: 'Group Communications',
+      likes: 56,
+      comments: 11,
+      unread: true,
+      timestamp: 1748646000000
+    },
+    {
+      id: 'annc-5',
+      title: 'Staff Achievement Award — May 2025 Winners',
+      category: 'achievement',
+      tag: 'Achievement',
+      tagColor: '#10B981',
+      tagBg: '#D1FAE5',
+      preview: 'Join us in congratulating Fatima Al-Hassan (Finance) and Carlos Rivera (Facilities) for winning the May 2025 Staff Excellence Awards! Fatima spearheaded our budget audit and Carlos completed the main building HVAC upgrades ahead of schedule. Thank you both for your hard work!',
+      date: 'May 29, 2025',
+      author: 'Executive Office',
+      likes: 62,
+      comments: 14,
+      unread: false,
+      timestamp: 1748559600000
+    },
+    {
+      id: 'annc-6',
+      title: 'Annual Sports Day — Registration Open',
+      category: 'event',
+      tag: 'Event',
+      tagColor: '#D97706',
+      tagBg: '#FEF3C7',
+      preview: 'Registration is officially open for the Lyceum Group Annual Sports Day on June 20, 2025! Events include football tournaments, track sprints, chess championships, and relay races. Please submit your team list or individual registration forms on the Service Catalog before June 12.',
+      date: 'May 28, 2025',
+      author: 'Sports Committee',
+      likes: 29,
+      comments: 7,
+      unread: true,
+      timestamp: 1748473200000
+    },
+    {
+      id: 'annc-7',
+      title: 'Quarterly All-Hands Meeting — June 15',
+      category: 'circular',
+      tag: 'Company Circular',
+      tagColor: '#475569',
+      tagBg: '#F1F5F9',
+      preview: 'Our Q2 All-Hands meeting will be hosted by the Executive Board on June 15 at 02:00 PM. We will share details on our group expansion, academic metrics, and portal performance. The meeting will be live-streamed, and staff are welcome to submit questions beforehand to Lexi.',
+      date: 'May 27, 2025',
+      author: 'Office of the CEO',
+      likes: 31,
+      comments: 4,
+      unread: false,
+      timestamp: 1748386800000
+    },
+    {
+      id: 'annc-8',
+      title: 'Ramadan Working Hours Update',
+      category: 'hr',
+      tag: 'HR Notice',
+      tagColor: '#3A9AD9',
+      tagBg: '#F0F8FD',
+      preview: 'Following official ministerial announcements, the HR department has updated the working hours policies for the Holy Month of Ramadan. Regular office hours are shortened to 6 hours per day. Shift schedules will be adjusted by department heads directly.',
+      date: 'May 26, 2025',
+      author: 'HR Board',
+      likes: 42,
+      comments: 5,
+      unread: false,
+      timestamp: 1748300400000
+    }
+  ];
+
+  let activeFilter = 'all';
+  let searchQuery = '';
+  let activeSort = 'newest';
+  let likedPosts = JSON.parse(localStorage.getItem('lc-likes') || '[]');
+  let bookmarkedPosts = JSON.parse(localStorage.getItem('lc-bookmarks') || '[]');
+
+  function filterCategory(category, tabBtn) {
+    document.querySelectorAll('.annc-tab').forEach(b => b.classList.remove('active'));
+    tabBtn.classList.add('active');
+    activeFilter = category;
+
+    // Toggle pinned post visibility
+    const pinned = document.getElementById('pinnedPost');
+    if (pinned) {
+      if (category === 'all' || pinned.getAttribute('data-cat') === category) {
+        pinned.style.display = 'block';
+      } else {
+        pinned.style.display = 'none';
+      }
+    }
+
+    renderFeed();
+  }
+
+  function searchFeed(q) {
+    searchQuery = q.trim().toLowerCase();
+    renderFeed();
+  }
+
+  function orderFeed(val) {
+    activeSort = val;
+    renderFeed();
+  }
+
+  function renderFeed() {
+    const container = document.getElementById('feedContainer');
+    if (!container) return;
+
+    let list = [...announcementsData];
+
+    // Filter by Category
+    if (activeFilter !== 'all') {
+      list = list.filter(item => item.category === activeFilter);
+    }
+
+    // Filter by Search Query
+    if (searchQuery) {
+      list = list.filter(item =>
+        item.title.toLowerCase().includes(searchQuery) ||
+        item.preview.toLowerCase().includes(searchQuery) ||
+        item.author.toLowerCase().includes(searchQuery)
+      );
+    }
+
+    // Sort Feed
+    if (activeSort === 'newest') {
+      list.sort((a, b) => b.timestamp - a.timestamp);
+    } else if (activeSort === 'popular') {
+      list.sort((a, b) => b.likes - a.likes);
+    }
+
+    if (list.length === 0) {
+      container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-tertiary); background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl)">No announcements matching the filters.</div>';
+      return;
+    }
+
+    container.innerHTML = list.map(item => {
+      const isLiked = likedPosts.includes(item.id);
+      const isBookmarked = bookmarkedPosts.includes(item.id);
+
+      return `
+        <div class="feed-card" data-id="${item.id}">
+          <div class="feed-header">
+            <div class="feed-badge-wrap">
+              <span class="badge" style="background:${item.tagBg}; color:${item.tagColor}">${item.tag}</span>
+              ${item.unread ? '<span class="unread-dot" id="unread-dot-' + item.id + '" title="Unread"></span>' : ''}
+            </div>
+            <span style="font-size:12px; color:var(--text-tertiary)">${item.date}</span>
+          </div>
+          <h3 class="feed-title">${item.title}</h3>
+          <p class="feed-preview">${item.preview}</p>
+          <div class="feed-meta">
+            <span class="meta-item">👤 By ${item.author}</span>
+            <button class="social-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${item.id}', this)">
+              ${isLiked ? '❤️' : '🤍'} <span class="like-count">${item.likes}</span>
+            </button>
+            <button class="social-btn" onclick="openAnncComments('${item.id}')">
+              💬 ${item.comments} Comments
+            </button>
+            <button class="social-btn" onclick="readAnnc('${item.id}')" style="color:var(--primary); font-weight:600">Read More →</button>
+            <span class="bookmark-btn ${isBookmarked ? 'active' : ''}" onclick="toggleBookmark('${item.id}', this)" title="Bookmark">
+              ${isBookmarked ? '★' : '☆'}
+            </span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function toggleLike(id, btn) {
+    const idx = likedPosts.indexOf(id);
+    const post = announcementsData.find(p => p.id === id);
+    if (!post) return;
+
+    if (idx > -1) {
+      likedPosts.splice(idx, 1);
+      btn.classList.remove('liked');
+      btn.innerHTML = `🤍 <span class="like-count">${post.likes}</span>`;
+      post.likes--;
+    } else {
+      likedPosts.push(id);
+      btn.classList.add('liked');
+      post.likes++;
+      btn.innerHTML = `❤️ <span class="like-count">${post.likes}</span>`;
+    }
+    localStorage.setItem('lc-likes', JSON.stringify(likedPosts));
+  }
+
+  function toggleBookmark(id, btn) {
+    const idx = bookmarkedPosts.indexOf(id);
+    if (idx > -1) {
+      bookmarkedPosts.splice(idx, 1);
+      btn.classList.remove('active');
+      btn.textContent = '☆';
+      showToast('Removed from Bookmarks', '', 'info');
+    } else {
+      bookmarkedPosts.push(id);
+      btn.classList.add('active');
+      btn.textContent = '★';
+      showToast('Bookmarked Announcement', '', 'success');
+    }
+    localStorage.setItem('lc-bookmarks', JSON.stringify(bookmarkedPosts));
+  }
+
+  function readAnnc(id) {
+    const post = announcementsData.find(p => p.id === id);
+    if (!post) return;
+
+    // Clear unread indicator
+    if (post.unread) {
+      post.unread = false;
+      const dot = document.getElementById(`unread-dot-${id}`);
+      if (dot) dot.remove();
+      
+      // Update badge counts in sidebar/menus if any
+    }
+
+    openAnnouncementModal(post.title, post.tag, post.preview, post.author, post.date);
+  }
+
+  function openAnnouncementModal(title, tag, content, author, date) {
+    document.getElementById('modalAnncTitle').textContent = title;
+    document.getElementById('modalAnncTag').textContent = tag;
+    document.getElementById('modalAnncContent').textContent = content;
+    openModal('anncModal');
+  }
+
+  function openAnncComments(id) {
+    const post = announcementsData.find(p => p.id === id);
+    if (!post) return;
+    openAnnouncementModal(post.title, post.tag, post.preview, post.author, post.date);
+  }
+
+  function markAllAsRead() {
+    announcementsData.forEach(p => p.unread = false);
+    document.querySelectorAll('.unread-dot').forEach(dot => dot.remove());
+    showToast('All announcements marked as read', '', 'success');
+    renderFeed();
+  }
+
+  function viewPhoto(title, bgGradient) {
+    document.getElementById('photoModalTitle').textContent = title;
+    const viewImg = document.getElementById('photoModalImg');
+    viewImg.style.background = bgGradient;
+    viewImg.textContent = title;
+    openModal('photoModal');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderFeed();
+  });
+</script>
+</body>
+</html>

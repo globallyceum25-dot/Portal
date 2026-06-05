@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lyceum Connect Employee Directory. Search staff members, contact information, office locations, and departments.">
+  <title>Employee Directory — Lyceum Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Employee Directory Custom Styling */
+    .search-filter-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4) var(--space-5);
+      margin-bottom: var(--space-6);
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .dir-main-search {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .dir-select-filter {
+      width: 180px;
+    }
+    
+    /* View Switcher */
+    .view-toggle {
+      display: flex;
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      height: 38px;
+    }
+    .view-toggle-btn {
+      padding: 0 12px;
+      font-size: 14px;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text-secondary);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .view-toggle-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Grid layout override */
+    .directory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+      animation: fadeIn var(--transition-base);
+    }
+    
+    @media (max-width: 1200px) {
+      .directory-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .directory-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .directory-grid { grid-template-columns: 1fr; }
+    }
+
+    /* List view structure */
+    .directory-list {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      margin-bottom: var(--space-6);
+      animation: fadeIn var(--transition-base);
+    }
+    
+    .dir-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .dir-th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--border);
+    }
+    .dir-tr {
+      border-bottom: 1px solid var(--border-light);
+      transition: background var(--transition-fast);
+      cursor: pointer;
+    }
+    .dir-tr:hover {
+      background: var(--bg-primary);
+    }
+    .dir-tr:last-child {
+      border-bottom: none;
+    }
+    .dir-td {
+      padding: var(--space-3) var(--space-4);
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+    .dir-list-avatar-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      padding-top: var(--space-4);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .pagination-btns {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    /* Modal custom profiles */
+    .profile-hero {
+      display: flex;
+      align-items: center;
+      gap: var(--space-5);
+      border-bottom: 1px solid var(--border-light);
+      padding-bottom: var(--space-5);
+      margin-bottom: var(--space-5);
+    }
+    .profile-large-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .profile-fields-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+    .profile-field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-tertiary);
+    }
+    .profile-field-value {
+      font-size: 13px;
+      color: var(--text-primary);
+      margin-top: 2px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ========= SIDEBAR ========= -->
+  <aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <img src="assets/logo.png" alt="Lyceum" id="sidebarLogo"
+           onerror="this.style.display='none';document.getElementById('sidebarLogoFallback').style.display='flex'">
+      <div id="sidebarLogoFallback" style="width:36px;height:36px;background:linear-gradient(135deg,#14222E,#3A9AD9);border-radius:8px;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;display:none;flex-shrink:0">L</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-title">Lyceum Connect</span>
+        <span class="sidebar-logo-sub">Employee Portal</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main Menu</div>
+
+      <a href="index.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+
+      <a href="service-catalog.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span class="nav-item-text">Service Catalog</span>
+      </a>
+
+      <a href="request-tracking.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">My Requests</span>
+        <span class="nav-badge">3</span>
+      </a>
+
+      <div class="sidebar-section-label">Resources</div>
+
+      <a href="knowledge-center.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-item-text">Knowledge Center</span>
+      </a>
+
+      <a href="announcements.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Announcements</span>
+        <span class="nav-badge">5</span>
+      </a>
+
+      <a href="employee-directory.html" class="nav-item active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Employee Directory</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="profile.html" class="sidebar-user">
+        <div class="sidebar-avatar">DJ</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">David Johns</div>
+          <div class="sidebar-user-role">HR Manager</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      <!-- Global Search -->
+      <div class="topbar-search relative">
+        <div class="search-input-wrap">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" placeholder="Search services, people, documents..." id="globalSearch" autocomplete="off">
+          <span class="search-shortcut">⌘K</span>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Notifications -->
+        <div class="relative">
+          <button class="topbar-btn" id="notifBtn" onclick="toggleNotifications()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-notif-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <span class="notif-title">Notifications</span>
+              <span class="notif-count">5</span>
+            </div>
+            <div class="notif-list">
+              <div class="notif-item">
+                <div class="notif-content">
+                  <div class="notif-text">Employee details synced successfully</div>
+                  <div class="notif-time">3 hours ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="topbar-btn" onclick="toggleDarkMode()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+
+        <a href="profile.html" class="topbar-user" id="topbarUser">
+          <div class="topbar-avatar">DJ</div>
+          <div class="topbar-user-info">
+            <div class="topbar-user-name">David Johns</div>
+            <div class="topbar-user-dept">HR Department</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Employee Directory</span>
+      </nav>
+
+      <div class="page-header">
+        <h1 class="page-title">Employee Directory</h1>
+        <p class="page-subtitle">Search contact information and structures of staff members across all locations.</p>
+      </div>
+
+      <!-- Quick Metrics Row -->
+      <div class="grid grid-4 mb-6" style="gap: var(--space-4)">
+        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
+          <div style="font-size:24px">👥</div>
+          <div>
+            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">247</div>
+            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Total Employees</div>
+          </div>
+        </div>
+        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
+          <div style="font-size:24px">🏢</div>
+          <div>
+            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">18</div>
+            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Departments</div>
+          </div>
+        </div>
+        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
+          <div style="font-size:24px">📍</div>
+          <div>
+            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">3</div>
+            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Offices/Campuses</div>
+          </div>
+        </div>
+        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
+          <div style="font-size:24px">🟢</div>
+          <div>
+            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">43</div>
+            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Online Now</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Chips Filter for Departments -->
+      <div class="chips-wrapper" style="margin-bottom: var(--space-4)">
+        <button class="chip-btn active" onclick="filterDeptChip('all', this)">All</button>
+        <button class="chip-btn" onclick="filterDeptChip('Human Resources', this)">Human Resources</button>
+        <button class="chip-btn" onclick="filterDeptChip('Information Technology', this)">Information Technology</button>
+        <button class="chip-btn" onclick="filterDeptChip('Finance', this)">Finance</button>
+        <button class="chip-btn" onclick="filterDeptChip('Operations', this)">Operations</button>
+        <button class="chip-btn" onclick="filterDeptChip('Marketing', this)">Marketing</button>
+        <button class="chip-btn" onclick="filterDeptChip('Academic Staff', this)">Academic Staff</button>
+        <button class="chip-btn" onclick="filterDeptChip('Administration', this)">Administration</button>
+        <button class="chip-btn" onclick="filterDeptChip('Facility Management', this)">Facility Management</button>
+        <button class="chip-btn" onclick="filterDeptChip('Legal', this)">Legal</button>
+      </div>
+
+      <!-- Search & Filters Container -->
+      <div class="search-filter-container">
+        <!-- Main Search input -->
+        <div class="topbar-search dir-main-search" style="max-width:none">
+          <div class="search-input-wrap">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="search-input" id="directorySearchInput" placeholder="Search by name, role, extension..." oninput="handleSearch(this.value)">
+          </div>
+        </div>
+
+        <!-- Location Dropdown -->
+        <select class="form-control form-select dir-select-filter" id="locationFilter" onchange="handleLocationFilter(this.value)">
+          <option value="all">All Locations</option>
+          <option value="HQ - Main Building">HQ - Main Building</option>
+          <option value="Campus A">Campus A</option>
+          <option value="Campus B">Campus B</option>
+          <option value="Remote">Remote</option>
+        </select>
+
+        <!-- View Switcher -->
+        <div class="view-toggle">
+          <button class="view-toggle-btn active" id="gridViewBtn" onclick="setViewMode('grid')" title="Grid View">田</button>
+          <button class="view-toggle-btn" id="listViewBtn" onclick="setViewMode('list')" title="List View">☰</button>
+        </div>
+      </div>
+
+      <!-- GRID VIEW -->
+      <div class="directory-grid" id="directoryGrid">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- LIST VIEW -->
+      <div class="directory-list" id="directoryList">
+        <table class="dir-table">
+          <thead>
+            <tr>
+              <th class="dir-th">Name</th>
+              <th class="dir-th">Department</th>
+              <th class="dir-th">Designation</th>
+              <th class="dir-th">Work Email</th>
+              <th class="dir-th">Extension</th>
+              <th class="dir-th" style="text-align:right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="directoryListBody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="pagination">
+        <span>Showing 1-20 of <span id="displayedCount">20</span> employees</span>
+        <div class="pagination-btns">
+          <button class="btn btn-secondary btn-sm" disabled>Previous</button>
+          <button class="btn btn-secondary btn-sm" disabled>Next</button>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /MAIN CONTENT -->
+</div><!-- /APP LAYOUT -->
+
+<!-- Employee Profile Popup Modal -->
+<div class="modal-overlay" id="profilePopupModal">
+  <div class="modal" style="max-width: 580px">
+    <div class="modal-header">
+      <h3 class="modal-title" style="font-size: 15px">Employee Profile Card</h3>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="closeModal('profilePopupModal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding: var(--space-6)">
+      
+      <div class="profile-hero">
+        <div class="profile-large-avatar" id="modalEmpAvatar">DJ</div>
+        <div>
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary)" id="modalEmpName">David Johns</h2>
+          <div style="font-size: 13px; color: var(--text-secondary)" id="modalEmpRole">HR Manager</div>
+          <span class="badge badge-blue" style="font-size: 10px; margin-top: 4px" id="modalEmpDept">Human Resources</span>
+        </div>
+      </div>
+
+      <div class="profile-fields-grid">
+        <div>
+          <div class="profile-field-label">Employee ID</div>
+          <div class="profile-field-value" id="modalEmpId">EMP-2019-0142</div>
+        </div>
+        <div>
+          <div class="profile-field-label">Office Location</div>
+          <div class="profile-field-value" id="modalEmpLocation">HQ - Block A, Floor 2</div>
+        </div>
+        <div>
+          <div class="profile-field-label">Work Extension</div>
+          <div class="profile-field-value" id="modalEmpExt">1142</div>
+        </div>
+        <div>
+          <div class="profile-field-label">Employment Type</div>
+          <div class="profile-field-value">Full-time Regular</div>
+        </div>
+        <div>
+          <div class="profile-field-label">Reports To Manager</div>
+          <div class="profile-field-value" id="modalEmpManager" style="color:var(--primary); cursor:pointer; font-weight:600">Dr. Omar Khalid</div>
+        </div>
+        <div>
+          <div class="profile-field-label">Direct Reports</div>
+          <div class="profile-field-value" id="modalEmpReports">3 staff members</div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border-light); padding-top:var(--space-4); display:flex; justify-content:space-between; gap:var(--space-3)">
+        <a href="" class="btn btn-secondary" style="flex:1" id="modalEmailBtn">✉ Send Email</a>
+        <button class="btn btn-primary" style="flex:1" id="modalChatBtn">💬 Start Chat</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ========= AI ASSISTANT FAB ========= -->
+<div class="ai-fab" id="aiFab">
+  <div class="ai-chat-panel" id="aiChatPanel">
+    <div class="ai-chat-header">
+      <div class="ai-chat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l2 2"/><circle cx="18" cy="6" r="4" fill="white" stroke="none"/></svg>
+      </div>
+      <div>
+        <div class="ai-chat-name">Lexi — AI Assistant</div>
+        <div class="ai-chat-status">● Online · Powered by AI</div>
+      </div>
+      <button onclick="toggleAIChat()" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:28px;height:28px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ai-messages" id="aiMessages">
+      <div class="ai-msg bot">
+        <div class="ai-msg-bubble">I can search the Directory or contact staff. Type a name!</div>
+      </div>
+    </div>
+    <div class="ai-chat-input-wrap">
+      <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Ask Lexi anything...">
+      <button class="ai-send-btn" onclick="sendAIMessage()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+  <button class="ai-fab-btn" onclick="toggleAIChat()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="white"/><circle cx="12" cy="10" r="1" fill="white"/><circle cx="15" cy="10" r="1" fill="white"/></svg>
+  </button>
+</div>
+
+<!-- ========= TOAST CONTAINER ========= -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ========= SCRIPTS ========= -->
+<script src="js/main.js"></script>
+<script>
+  // Full Employees Dataset (20 required items)
+  const directoryData = [
+    { id: '1', initials: 'DJ', name: 'David Johns', designation: 'HR Manager', department: 'Human Resources', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#059669,#10B981)', email: 'david.johns@lyceum.edu', phone: '+968 2451 1142', ext: '1142', empId: 'EMP-2019-0142', manager: 'Fatima Al-Hassan', reports: 3 },
+    { id: '2', initials: 'RP', name: 'Raj Patel', designation: 'IT Manager', department: 'Information Technology', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,var(--primary),var(--primary-light))', email: 'raj.patel@lyceum.edu', phone: '+968 2451 1005', ext: '1005', empId: 'EMP-2020-0087', manager: 'Ahmed Al-Rashid', reports: 5 },
+    { id: '3', initials: 'FA', name: 'Fatima Al-Hassan', designation: 'Finance Director', department: 'Finance', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#7C3AED,#A855F7)', email: 'fatima.hassan@lyceum.edu', phone: '+968 2451 1010', ext: '1010', empId: 'EMP-2015-0012', manager: 'Office of the CEO', reports: 8 },
+    { id: '4', initials: 'MC', name: 'Michael Chen', designation: 'Principal', department: 'Academic Staff', location: 'Campus A', bg: 'linear-gradient(135deg,#D97706,#F59E0B)', email: 'michael.chen@lyceum.edu', phone: '+968 2451 2001', ext: '2001', empId: 'EMP-2018-0054', manager: 'Fatima Al-Hassan', reports: 34 },
+    { id: '5', initials: 'PS', name: 'Priya Sharma', designation: 'Marketing Manager', department: 'Marketing', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#0D9488,#14B8A6)', email: 'priya.sharma@lyceum.edu', phone: '+968 2451 1102', ext: '1102', empId: 'EMP-2021-0230', manager: 'Fatima Al-Hassan', reports: 2 },
+    { id: '6', initials: 'AR', name: 'Ahmed Al-Rashid', designation: 'Operations Director', department: 'Operations', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#E11D48,#F43F5E)', email: 'ahmed.rashid@lyceum.edu', phone: '+968 2451 1002', ext: '1002', empId: 'EMP-2014-0005', manager: 'Office of the CEO', reports: 12 },
+    { id: '7', initials: 'LT', name: 'Lisa Thompson', designation: 'HR Officer', department: 'Human Resources', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,var(--primary),var(--primary-light))', email: 'lisa.thompson@lyceum.edu', phone: '+968 2451 1143', ext: '1143', empId: 'EMP-2022-0310', manager: 'David Johns', reports: 0 },
+    { id: '8', initials: 'JW', name: 'James Wilson', designation: 'Network Engineer', department: 'Information Technology', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#7C3AED,#8B5CF6)', email: 'james.wilson@lyceum.edu', phone: '+968 2451 1088', ext: '1088', empId: 'EMP-2021-0294', manager: 'Raj Patel', reports: 0 },
+    { id: '9', initials: 'NA', name: 'Noor Abdullah', designation: 'Academic Coordinator', department: 'Academic Staff', location: 'Campus A', bg: 'linear-gradient(135deg,#059669,#34D399)', email: 'noor.abdullah@lyceum.edu', phone: '+968 2451 2005', ext: '2005', empId: 'EMP-2017-0096', manager: 'Michael Chen', reports: 8 },
+    { id: '10', initials: 'DL', name: 'David Lee', designation: 'Finance Officer', department: 'Finance', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#D97706,#FCD34D)', email: 'david.lee@lyceum.edu', phone: '+968 2451 1024', ext: '1024', empId: 'EMP-2023-0442', manager: 'Fatima Al-Hassan', reports: 0 },
+    { id: '11', initials: 'AM', name: 'Aisha Mohamed', designation: 'Administrative Officer', department: 'Administration', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#0D9488,#2DD4BF)', email: 'aisha.mohamed@lyceum.edu', phone: '+968 2451 1045', ext: '1045', empId: 'EMP-2020-0118', manager: 'Ahmed Al-Rashid', reports: 0 },
+    { id: '12', initials: 'RM', name: 'Robert Martinez', designation: 'Facility Manager', department: 'Facility Management', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#475569,#94A3B8)', email: 'robert.martinez@lyceum.edu', phone: '+968 2451 1009', ext: '1009', empId: 'EMP-2016-0042', manager: 'Ahmed Al-Rashid', reports: 6 },
+    { id: '13', initials: 'ZH', name: 'Zainab Hassan', designation: 'HR Coordinator', department: 'Human Resources', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,var(--primary),var(--primary-light))', email: 'zainab.hassan@lyceum.edu', phone: '+968 2451 1144', ext: '1144', empId: 'EMP-2023-0418', manager: 'David Johns', reports: 0 },
+    { id: '14', initials: 'KO', name: 'Kevin O\'Brien', designation: 'System Administrator', department: 'Information Technology', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#7C3AED,#C084FC)', email: 'kevin.obrien@lyceum.edu', phone: '+968 2451 1089', ext: '1089', empId: 'EMP-2019-0182', manager: 'Raj Patel', reports: 0 },
+    { id: '15', initials: 'MS', name: 'Maria Santos', designation: 'Marketing Officer', department: 'Marketing', location: 'Campus B', bg: 'linear-gradient(135deg,#059669,#86EFAC)', email: 'maria.santos@lyceum.edu', phone: '+968 2451 3004', ext: '3004', empId: 'EMP-2022-0344', manager: 'Priya Sharma', reports: 0 },
+    { id: '16', initials: 'AF', name: 'Abdullah Al-Farsi', designation: 'Head of Operations', department: 'Operations', location: 'Campus B', bg: 'linear-gradient(135deg,#D97706,#FEF08A)', email: 'abdullah.farsi@lyceum.edu', phone: '+968 2451 3001', ext: '3001', empId: 'EMP-2016-0038', manager: 'Ahmed Al-Rashid', reports: 4 },
+    { id: '17', initials: 'SW', name: 'Sophie Williams', designation: 'Legal Counsel', department: 'Legal', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#E11D48,#FDA4AF)', email: 'sophie.williams@lyceum.edu', phone: '+968 2451 1099', ext: '1099', empId: 'EMP-2021-0266', manager: 'Office of the CEO', reports: 0 },
+    { id: '18', initials: 'OK', name: 'Omar Khalid', designation: 'IT Support Specialist', department: 'Information Technology', location: 'Campus A', bg: 'linear-gradient(135deg,#0D9488,#67E8F9)', email: 'omar.khalid@lyceum.edu', phone: '+968 2451 2045', ext: '2045', empId: 'EMP-2022-0382', manager: 'Raj Patel', reports: 0 },
+    { id: '19', initials: 'HS', name: 'Hana Suzuki', designation: 'Academic Teacher', department: 'Academic Staff', location: 'Campus B', bg: 'linear-gradient(135deg,var(--primary),var(--primary-light))', email: 'hana.suzuki@lyceum.edu', phone: '+968 2451 3099', ext: '3099', empId: 'EMP-2020-0205', manager: 'Michael Chen', reports: 0 },
+    { id: '20', initials: 'CR', name: 'Carlos Rivera', designation: 'Facility Technician', department: 'Facility Management', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#475569,#CBD5E1)', email: 'carlos.rivera@lyceum.edu', phone: '+968 2451 1014', ext: '1014', empId: 'EMP-2022-0391', manager: 'Robert Martinez', reports: 0 }
+  ];
+
+  let currentView = 'grid';
+  let searchQuery = '';
+  let deptFilter = 'all';
+  let locationFilter = 'all';
+
+  function filterDeptChip(dept, chipBtn) {
+    document.querySelectorAll('.chip-btn').forEach(btn => btn.classList.remove('active'));
+    chipBtn.className = 'chip-btn active';
+    deptFilter = dept;
+    renderDirectory();
+  }
+
+  function handleSearch(q) {
+    searchQuery = q.toLowerCase();
+    renderDirectory();
+  }
+
+  function handleLocationFilter(loc) {
+    locationFilter = loc;
+    renderDirectory();
+  }
+
+  function setViewMode(mode) {
+    currentView = mode;
+    document.getElementById('gridViewBtn').classList.toggle('active', mode === 'grid');
+    document.getElementById('listViewBtn').classList.toggle('active', mode === 'list');
+    
+    document.getElementById('directoryGrid').style.display = mode === 'grid' ? 'grid' : 'none';
+    document.getElementById('directoryList').style.display = mode === 'list' ? 'block' : 'none';
+    renderDirectory();
+  }
+
+  function renderDirectory() {
+    let list = [...directoryData];
+
+    // Filter by Dept
+    if (deptFilter !== 'all') {
+      list = list.filter(e => e.department === deptFilter);
+    }
+
+    // Filter by Location
+    if (locationFilter !== 'all') {
+      list = list.filter(e => e.location === locationFilter);
+    }
+
+    // Filter by Search Query
+    if (searchQuery) {
+      list = list.filter(e => 
+        e.name.toLowerCase().includes(searchQuery) ||
+        e.designation.toLowerCase().includes(searchQuery) ||
+        e.department.toLowerCase().includes(searchQuery) ||
+        e.ext.includes(searchQuery)
+      );
+    }
+
+    document.getElementById('displayedCount').textContent = list.length;
+
+    // Render Grid View
+    const gridContainer = document.getElementById('directoryGrid');
+    gridContainer.innerHTML = list.map(e => `
+      <div class="employee-card" onclick="openProfileCard('${e.id}')">
+        <div class="emp-avatar" style="background: ${e.bg}">${e.initials}</div>
+        <div class="emp-info">
+          <div class="emp-name">${e.name}</div>
+          <div class="emp-role">${e.designation}</div>
+          <div class="emp-dept">${e.department}</div>
+        </div>
+        <div class="emp-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="openChatWith('${e.name}')" title="Chat with ${e.name}">💬</button>
+        </div>
+      </div>
+    `).join('');
+
+    // Render List View
+    const listBody = document.getElementById('directoryListBody');
+    listBody.innerHTML = list.map(e => `
+      <tr class="dir-tr" onclick="openProfileCard('${e.id}')">
+        <td class="dir-td">
+          <div class="dir-list-avatar-wrap">
+            <div class="emp-avatar" style="background: ${e.bg}; width: 28px; height: 28px; font-size: 11px">${e.initials}</div>
+            <span style="font-weight:600">${e.name}</span>
+          </div>
+        </td>
+        <td class="dir-td">${e.department}</td>
+        <td class="dir-td">${e.designation}</td>
+        <td class="dir-td" style="font-family:monospace">${e.email}</td>
+        <td class="dir-td">${e.ext}</td>
+        <td class="dir-td" style="text-align:right" onclick="event.stopPropagation()">
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="openChatWith('${e.name}')" title="Chat with ${e.name}">💬</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function openProfileCard(id) {
+    const e = directoryData.find(emp => emp.id === id);
+    if (!e) return;
+
+    document.getElementById('modalEmpName').textContent = e.name;
+    document.getElementById('modalEmpRole').textContent = e.designation;
+    document.getElementById('modalEmpDept').textContent = e.department;
+    document.getElementById('modalEmpId').textContent = e.empId;
+    document.getElementById('modalEmpLocation').textContent = e.location;
+    document.getElementById('modalEmpExt').textContent = e.ext;
+    document.getElementById('modalEmpManager').textContent = e.manager;
+    document.getElementById('modalEmpReports').textContent = `${e.reports} staff member(s)`;
+    
+    const avatar = document.getElementById('modalEmpAvatar');
+    avatar.style.background = e.bg;
+    avatar.textContent = e.initials;
+
+    // Mail link
+    document.getElementById('modalEmailBtn').href = `mailto:${e.email}`;
+
+    // Chat link
+    document.getElementById('modalChatBtn').onclick = function() {
+      closeModal('profilePopupModal');
+      openChatWith(e.name);
+    };
+
+    // Manager click linking
+    document.getElementById('modalEmpManager').onclick = function() {
+      const managerObj = directoryData.find(emp => emp.name === e.manager);
+      if (managerObj) {
+        openProfileCard(managerObj.id);
+      } else {
+        showToast(e.manager, 'Manager profile page not loaded in prototype.', 'info');
+      }
+    };
+
+    openModal('profilePopupModal');
+  }
+
+  function openChatWith(name) {
+    showToast(`Opening chat with ${name}...`, 'Connecting to chat widget.', 'success');
+    toggleAIChat();
+    setTimeout(() => {
+      addAIMessage(`Hello! I would like to send a direct message to **${name}**. Can you help me?`, 'user');
+      setTimeout(() => {
+        addAIMessage(`Connecting secure chat tunnel to **${name}**. Feel free to send your message below!`, 'bot');
+      }, 600);
+    }, 400);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderDirectory();
+  });
+</script>
+</body>
+</html>

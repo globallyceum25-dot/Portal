@@ -1,0 +1,440 @@
+/* ============================================================
+   LYCEUM CONNECT — GLOBAL JAVASCRIPT
+   ============================================================ */
+
+'use strict';
+
+// ---- Dark Mode ----
+function toggleDarkMode() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  localStorage.setItem('lc-theme', isDark ? 'light' : 'dark');
+}
+
+(function initTheme() {
+  const saved = localStorage.getItem('lc-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'dark' || (!saved && prefersDark)) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+
+// ---- Sidebar Toggle ----
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  if (window.innerWidth <= 768) {
+    sidebar.classList.toggle('mobile-open');
+  } else {
+    sidebar.classList.toggle('collapsed');
+    const main = document.querySelector('.main-content');
+    if (main) main.style.marginLeft = sidebar.classList.contains('collapsed')
+      ? 'var(--sidebar-collapsed)' : 'var(--sidebar-width)';
+  }
+}
+
+// Close mobile sidebar on overlay click
+document.addEventListener('click', function(e) {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  if (window.innerWidth <= 768 && sidebar.classList.contains('mobile-open')) {
+    if (!sidebar.contains(e.target) && !e.target.closest('#sidebarToggle')) {
+      sidebar.classList.remove('mobile-open');
+    }
+  }
+});
+
+// ---- Notifications Dropdown ----
+function toggleNotifications() {
+  const dropdown = document.getElementById('notifDropdown');
+  if (!dropdown) return;
+  dropdown.classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+  const dropdown = document.getElementById('notifDropdown');
+  const btn = document.getElementById('notifBtn');
+  if (!dropdown || !btn) return;
+  if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+    dropdown.classList.remove('open');
+  }
+});
+
+// ---- AI Chat Widget ----
+function toggleAIChat() {
+  const panel = document.getElementById('aiChatPanel');
+  if (!panel) return;
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) {
+    setTimeout(() => document.getElementById('aiChatInput')?.focus(), 100);
+  }
+}
+
+function sendAIMessage() {
+  const input = document.getElementById('aiChatInput');
+  if (!input || !input.value.trim()) return;
+  const msg = input.value.trim();
+  input.value = '';
+  addAIMessage(msg, 'user');
+  setTimeout(() => {
+    const response = getAIResponse(msg);
+    addAIMessage(response, 'bot');
+  }, 700);
+}
+
+function addAIMessage(text, type) {
+  const messages = document.getElementById('aiMessages');
+  if (!messages) return;
+  const div = document.createElement('div');
+  div.className = `ai-msg ${type}`;
+  div.innerHTML = `<div class="ai-msg-bubble">${text}</div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function getAIResponse(msg) {
+  const m = msg.toLowerCase();
+  if (m.includes('it') || m.includes('ticket') || m.includes('technical')) {
+    return 'I can help you raise an IT ticket! Go to <b>Service Catalog → IT Support</b> and select "Technical Support Request". Expected SLA: 4 hours for high priority.';
+  } else if (m.includes('leave') || m.includes('hr') || m.includes('letter')) {
+    return 'For HR services like service letters, visit <b>Service Catalog → Human Resources</b>. Service letters are processed within 2 business days.';
+  } else if (m.includes('stationery') || m.includes('courier') || m.includes('admin')) {
+    return 'Administrative requests like stationery or courier services can be raised via <b>Service Catalog → Administration</b>.';
+  } else if (m.includes('policy') || m.includes('procedure') || m.includes('sop')) {
+    return 'You can find all policies, SOPs and procedures in the <b>Knowledge Center</b>. Use the search or browse by category.';
+  } else if (m.includes('request') || m.includes('status') || m.includes('track')) {
+    return 'Track all your requests in <b>My Requests</b>. You can see open, pending, in-progress, and completed requests with real-time status updates.';
+  } else if (m.includes('hello') || m.includes('hi') || m.includes('help')) {
+    return 'Hello! I\'m Lexi, your AI assistant. I can help you find services, answer policy questions, track requests, or guide you anywhere in Lyceum Connect. What do you need?';
+  } else {
+    return 'I can help you navigate Lyceum Connect. Try asking about IT support, HR services, policies, or request tracking. What do you need?';
+  }
+}
+
+function sendAISuggestion(text) {
+  const input = document.getElementById('aiChatInput');
+  if (!input) return;
+  input.value = text;
+  sendAIMessage();
+}
+
+// AI Enter key
+document.addEventListener('DOMContentLoaded', function() {
+  const aiInput = document.getElementById('aiChatInput');
+  if (aiInput) {
+    aiInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') sendAIMessage();
+    });
+  }
+});
+
+// ---- Global Search ----
+const searchData = [
+  { type: 'service', name: 'Raise IT Ticket', desc: 'IT Department', url: 'request-form.html?service=it-ticket' },
+  { type: 'service', name: 'Service Letter Request', desc: 'Human Resources', url: 'request-form.html?service=service-letter' },
+  { type: 'service', name: 'Facility Request', desc: 'Group Facility Management', url: 'request-form.html?service=facility' },
+  { type: 'service', name: 'Password Reset', desc: 'IT Department', url: 'request-form.html?service=password' },
+  { type: 'service', name: 'Asset Request', desc: 'IT Department', url: 'request-form.html?service=asset' },
+  { type: 'employee', name: 'David Johns', desc: 'HR Manager · Human Resources', url: 'employee-directory.html' },
+  { type: 'employee', name: 'Raj Patel', desc: 'IT Manager · Information Technology', url: 'employee-directory.html' },
+  { type: 'document', name: 'Employee Handbook 2025', desc: 'HR Policy', url: 'knowledge-center.html' },
+  { type: 'document', name: 'IT Security Policy', desc: 'IT Policy', url: 'knowledge-center.html' },
+  { type: 'document', name: 'Leave Policy', desc: 'HR Policy', url: 'knowledge-center.html' },
+  { type: 'page', name: 'Service Catalog', desc: 'Browse all services', url: 'service-catalog.html' },
+  { type: 'page', name: 'My Requests', desc: 'Track your requests', url: 'request-tracking.html' },
+  { type: 'page', name: 'Knowledge Center', desc: 'Policies and documents', url: 'knowledge-center.html' },
+];
+
+function initSearch() {
+  const input = document.getElementById('globalSearch');
+  if (!input) return;
+
+  input.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    const resultsEl = document.getElementById('searchResults');
+    if (!resultsEl) return;
+    if (!q) { resultsEl.classList.remove('open'); return; }
+
+    const filtered = searchData.filter(item =>
+      item.name.toLowerCase().includes(q) || item.desc.toLowerCase().includes(q)
+    ).slice(0, 8);
+
+    if (!filtered.length) { resultsEl.classList.remove('open'); return; }
+
+    const typeIcons = {
+      service:  '#3A9AD9',
+      employee: '#7C3AED',
+      document: '#0D9488',
+      page:     '#F59E0B',
+    };
+
+    const typeLabels = {
+      service:  '⚙',
+      employee: '👤',
+      document: '📄',
+      page:     '🔗',
+    };
+
+    resultsEl.innerHTML = filtered.map(item => `
+      <a href="${item.url}" class="search-result-item" style="text-decoration:none">
+        <div class="search-result-icon" style="background:${typeIcons[item.type]}20;color:${typeIcons[item.type]}">
+          <span style="font-size:16px">${typeLabels[item.type]}</span>
+        </div>
+        <div>
+          <div class="search-result-name">${item.name}</div>
+          <div class="search-result-sub">${item.desc}</div>
+        </div>
+      </a>
+    `).join('');
+
+    resultsEl.classList.add('open');
+  });
+
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const resultsEl = document.getElementById('searchResults');
+      if (resultsEl) resultsEl.classList.remove('open');
+      this.blur();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    const resultsEl = document.getElementById('searchResults');
+    if (!resultsEl) return;
+    if (!resultsEl.contains(e.target) && e.target !== input) {
+      resultsEl.classList.remove('open');
+    }
+  });
+
+  // Keyboard shortcut ⌘K
+  document.addEventListener('keydown', function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      input.focus();
+      input.select();
+    }
+  });
+}
+
+// ---- Toast Notifications ----
+function showToast(title, message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const icons = {
+    success: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    info: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+    warning: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <div class="toast-icon">${icons[type]}</div>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      ${message ? `<div class="toast-msg">${message}</div>` : ''}
+    </div>
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--text-tertiary);padding:4px;border-radius:6px;display:flex;align-items:center">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// ---- Tab System ----
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const tabGroup = this.closest('[data-tabs]') || this.closest('.tabs-wrapper');
+      if (!tabGroup) return;
+      tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      const target = this.getAttribute('data-tab');
+      document.querySelectorAll('.tab-content').forEach(c => {
+        c.classList.toggle('active', c.id === target);
+      });
+    });
+  });
+}
+
+// ---- Dropdown Menus ----
+function initDropdowns() {
+  document.querySelectorAll('[data-dropdown]').forEach(trigger => {
+    trigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const targetId = this.getAttribute('data-dropdown');
+      const target = document.getElementById(targetId);
+      if (target) target.classList.toggle('open');
+    });
+  });
+
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+  });
+}
+
+// ---- Progress bar animation on scroll ----
+function animateProgressBars() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const bar = entry.target.querySelector('.progress-fill');
+        if (bar) {
+          const width = bar.getAttribute('data-width') || bar.style.width;
+          bar.style.width = '0';
+          setTimeout(() => { bar.style.width = width; }, 100);
+        }
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.progress-bar').forEach(bar => observer.observe(bar));
+}
+
+// ---- Date/Time ----
+function updateDateTime() {
+  const el = document.getElementById('currentDateTime');
+  if (!el) return;
+  const now = new Date();
+  el.textContent = now.toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+}
+
+// ---- Form Submission ----
+function submitRequest(formId, redirectUrl) {
+  const form = document.getElementById(formId);
+  if (!form) return;
+  const inputs = form.querySelectorAll('[required]');
+  let valid = true;
+  inputs.forEach(input => {
+    if (!input.value.trim()) {
+      input.style.borderColor = 'var(--error)';
+      valid = false;
+      input.addEventListener('input', () => input.style.borderColor = '', { once: true });
+    }
+  });
+  if (!valid) {
+    showToast('Please fill all required fields', '', 'error');
+    return;
+  }
+  showToast('Request Submitted Successfully!', 'Your request has been raised and you will be notified of updates.', 'success');
+  setTimeout(() => {
+    if (redirectUrl) window.location.href = redirectUrl;
+  }, 1500);
+}
+
+// ---- Number Counter Animation ----
+function animateCounters() {
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const target = parseInt(el.getAttribute('data-count'));
+    const duration = 1000;
+    const step = target / (duration / 16);
+    let current = 0;
+    const timer = setInterval(() => {
+      current = Math.min(current + step, target);
+      el.textContent = Math.floor(current);
+      if (current >= target) clearInterval(timer);
+    }, 16);
+  });
+}
+
+// ---- Favourite Services ----
+const favourites = JSON.parse(localStorage.getItem('lc-favourites') || '[]');
+
+function toggleFavourite(serviceId, btn) {
+  const idx = favourites.indexOf(serviceId);
+  if (idx > -1) {
+    favourites.splice(idx, 1);
+    if (btn) btn.classList.remove('active');
+    showToast('Removed from Favourites', serviceId, 'info');
+  } else {
+    favourites.push(serviceId);
+    if (btn) btn.classList.add('active');
+    showToast('Added to Favourites', serviceId, 'success');
+  }
+  localStorage.setItem('lc-favourites', JSON.stringify(favourites));
+}
+
+// ---- Upload Zone ----
+function initUploadZones() {
+  document.querySelectorAll('.upload-zone').forEach(zone => {
+    const input = zone.querySelector('input[type=file]');
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--primary)'; });
+    zone.addEventListener('dragleave', () => zone.style.borderColor = '');
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.style.borderColor = '';
+      const files = e.dataTransfer?.files;
+      if (files && input) { input.files = files; updateFileList(files, zone); }
+    });
+    zone.addEventListener('click', () => input?.click());
+    input?.addEventListener('change', () => updateFileList(input.files, zone));
+  });
+}
+
+function updateFileList(files, zone) {
+  let list = zone.querySelector('.file-list');
+  if (!list) { list = document.createElement('div'); list.className = 'file-list'; zone.appendChild(list); }
+  list.innerHTML = Array.from(files).map(f =>
+    `<div style="font-size:12px;color:var(--text-secondary);padding:4px 0;display:flex;align-items:center;gap:6px">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      ${f.name}
+    </div>`
+  ).join('');
+}
+
+// ---- Modal System ----
+function openModal(id) {
+  const overlay = document.getElementById(id);
+  if (overlay) overlay.classList.add('open');
+}
+
+function closeModal(id) {
+  const overlay = document.getElementById(id);
+  if (overlay) overlay.classList.remove('open');
+}
+
+// Close modal on overlay click
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('open');
+  }
+});
+
+// Close modal on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    const aiPanel = document.getElementById('aiChatPanel');
+    if (aiPanel) aiPanel.classList.remove('open');
+  }
+});
+
+// ---- Init ----
+document.addEventListener('DOMContentLoaded', function() {
+  initSearch();
+  initTabs();
+  initDropdowns();
+  animateProgressBars();
+  updateDateTime();
+  initUploadZones();
+  animateCounters();
+
+  // Init Lucide icons if available
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  // Set active nav item based on current page
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-item').forEach(item => {
+    const href = item.getAttribute('href');
+    if (href === currentPage || (currentPage === '' && href === 'index.html')) {
+      item.classList.add('active');
+    }
+  });
+});

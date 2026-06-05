@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Lyceum Connect Knowledge Center. Access company policies, handbooks, forms, templates, and frequently asked questions.">
+  <title>Knowledge Center — Lyceum Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Knowledge Center Custom Styling */
+    .kc-hero {
+      background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-800) 100%);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8) var(--space-6);
+      text-align: center;
+      color: #fff;
+      margin-bottom: var(--space-6);
+      position: relative;
+      overflow: hidden;
+    }
+    .kc-hero-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: var(--space-2);
+    }
+    .kc-hero-subtitle {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: var(--space-6);
+    }
+    .kc-search-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .kc-search-input {
+      width: 100%;
+      height: 52px;
+      padding: 0 16px 0 48px;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 15px;
+      color: #fff;
+      outline: none;
+      transition: all var(--transition-fast);
+      box-shadow: var(--shadow-md);
+    }
+    .kc-search-input:focus {
+      background: #fff;
+      color: var(--text-primary);
+      border-color: #fff;
+      box-shadow: var(--shadow-xl);
+    }
+    .kc-search-input::placeholder {
+      color: rgba(255, 255, 255, 0.65);
+    }
+    .kc-search-input:focus::placeholder {
+      color: var(--text-tertiary);
+    }
+    .kc-search-icon {
+      position: absolute;
+      left: 18px;
+      color: rgba(255, 255, 255, 0.8);
+      pointer-events: none;
+    }
+    .kc-search-input:focus + .kc-search-icon {
+      color: var(--text-tertiary);
+    }
+
+    /* Category Chips */
+    .chips-wrapper {
+      display: flex;
+      gap: var(--space-2);
+      margin-bottom: var(--space-6);
+      overflow-x: auto;
+      padding-bottom: var(--space-2);
+      scrollbar-width: none;
+    }
+    .chips-wrapper::-webkit-scrollbar { display: none; }
+    
+    .chip-btn {
+      padding: 8px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+    }
+    .chip-btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--primary);
+    }
+    .chip-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Featured Docs Grid */
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-5);
+      margin-bottom: var(--space-8);
+    }
+    @media (max-width: 900px) {
+      .featured-grid { grid-template-columns: 1fr; }
+    }
+    .featured-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+    }
+    .featured-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+    .fc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .fc-icon {
+      font-size: 28px;
+    }
+    .fc-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-top: 4px;
+    }
+    .fc-meta {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .fc-actions {
+      margin-top: auto;
+      display: flex;
+      gap: var(--space-2);
+      border-top: 1px solid var(--border-light);
+      padding-top: var(--space-3);
+    }
+
+    /* Table Document Lists */
+    .doc-list-section {
+      margin-bottom: var(--space-8);
+      animation: fadeIn var(--transition-base);
+    }
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .doc-th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-tr {
+      border-bottom: 1px solid var(--border-light);
+      transition: background var(--transition-fast);
+    }
+    .doc-tr:hover {
+      background: var(--bg-primary);
+    }
+    .doc-tr:last-child {
+      border-bottom: none;
+    }
+    .doc-td {
+      padding: var(--space-4);
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+    .doc-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .doc-name:hover {
+      color: var(--primary);
+    }
+    .doc-type-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .badge-pdf { background: #FEE2E2; color: #EF4444; }
+    .badge-word { background: var(--primary-100); color: var(--primary); }
+    .badge-excel { background: #D1FAE5; color: #10B981; }
+
+    /* FAQ Accordions */
+    .faq-item {
+      border-bottom: 1px solid var(--border-light);
+      padding: var(--space-4) 0;
+    }
+    .faq-item:last-child {
+      border-bottom: none;
+    }
+    .faq-question {
+      width: 100%;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-2) 0;
+      cursor: pointer;
+    }
+    .faq-question:hover {
+      color: var(--primary);
+    }
+    .faq-answer {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      padding-top: var(--space-2);
+      padding-bottom: var(--space-2);
+      display: none;
+      animation: slideUp var(--transition-fast);
+    }
+    .faq-item.open .faq-answer {
+      display: block;
+    }
+    .faq-chevron {
+      transition: transform var(--transition-fast);
+      color: var(--text-tertiary);
+    }
+    .faq-item.open .faq-chevron {
+      transform: rotate(180deg);
+    }
+
+    /* Recently viewed scroll bar */
+    .recent-chips-row {
+      display: flex;
+      gap: var(--space-2);
+      overflow-x: auto;
+      padding: var(--space-2) 0;
+      scrollbar-width: none;
+    }
+    .recent-chips-row::-webkit-scrollbar { display: none; }
+    .recent-doc-chip {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+    }
+    .recent-doc-chip:hover {
+      background: var(--surface);
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ========= SIDEBAR ========= -->
+  <aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <img src="assets/logo.png" alt="Lyceum" id="sidebarLogo"
+           onerror="this.style.display='none';document.getElementById('sidebarLogoFallback').style.display='flex'">
+      <div id="sidebarLogoFallback" style="width:36px;height:36px;background:linear-gradient(135deg,#14222E,#3A9AD9);border-radius:8px;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;display:none;flex-shrink:0">L</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-title">Lyceum Connect</span>
+        <span class="sidebar-logo-sub">Employee Portal</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main Menu</div>
+
+      <a href="index.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+
+      <a href="service-catalog.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span class="nav-item-text">Service Catalog</span>
+      </a>
+
+      <a href="request-tracking.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">My Requests</span>
+        <span class="nav-badge">3</span>
+      </a>
+
+      <div class="sidebar-section-label">Resources</div>
+
+      <a href="knowledge-center.html" class="nav-item active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-item-text">Knowledge Center</span>
+      </a>
+
+      <a href="announcements.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Announcements</span>
+        <span class="nav-badge">5</span>
+      </a>
+
+      <a href="employee-directory.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Employee Directory</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="profile.html" class="sidebar-user">
+        <div class="sidebar-avatar">DJ</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">David Johns</div>
+          <div class="sidebar-user-role">HR Manager</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      <!-- Global Search -->
+      <div class="topbar-search relative">
+        <div class="search-input-wrap">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" placeholder="Search services, people, documents..." id="globalSearch" autocomplete="off">
+          <span class="search-shortcut">⌘K</span>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Notifications -->
+        <div class="relative">
+          <button class="topbar-btn" id="notifBtn" onclick="toggleNotifications()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-notif-dot"></span>
+          </button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <span class="notif-title">Notifications</span>
+              <span class="notif-count">5</span>
+            </div>
+            <div class="notif-list">
+              <div class="notif-item">
+                <div class="notif-content">
+                  <div class="notif-text">A new announcement is posted in the Knowledge Center</div>
+                  <div class="notif-time">1 hour ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="topbar-btn" onclick="toggleDarkMode()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+
+        <a href="profile.html" class="topbar-user" id="topbarUser">
+          <div class="topbar-avatar">DJ</div>
+          <div class="topbar-user-info">
+            <div class="topbar-user-name">David Johns</div>
+            <div class="topbar-user-dept">HR Department</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+
+      <!-- Breadcrumbs -->
+      <nav class="breadcrumb">
+        <a href="index.html">Home</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Knowledge Center</span>
+      </nav>
+
+      <!-- Knowledge Center Hero -->
+      <div class="kc-hero">
+        <h1 class="kc-hero-title">Lyceum Knowledge Base</h1>
+        <p class="kc-hero-subtitle">Instantly access group guides, employee handbooks, legal circulars, and SOP templates.</p>
+        <div class="kc-search-wrap">
+          <svg class="kc-search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="kc-search-input" id="kcSearch" placeholder="Search policies, templates, procedures or FAQs..." oninput="searchKB(this.value)">
+        </div>
+      </div>
+
+      <!-- Quick Category Chips -->
+      <div class="chips-wrapper">
+        <button class="chip-btn active" onclick="filterChips('all', this)">All Documents</button>
+        <button class="chip-btn" onclick="filterChips('hr-policies', this)">HR Policies</button>
+        <button class="chip-btn" onclick="filterChips('it-policies', this)">IT Policies</button>
+        <button class="chip-btn" onclick="filterChips('operations', this)">Operations</button>
+        <button class="chip-btn" onclick="filterChips('finance', this)">Finance</button>
+        <button class="chip-btn" onclick="filterChips('legal', this)">Legal</button>
+        <button class="chip-btn" onclick="filterChips('templates', this)">Forms & Templates</button>
+        <button class="chip-btn" onclick="filterChips('faqs', this)">FAQs</button>
+      </div>
+
+      <!-- Quick Stats Row -->
+      <div class="grid grid-3 mb-6" style="gap: var(--space-4)">
+        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
+          <div style="font-size:24px">📂</div>
+          <div>
+            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">284</div>
+            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Total Documents</div>
+          </div>
+        </div>
+        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
+          <div style="font-size:24px">🆕</div>
+          <div>
+            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">12</div>
+            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Added This Month</div>
+          </div>
+        </div>
+        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
+          <div style="font-size:24px">🔥</div>
+          <div>
+            <div style="font-size:14px; font-weight:700; color:var(--text-primary)">Employee Handbook</div>
+            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Most Viewed Document</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Featured Documents Section -->
+      <h2 class="section-title mb-4" id="featuredTitle">
+        <span style="font-size:16px; margin-right:6px">⭐️</span>
+        Featured Resources
+      </h2>
+      
+      <div class="featured-grid" id="featuredSection">
+        
+        <div class="featured-card">
+          <div class="fc-header">
+            <span class="fc-icon">📘</span>
+            <span class="badge badge-blue">HR Policy</span>
+          </div>
+          <h3 class="fc-title">Employee Handbook 2025</h3>
+          <div class="fc-meta">
+            <span>Pages: 124 pages</span>
+            <span>Last Updated: Jan 2025</span>
+            <span>Views: 2,150 views</span>
+          </div>
+          <div class="fc-actions">
+            <button class="btn btn-secondary btn-sm btn-icon" onclick="downloadDoc('Employee Handbook 2025', 'pdf')" title="Download PDF">📥</button>
+            <button class="btn btn-outline btn-sm" onclick="viewDoc('Employee Handbook 2025', 'HR Policy Guidance', '124 pages', 'This is the official Lyceum Connect employee handbook outlining corporate routines, dress codes, leave accruals, behavior standards, and organizational guidelines.')">Quick View</button>
+          </div>
+        </div>
+
+        <div class="featured-card">
+          <div class="fc-header">
+            <span class="fc-icon">🛡️</span>
+            <span class="badge badge-purple">IT Policy</span>
+          </div>
+          <h3 class="fc-title">IT Security Policy v3</h3>
+          <div class="fc-meta">
+            <span>Pages: 48 pages</span>
+            <span>Last Updated: Mar 2025</span>
+            <span>Views: 1,890 views</span>
+          </div>
+          <div class="fc-actions">
+            <button class="btn btn-secondary btn-sm btn-icon" onclick="downloadDoc('IT Security Policy v3', 'pdf')" title="Download PDF">📥</button>
+            <button class="btn btn-outline btn-sm" onclick="viewDoc('IT Security Policy v3', 'IT Security & Compliance', '48 pages', 'Official guidelines on remote access, Active Directory passwords rules, remote VPN connectivity, software licenses, asset handling and client information protection.')">Quick View</button>
+          </div>
+        </div>
+
+        <div class="featured-card">
+          <div class="fc-header">
+            <span class="fc-icon">🏥</span>
+            <span class="badge badge-teal">Facility</span>
+          </div>
+          <h3 class="fc-title">Health & Safety Manual</h3>
+          <div class="fc-meta">
+            <span>Pages: 96 pages</span>
+            <span>Last Updated: Feb 2025</span>
+            <span>Views: 1,120 views</span>
+          </div>
+          <div class="fc-actions">
+            <button class="btn btn-secondary btn-sm btn-icon" onclick="downloadDoc('Health & Safety Manual', 'pdf')" title="Download PDF">📥</button>
+            <button class="btn btn-outline btn-sm" onclick="viewDoc('Health & Safety Manual', 'Environmental Safety', '96 pages', 'Emergency assembly plans, chemical storage protocols, elevator incidents actions, fire prevention mechanisms and group workspace hazards audit standards.')">Quick View</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Categories & Lists -->
+      <div id="documentListsContainer">
+
+        <!-- HR Policies section -->
+        <div class="doc-list-section card" data-doc-cat="hr-policies" style="margin-bottom:var(--space-6)">
+          <div class="card-header">
+            <h3 class="card-title">👥 Human Resources Policies</h3>
+          </div>
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th class="doc-th">Document Title</th>
+                <th class="doc-th">Type</th>
+                <th class="doc-th">Size</th>
+                <th class="doc-th">Popularity</th>
+                <th class="doc-th" style="text-align:right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Annual Leave Policy', 'HR Policy', '15 pages', 'Document outlining rules for leave scheduling, carry-over rules, balance calculations and payment calculations.')">Annual Leave Policy</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">15 pages</td>
+                <td class="doc-td">1,240 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Annual Leave Policy', 'pdf')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Medical Leave Policy', 'HR Policy', '8 pages', 'Guidelines for sick leave declarations, doctor certification procedures, and long-term health leaves.')">Medical Leave Policy</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">8 pages</td>
+                <td class="doc-td">980 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Medical Leave Policy', 'pdf')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Code of Conduct', 'Corporate Compliance', '24 pages', 'Core principles regarding transparency, legal compliance, workplace ethics, conflicts of interest, and anti-harassment.')">Code of Conduct</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">24 pages</td>
+                <td class="doc-td">2,150 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Code of Conduct', 'pdf')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Performance Review Guidelines', 'HR Policy', '32 pages', 'Process instructions for annual audits, self-evaluations, scoring matrices and target setting protocols.')">Performance Review Guidelines</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">32 pages</td>
+                <td class="doc-td">876 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Performance Review Guidelines', 'pdf')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Travel & Expense Policy', 'Finance & HR', '18 pages', 'Outline of flight ticket bookings, daily allowances boundaries, hotel limits and claiming reimbursement details.')">Travel & Expense Policy</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">18 pages</td>
+                <td class="doc-td">543 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Travel & Expense Policy', 'pdf')">📥</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- IT Policies section -->
+        <div class="doc-list-section card" data-doc-cat="it-policies" style="margin-bottom:var(--space-6)">
+          <div class="card-header">
+            <h3 class="card-title">🛡️ IT Policies & Security Guidelines</h3>
+          </div>
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th class="doc-th">Document Title</th>
+                <th class="doc-th">Type</th>
+                <th class="doc-th">Size</th>
+                <th class="doc-th">Popularity</th>
+                <th class="doc-th" style="text-align:right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Acceptable Use Policy', 'IT Policy', '12 pages', 'Standard rules for corporate devices utilization, private emails constraints and web access filters.')">Acceptable Use Policy</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">12 pages</td>
+                <td class="doc-td">1,890 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Acceptable Use Policy', 'pdf')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Password Management Policy', 'IT Security', '6 pages', 'MFA rules, rotation requirements, complexity constraints and password locker guides.')">Password Management Policy</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">6 pages</td>
+                <td class="doc-td">2,340 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Password Management Policy', 'pdf')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Remote Work Guidelines', 'IT & HR', '10 pages', 'Data encryption rules, home office routers configuration and virtual private network setups.')">Remote Work Guidelines</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">10 pages</td>
+                <td class="doc-td">1,120 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Remote Work Guidelines', 'pdf')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Data Protection Policy', 'IT Compliance', '28 pages', 'GDPR/Local guidelines compliance regarding user privacy, archive limits and file deletion policies.')">Data Protection Policy</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">28 pages</td>
+                <td class="doc-td">654 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Data Protection Policy', 'pdf')">📥</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Forms & Templates section -->
+        <div class="doc-list-section card" data-doc-cat="templates" style="margin-bottom:var(--space-6)">
+          <div class="card-header">
+            <h3 class="card-title">📝 Forms & Templates</h3>
+          </div>
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th class="doc-th">Document Title</th>
+                <th class="doc-th">Type</th>
+                <th class="doc-th">Size</th>
+                <th class="doc-th">Popularity</th>
+                <th class="doc-th" style="text-align:right">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Leave Application Form', 'Template Form', '1 page', 'Standard paper fallback form for scheduling annual leave approvals.')">Leave Application Form</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-word">Word</span></td>
+                <td class="doc-td">1 page</td>
+                <td class="doc-td">3,210 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Leave Application Form', 'docx')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Expense Claim Form', 'Finance Spreadsheet', '1 sheet', 'Excel sheet for auditing out of pocket logs and business receipts.')">Expense Claim Form</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-excel">Excel</span></td>
+                <td class="doc-td">1 page</td>
+                <td class="doc-td">2,870 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Expense Claim Form', 'xlsx')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Asset Request Form', 'IT Form', '2 pages', 'Hardware upgrade requisition form containing specs selectors.')">Asset Request Form</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-pdf">PDF</span></td>
+                <td class="doc-td">2 pages</td>
+                <td class="doc-td">1,450 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Asset Request Form', 'pdf')">📥</button></td>
+              </tr>
+              <tr class="doc-tr">
+                <td class="doc-td"><a href="javascript:void(0)" class="doc-name" onclick="viewDoc('Meeting Request Template', 'Operational Template', '1 page', 'Standard agenda layout file for executive meetings scheduling.')">Meeting Request Template</a></td>
+                <td class="doc-td"><span class="doc-type-badge badge-word">Word</span></td>
+                <td class="doc-td">1 page</td>
+                <td class="doc-td">987 views</td>
+                <td class="doc-td" style="text-align:right"><button class="btn btn-ghost btn-sm btn-icon" onclick="downloadDoc('Meeting Request Template', 'docx')">📥</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FAQs section -->
+        <div class="doc-list-section card" data-doc-cat="faqs" style="margin-bottom:var(--space-6)">
+          <div class="card-header">
+            <h3 class="card-title">❓ Frequently Asked Questions</h3>
+          </div>
+          <div class="card-body">
+            
+            <div class="faq-item">
+              <button class="faq-question" onclick="toggleFAQ(this)">
+                How do I reset my password?
+                <span class="faq-chevron">▼</span>
+              </button>
+              <div class="faq-answer">
+                You can change or reset your Active Directory credentials instantly in <b>Service Catalog → IT Department → Password Reset</b>, or use the ⌘K search bar and query "Password reset".
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-question" onclick="toggleFAQ(this)">
+                How do I request a service letter?
+                <span class="faq-chevron">▼</span>
+              </button>
+              <div class="faq-answer">
+                Submit a letter request form in **Service Catalog → Human Resources → Service Letter Request**. The letters are signed, stamped and uploaded to your Profile page within 2 business days.
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button class="faq-question" onclick="toggleFAQ(this)">
+                What is the SLA for IT tickets?
+                <span class="faq-chevron">▼</span>
+              </button>
+              <div class="faq-answer">
+                IT tickets resolution time depends on priority:
+                <br>• Critical (Major service offline) — 2 hours.
+                <br>• High (Productivity block) — 4 hours.
+                <br>• Medium (Standard ticket) — 24 hours.
+                <br>• Low (Minor improvements) — 3 days.
+              </div>
+            </div>
+
+
+
+            <div class="faq-item">
+              <button class="faq-question" onclick="toggleFAQ(this)">
+                Who do I contact for payroll queries?
+                <span class="faq-chevron">▼</span>
+              </button>
+              <div class="faq-answer">
+                Please raise a general support ticket under HR Services or search the Employee Directory for the Finance/Payroll managers to start a direct Lexi chat.
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Recently Viewed Section -->
+      <h2 class="section-title mb-4">
+        <span style="font-size:16px; margin-right:6px">🕒</span>
+        Recently Viewed Documents
+      </h2>
+      <div class="recent-chips-row">
+        <div class="recent-doc-chip" onclick="viewDoc('Employee Handbook 2025', 'HR Policy Guidance', '124 pages', 'Official rules and policies document.')">📄 Employee Handbook 2025</div>
+        <div class="recent-doc-chip" onclick="viewDoc('IT Security Policy v3', 'IT Security', '48 pages', 'Acceptable use rules.')">📄 IT Security Policy v3</div>
+        <div class="recent-doc-chip" onclick="viewDoc('Annual Leave Policy', 'HR Policy', '15 pages', 'Leave planning guides.')">📄 Annual Leave Policy</div>
+        <div class="recent-doc-chip" onclick="viewDoc('Expense Claim Form', 'Finance Spreadsheet', '1 sheet', 'Excel sheet for auditing out of pocket logs.')">📄 Expense Claim Form</div>
+      </div>
+
+    </main>
+  </div><!-- /MAIN CONTENT -->
+</div><!-- /APP LAYOUT -->
+
+<!-- Document View Modal -->
+<div class="modal-overlay" id="docViewModal">
+  <div class="modal" style="max-width: 650px">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title" style="font-size: 18px" id="modalDocTitle">Document Name</h3>
+        <span class="badge badge-blue" style="font-size: 11px" id="modalDocCategory">Category</span>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="closeModal('docViewModal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding: var(--space-6)">
+      <div style="font-size: 12px; color: var(--text-tertiary); margin-bottom: 12px">Document Size: <span id="modalDocSize">-</span></div>
+      
+      <!-- Mock PDF Layout -->
+      <div style="background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-6); min-height: 200px; display: flex; flex-direction: column; justify-content: center; position: relative">
+        <div style="font-size: 40px; text-align: center; margin-bottom: var(--space-3)">📄</div>
+        <h4 style="text-align: center; font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: var(--space-2)" id="modalDocInnerTitle">Title</h4>
+        <p style="text-align: center; font-size: 13px; color: var(--text-secondary); max-width: 450px; margin: 0 auto; line-height: 1.6" id="modalDocContent">
+          Loading document contents preview details...
+        </p>
+      </div>
+
+      <div style="margin-top: var(--space-6); display: flex; justify-content: flex-end; gap: var(--space-3)">
+        <button class="btn btn-secondary" onclick="closeModal('docViewModal')">Close Preview</button>
+        <button class="btn btn-primary" id="modalDownloadBtn">Download Full Document</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= AI ASSISTANT FAB ========= -->
+<div class="ai-fab" id="aiFab">
+  <div class="ai-chat-panel" id="aiChatPanel">
+    <div class="ai-chat-header">
+      <div class="ai-chat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l2 2"/><circle cx="18" cy="6" r="4" fill="white" stroke="none"/></svg>
+      </div>
+      <div>
+        <div class="ai-chat-name">Lexi — AI Assistant</div>
+        <div class="ai-chat-status">● Online · Powered by AI</div>
+      </div>
+      <button onclick="toggleAIChat()" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:28px;height:28px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="ai-messages" id="aiMessages">
+      <div class="ai-msg bot">
+        <div class="ai-msg-bubble">I can search policies, templates and FAQ sheets for you. Just ask me!</div>
+      </div>
+    </div>
+    <div class="ai-chat-input-wrap">
+      <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Ask Lexi anything...">
+      <button class="ai-send-btn" onclick="sendAIMessage()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+  <button class="ai-fab-btn" onclick="toggleAIChat()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="white"/><circle cx="12" cy="10" r="1" fill="white"/><circle cx="15" cy="10" r="1" fill="white"/></svg>
+  </button>
+</div>
+
+<!-- ========= TOAST CONTAINER ========= -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ========= SCRIPTS ========= -->
+<script src="js/main.js"></script>
+<script>
+  function filterChips(category, chipBtn) {
+    document.querySelectorAll('.chip-btn').forEach(btn => btn.classList.remove('active'));
+    chipBtn.classList.add('active');
+
+    const sections = document.querySelectorAll('.doc-list-section');
+    const featured = document.getElementById('featuredSection');
+    const featuredTitle = document.getElementById('featuredTitle');
+
+    if (category === 'all') {
+      sections.forEach(s => s.style.display = 'block');
+      if (featured) featured.style.display = 'grid';
+      if (featuredTitle) featuredTitle.style.display = 'block';
+    } else {
+      sections.forEach(s => {
+        if (s.getAttribute('data-doc-cat') === category) {
+          s.style.display = 'block';
+        } else {
+          s.style.display = 'none';
+        }
+      });
+      // Hide featured if not in 'all' view
+      if (featured) featured.style.display = 'none';
+      if (featuredTitle) featuredTitle.style.display = 'none';
+    }
+  }
+
+  function downloadDoc(name, type) {
+    showToast('Download Started', `Downloading "${name}.${type}" to your device...`, 'success');
+  }
+
+  function toggleFAQ(btn) {
+    const parent = btn.parentElement;
+    const isOpen = parent.classList.contains('open');
+    
+    // Close other FAQs
+    document.querySelectorAll('.faq-item').forEach(item => item.classList.remove('open'));
+    
+    if (!isOpen) {
+      parent.classList.add('open');
+    }
+  }
+
+  function viewDoc(name, category, size, desc) {
+    document.getElementById('modalDocTitle').textContent = name;
+    document.getElementById('modalDocInnerTitle').textContent = name;
+    document.getElementById('modalDocCategory').textContent = category;
+    document.getElementById('modalDocSize').textContent = size;
+    document.getElementById('modalDocContent').textContent = desc;
+    
+    // Wire up download button inside modal
+    const dlBtn = document.getElementById('modalDownloadBtn');
+    dlBtn.onclick = function() {
+      downloadDoc(name, 'pdf');
+      closeModal('docViewModal');
+    };
+
+    openModal('docViewModal');
+  }
+
+  function searchKB(q) {
+    q = q.trim().toLowerCase();
+    
+    const tableRows = document.querySelectorAll('.doc-tr');
+    const sections = document.querySelectorAll('.doc-list-section');
+    const featured = document.getElementById('featuredSection');
+    const featuredTitle = document.getElementById('featuredTitle');
+
+    if (!q) {
+      tableRows.forEach(row => row.style.display = '');
+      sections.forEach(s => s.style.display = 'block');
+      if (featured) featured.style.display = 'grid';
+      if (featuredTitle) featuredTitle.style.display = 'block';
+      return;
+    }
+
+    // Hide featured during search
+    if (featured) featured.style.display = 'none';
+    if (featuredTitle) featuredTitle.style.display = 'none';
+
+    sections.forEach(section => {
+      let matchesInSection = 0;
+      const rows = section.querySelectorAll('.doc-tr');
+      
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(q)) {
+          row.style.display = '';
+          matchesInSection++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      if (matchesInSection > 0) {
+        section.style.display = 'block';
+      } else {
+        section.style.display = 'none';
+      }
+    });
+
+    // Handle FAQs custom search
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+      const text = item.textContent.toLowerCase();
+      if (text.includes(q)) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+</script>
+</body>
+</html>
