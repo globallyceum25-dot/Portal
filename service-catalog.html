@@ -79,13 +79,267 @@
       grid-template-columns: repeat(3, 1fr);
       gap: var(--space-5);
       margin-bottom: var(--space-8);
+      grid-auto-flow: dense;
     }
 
-    @media (max-width: 1024px) {
-      .categories-grid { grid-template-columns: repeat(2, 1fr); }
+    /* Bento Grid Layout rules */
+    @media (min-width: 1025px) {
+      .service-category-card.bento-wide {
+        grid-column: span 2;
+      }
+      .service-category-card.bento-tall {
+        grid-row: span 2;
+        height: 100%;
+      }
     }
+
+    @media (max-width: 1024px) and (min-width: 641px) {
+      .categories-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .service-category-card.bento-wide {
+        grid-column: span 2;
+      }
+      .service-category-card.bento-tall {
+        grid-row: span 2;
+        height: 100%;
+      }
+    }
+
     @media (max-width: 640px) {
-      .categories-grid { grid-template-columns: 1fr; }
+      .categories-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Bento Premium Aesthetic styling */
+    .service-category-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 4px solid var(--category-border-color, var(--border));
+      border-radius: 16px;
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-5);
+      cursor: pointer;
+      transition: all var(--transition-spring);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .service-category-card::before {
+      content: '';
+      position: absolute;
+      bottom: -30px;
+      right: -30px;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, var(--card-bg-gradient) 0%, transparent 70%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .service-category-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--category-border-color);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    /* Category Specific Borders/Colors mapped to CSS variables */
+    .border-hr {
+      --category-border-color: var(--primary-500);
+      --card-bg-gradient: rgba(59, 123, 248, 0.08);
+      --icon-bg: rgba(59, 123, 248, 0.1);
+      --icon-color: var(--primary);
+    }
+    .border-it {
+      --category-border-color: #7C3AED;
+      --card-bg-gradient: rgba(124, 58, 237, 0.08);
+      --icon-bg: rgba(124, 58, 237, 0.1);
+      --icon-color: #7C3AED;
+    }
+    .border-fm {
+      --category-border-color: #0D9488;
+      --card-bg-gradient: rgba(13, 148, 136, 0.08);
+      --icon-bg: rgba(13, 148, 136, 0.1);
+      --icon-color: #0D9488;
+    }
+    .border-admin {
+      --category-border-color: #F59E0B;
+      --card-bg-gradient: rgba(245, 158, 11, 0.08);
+      --icon-bg: rgba(245, 158, 11, 0.1);
+      --icon-color: #F59E0B;
+    }
+    .border-know {
+      --category-border-color: #10B981;
+      --card-bg-gradient: rgba(16, 185, 129, 0.08);
+      --icon-bg: rgba(16, 185, 129, 0.1);
+      --icon-color: #10B981;
+    }
+    .border-comm {
+      --category-border-color: #EF4444;
+      --card-bg-gradient: rgba(239, 68, 68, 0.08);
+      --icon-bg: rgba(239, 68, 68, 0.1);
+      --icon-color: #EF4444;
+    }
+
+    .sc-content-left {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      z-index: 2;
+    }
+    .sc-content-right {
+      z-index: 2;
+    }
+
+    .sc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .sc-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: var(--icon-bg);
+      color: var(--icon-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+    }
+
+    .sc-count-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--icon-color);
+      background: var(--icon-bg);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+
+    .sc-text-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sc-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      letter-spacing: -0.3px;
+    }
+
+    .sc-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .sc-services-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .sc-service-chip {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: var(--radius-md);
+      transition: all var(--transition-fast);
+    }
+
+    .sc-service-chip:hover {
+      color: var(--icon-color);
+      border-color: var(--icon-color);
+      background: var(--surface);
+      transform: translateY(-1px);
+    }
+
+    /* Bento shapes formatting on desktop/tablet */
+    @media (min-width: 641px) {
+      .service-category-card.bento-wide {
+        flex-direction: row;
+        align-items: stretch;
+        gap: var(--space-6);
+      }
+      .service-category-card.bento-wide .sc-content-left {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .service-category-card.bento-wide .sc-content-right {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        background: var(--bg-tertiary);
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+        border: 1px dashed var(--border);
+      }
+      
+      .service-category-card.bento-tall {
+        justify-content: space-between;
+      }
+      .service-category-card.bento-tall .sc-services-preview {
+        flex-direction: column;
+        gap: 6px;
+        width: 100%;
+        margin-top: var(--space-3);
+      }
+      .service-category-card.bento-tall .sc-service-chip {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: var(--radius-md);
+      }
+    }
+
+    /* Mobile overrides */
+    @media (max-width: 640px) {
+      .service-category-card {
+        flex-direction: column !important;
+        gap: var(--space-4) !important;
+        height: auto !important;
+      }
+      .sc-content-left, .sc-content-right {
+        flex: none !important;
+        width: 100% !important;
+      }
+      .service-category-card .sc-content-right {
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      .service-category-card.bento-tall .sc-services-preview {
+        flex-direction: row !important;
+        gap: 6px !important;
+      }
+      .service-category-card.bento-tall .sc-service-chip {
+        display: inline-block !important;
+        width: auto !important;
+        padding: 4px 10px !important;
+      }
     }
 
     .service-list-section {
@@ -154,19 +408,12 @@
     .sla-badge-amber { background: var(--warning-light); color: var(--warning); }
     .sla-badge-green { background: var(--success-light); color: var(--success); }
 
-    /* Category Specific Borders/Colors */
-    .border-hr { border-top: 4px solid var(--primary-500); }
-    .border-it { border-top: 4px solid #7C3AED; }
-    .border-fm { border-top: 4px solid #0D9488; }
-    .border-admin { border-top: 4px solid #F59E0B; }
-    .border-know { border-top: 4px solid #10B981; }
-    .border-comm { border-top: 4px solid #EF4444; }
-
     /* Clickable service details animations */
     .service-category-card.selected {
-      border-color: var(--primary);
+      border-color: var(--category-border-color) !important;
       box-shadow: var(--shadow-lg);
-      transform: scale(1.02);
+      transform: scale(1.015);
+      background: var(--surface);
     }
 
   </style>
@@ -358,120 +605,144 @@
       <!-- Category Cards Grid -->
       <div class="categories-grid" id="categoriesGrid">
         
-        <!-- HR Category Card -->
-        <div class="service-category-card border-hr" data-category="hr" onclick="selectCategory('hr', this)" style="--sc-color: var(--primary-50)">
-          <div class="sc-header">
-            <div class="sc-icon" style="background:#EFF6FF;color:var(--primary)">👥</div>
-            <span class="sc-count">12 Services</span>
+        <!-- HR Category Card (Bento Tall) -->
+        <div class="service-category-card border-hr bento-tall" data-category="hr" onclick="selectCategory('hr', this)">
+          <div class="sc-content-left">
+            <div class="sc-header">
+              <div class="sc-icon">👥</div>
+              <span class="sc-count-badge">12 Services</span>
+            </div>
+            <div class="sc-text-wrap">
+              <h3 class="sc-title">Human Resources</h3>
+              <p class="sc-desc">Manage your HR needs, personnel information, and employee services.</p>
+            </div>
           </div>
-          <div>
-            <h3 class="sc-title">Human Resources</h3>
-            <p class="sc-desc">Manage your HR needs, personnel information, and employee services.</p>
-          </div>
-          <div class="sc-services-preview">
-            <span class="sc-service-chip">Service Letter</span>
-            <span class="sc-service-chip">B Card</span>
-            <span class="sc-service-chip">Personnel Change</span>
-            <span class="sc-service-chip">Bank Update</span>
-            <span class="sc-service-chip">ID Card</span>
-            <span class="sc-service-chip">Leave Welfare</span>
-          </div>
-        </div>
-
-        <!-- IT Category Card -->
-        <div class="service-category-card border-it" data-category="it" onclick="selectCategory('it', this)" style="--sc-color: #F3E8FF">
-          <div class="sc-header">
-            <div class="sc-icon" style="background:#F3E8FF;color:#7C3AED">💻</div>
-            <span class="sc-count">12 Services</span>
-          </div>
-          <div>
-            <h3 class="sc-title">Information Technology</h3>
-            <p class="sc-desc">Technical support, hardware, software, and IT infrastructure services.</p>
-          </div>
-          <div class="sc-services-preview">
-            <span class="sc-service-chip">IT Support</span>
-            <span class="sc-service-chip">Asset Request</span>
-            <span class="sc-service-chip">Software Install</span>
-            <span class="sc-service-chip">Email Setup</span>
-            <span class="sc-service-chip">System Access</span>
-            <span class="sc-service-chip">Password Reset</span>
+          <div class="sc-content-right">
+            <div class="sc-services-preview">
+              <span class="sc-service-chip">Service Letter</span>
+              <span class="sc-service-chip">B Card</span>
+              <span class="sc-service-chip">Personnel Change</span>
+              <span class="sc-service-chip">Bank Update</span>
+              <span class="sc-service-chip">ID Card</span>
+              <span class="sc-service-chip">Leave Welfare</span>
+            </div>
           </div>
         </div>
 
-        <!-- Facility Category Card -->
-        <div class="service-category-card border-fm" data-category="facility" onclick="selectCategory('facility', this)" style="--sc-color: #CCFBF1">
-          <div class="sc-header">
-            <div class="sc-icon" style="background:#CCFBF1;color:#0D9488">🏢</div>
-            <span class="sc-count">10 Services</span>
+        <!-- IT Category Card (Bento Wide) -->
+        <div class="service-category-card border-it bento-wide" data-category="it" onclick="selectCategory('it', this)">
+          <div class="sc-content-left">
+            <div class="sc-header">
+              <div class="sc-icon">💻</div>
+              <span class="sc-count-badge">12 Services</span>
+            </div>
+            <div class="sc-text-wrap">
+              <h3 class="sc-title">Information Technology</h3>
+              <p class="sc-desc">Technical support, hardware, software, and IT infrastructure services.</p>
+            </div>
           </div>
-          <div>
-            <h3 class="sc-title">Group Facility Management</h3>
-            <p class="sc-desc">Building maintenance, facility requests, and safety reporting.</p>
-          </div>
-          <div class="sc-services-preview">
-            <span class="sc-service-chip">Maintenance</span>
-            <span class="sc-service-chip">Electrical</span>
-            <span class="sc-service-chip">AC Issues</span>
-            <span class="sc-service-chip">Plumbing</span>
-            <span class="sc-service-chip">Cleaning</span>
-            <span class="sc-service-chip">Furniture</span>
-          </div>
-        </div>
-
-        <!-- Administration Category Card -->
-        <div class="service-category-card border-admin" data-category="admin" onclick="selectCategory('admin', this)" style="--sc-color: #FEF3C7">
-          <div class="sc-header">
-            <div class="sc-icon" style="background:#FEF3C7;color:#D97706">📋</div>
-            <span class="sc-count">5 Services</span>
-          </div>
-          <div>
-            <h3 class="sc-title">Administration</h3>
-            <p class="sc-desc">Administrative support, bookings, and logistics services.</p>
-          </div>
-          <div class="sc-services-preview">
-            <span class="sc-service-chip">Stationery</span>
-            <span class="sc-service-chip">Courier</span>
-            <span class="sc-service-chip">Vehicle Booking</span>
-            <span class="sc-service-chip">Driver Request</span>
+          <div class="sc-content-right">
+            <div class="sc-services-preview">
+              <span class="sc-service-chip">IT Support</span>
+              <span class="sc-service-chip">Asset Request</span>
+              <span class="sc-service-chip">Software Install</span>
+              <span class="sc-service-chip">Email Setup</span>
+              <span class="sc-service-chip">System Access</span>
+              <span class="sc-service-chip">Password Reset</span>
+            </div>
           </div>
         </div>
 
-        <!-- Knowledge Center Category Card -->
-        <div class="service-category-card border-know" data-category="knowledge" onclick="selectCategory('knowledge', this)" style="--sc-color: #D1FAE5">
-          <div class="sc-header">
-            <div class="sc-icon" style="background:#D1FAE5;color:#10B981">📚</div>
-            <span class="sc-count">9 Services</span>
+        <!-- Facility Category Card (Bento Standard) -->
+        <div class="service-category-card border-fm" data-category="facility" onclick="selectCategory('facility', this)">
+          <div class="sc-content-left">
+            <div class="sc-header">
+              <div class="sc-icon">🏢</div>
+              <span class="sc-count-badge">10 Services</span>
+            </div>
+            <div class="sc-text-wrap">
+              <h3 class="sc-title">Group Facility Management</h3>
+              <p class="sc-desc">Building maintenance, facility requests, and safety reporting.</p>
+            </div>
           </div>
-          <div>
-            <h3 class="sc-title">Knowledge Center</h3>
-            <p class="sc-desc">Access company policies, procedures, forms, and important documents.</p>
-          </div>
-          <div class="sc-services-preview">
-            <span class="sc-service-chip">Policies</span>
-            <span class="sc-service-chip">Procedures</span>
-            <span class="sc-service-chip">SOPs</span>
-            <span class="sc-service-chip">Forms</span>
-            <span class="sc-service-chip">Templates</span>
-            <span class="sc-service-chip">FAQs</span>
+          <div class="sc-content-right">
+            <div class="sc-services-preview">
+              <span class="sc-service-chip">Maintenance</span>
+              <span class="sc-service-chip">Electrical</span>
+              <span class="sc-service-chip">AC Issues</span>
+              <span class="sc-service-chip">Plumbing</span>
+              <span class="sc-service-chip">Cleaning</span>
+              <span class="sc-service-chip">Furniture</span>
+            </div>
           </div>
         </div>
 
-        <!-- Communications Category Card -->
-        <div class="service-category-card border-comm" data-category="comm" onclick="selectCategory('comm', this)" style="--sc-color: #FFE4E6">
-          <div class="sc-header">
-            <div class="sc-icon" style="background:#FFE4E6;color:#EF4444">📣</div>
-            <span class="sc-count">7 Services</span>
+        <!-- Administration Category Card (Bento Standard) -->
+        <div class="service-category-card border-admin" data-category="admin" onclick="selectCategory('admin', this)">
+          <div class="sc-content-left">
+            <div class="sc-header">
+              <div class="sc-icon">📋</div>
+              <span class="sc-count-badge">5 Services</span>
+            </div>
+            <div class="sc-text-wrap">
+              <h3 class="sc-title">Administration</h3>
+              <p class="sc-desc">Administrative support, bookings, and logistics services.</p>
+            </div>
           </div>
-          <div>
-            <h3 class="sc-title">Corporate Communications</h3>
-            <p class="sc-desc">Company news, announcements, events, and employee recognition.</p>
+          <div class="sc-content-right">
+            <div class="sc-services-preview">
+              <span class="sc-service-chip">Stationery</span>
+              <span class="sc-service-chip">Courier</span>
+              <span class="sc-service-chip">Vehicle Booking</span>
+              <span class="sc-service-chip">Driver Request</span>
+            </div>
           </div>
-          <div class="sc-services-preview">
-            <span class="sc-service-chip">Announcements</span>
-            <span class="sc-service-chip">Events</span>
-            <span class="sc-service-chip">Achievements</span>
-            <span class="sc-service-chip">Recognition</span>
-            <span class="sc-service-chip">Campaigns</span>
+        </div>
+
+        <!-- Knowledge Center Category Card (Bento Standard) -->
+        <div class="service-category-card border-know" data-category="knowledge" onclick="selectCategory('knowledge', this)">
+          <div class="sc-content-left">
+            <div class="sc-header">
+              <div class="sc-icon">📚</div>
+              <span class="sc-count-badge">9 Services</span>
+            </div>
+            <div class="sc-text-wrap">
+              <h3 class="sc-title">Knowledge Center</h3>
+              <p class="sc-desc">Access company policies, procedures, forms, and important documents.</p>
+            </div>
+          </div>
+          <div class="sc-content-right">
+            <div class="sc-services-preview">
+              <span class="sc-service-chip">Policies</span>
+              <span class="sc-service-chip">Procedures</span>
+              <span class="sc-service-chip">SOPs</span>
+              <span class="sc-service-chip">Forms</span>
+              <span class="sc-service-chip">Templates</span>
+              <span class="sc-service-chip">FAQs</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Communications Category Card (Bento Wide) -->
+        <div class="service-category-card border-comm bento-wide" data-category="comm" onclick="selectCategory('comm', this)">
+          <div class="sc-content-left">
+            <div class="sc-header">
+              <div class="sc-icon">📣</div>
+              <span class="sc-count-badge">7 Services</span>
+            </div>
+            <div class="sc-text-wrap">
+              <h3 class="sc-title">Corporate Communications</h3>
+              <p class="sc-desc">Company news, announcements, events, and employee recognition.</p>
+            </div>
+          </div>
+          <div class="sc-content-right">
+            <div class="sc-services-preview">
+              <span class="sc-service-chip">Announcements</span>
+              <span class="sc-service-chip">Events</span>
+              <span class="sc-service-chip">Achievements</span>
+              <span class="sc-service-chip">Recognition</span>
+              <span class="sc-service-chip">Campaigns</span>
+            </div>
           </div>
         </div>
 
