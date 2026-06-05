@@ -136,7 +136,7 @@ const searchData = [
   { type: 'service', name: 'Facility Request', desc: 'Group Facility Management', url: 'request-form.html?service=facility' },
   { type: 'service', name: 'Password Reset', desc: 'IT Department', url: 'request-form.html?service=password' },
   { type: 'service', name: 'Asset Request', desc: 'IT Department', url: 'request-form.html?service=asset' },
-  { type: 'employee', name: 'David Johns', desc: 'HR Manager · Human Resources', url: 'employee-directory.html' },
+  { type: 'employee', name: 'Ishara Silva', desc: 'IT Governance Lead · IT Governance', url: 'employee-directory.html' },
   { type: 'employee', name: 'Raj Patel', desc: 'IT Manager · Information Technology', url: 'employee-directory.html' },
   { type: 'document', name: 'Employee Handbook 2025', desc: 'HR Policy', url: 'knowledge-center.html' },
   { type: 'document', name: 'IT Security Policy', desc: 'IT Policy', url: 'knowledge-center.html' },
@@ -301,9 +301,11 @@ function updateDateTime() {
   const el = document.getElementById('currentDateTime');
   if (!el) return;
   const now = new Date();
-  el.textContent = now.toLocaleDateString('en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  });
+  const day = now.toLocaleDateString('en-US', { day: '2-digit' });
+  const month = now.toLocaleDateString('en-US', { month: 'long' });
+  const weekday = now.toLocaleDateString('en-US', { weekday: 'long' });
+  const year = now.getFullYear();
+  el.textContent = `${weekday}, ${day} ${month} ${year}`;
 }
 
 // ---- Form Submission ----
