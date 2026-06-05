@@ -911,6 +911,22 @@
     const cards = document.querySelectorAll('.service-category-card');
     if (category === 'all') {
       cards.forEach(card => card.style.display = 'flex');
+      
+      // Deselect active card in categories grid
+      cards.forEach(c => c.classList.remove('selected'));
+      
+      // Set section title
+      document.getElementById('currentCategoryTitle').textContent = 'All Services';
+      
+      // Combine all services EXCEPT Human Resources
+      const allOtherServices = [
+        ...services.it,
+        ...services.facility,
+        ...services.admin,
+        ...services.knowledge,
+        ...services.comm
+      ];
+      populateServices(allOtherServices);
     } else {
       cards.forEach(card => {
         if (card.getAttribute('data-category') === category) {
@@ -1046,9 +1062,14 @@
       }
     })();
 
-    // Auto-select HR initially
-    const firstCard = document.querySelector('.service-category-card[data-category="hr"]');
-    selectCategory('hr', firstCard);
+    // Auto-select All Services tab initially
+    const allTab = document.querySelector('.catalog-tab[onclick*="\'all\'"]');
+    if (allTab) {
+      filterCatalog('all', allTab);
+    } else {
+      const firstCard = document.querySelector('.service-category-card[data-category="hr"]');
+      selectCategory('hr', firstCard);
+    }
 
     // Support deep-linking to category via hash e.g. service-catalog.html#it
     const hash = window.location.hash.substring(1);
