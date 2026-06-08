@@ -163,11 +163,20 @@ function seedSampleTasks() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+console.log('Lyceum Connect: tasks.js loaded');
+
+function initTasksModule() {
+  console.log('Lyceum Connect: Initializing tasks module...');
   seedSampleTasks();
   renderTasksList();
   populateMeetingFilters();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTasksModule);
+} else {
+  initTasksModule();
+}
 
 // Render tasks list & statistics
 function renderTasksList() {
