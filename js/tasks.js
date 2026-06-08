@@ -150,12 +150,16 @@ const SAMPLE_MEETING_TASKS = [
 ];
 
 /**
- * Seed sample tasks into localStorage if none exist yet
+ * Seed sample tasks into localStorage if they aren't already present
  */
 function seedSampleTasks() {
-  const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  if (existing.length === 0) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(SAMPLE_MEETING_TASKS));
+  let existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const existingIds = existing.map(t => t.id);
+  const missingSamples = SAMPLE_MEETING_TASKS.filter(t => !existingIds.includes(t.id));
+  
+  if (missingSamples.length > 0) {
+    existing = [...existing, ...missingSamples];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
   }
 }
 

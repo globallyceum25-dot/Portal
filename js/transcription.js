@@ -878,14 +878,15 @@ function publishToKnowledgeCenter() {
 
 function extractAndCreateTasks() {
   const summaryEl = document.getElementById('summaryTextarea');
-  if (!summaryEl || !summaryEl.innerText.trim()) {
+  const summaryText = summaryEl ? (summaryEl.innerText || summaryEl.textContent || '') : '';
+  if (!summaryText.trim()) {
     showToast('No Action Items', 'Please complete the transcription and generate the summary minutes first.', 'error');
     return;
   }
 
-  const tasks = parseActionItems(summaryEl.innerText);
+  const tasks = parseActionItems(summaryText);
   if (tasks.length === 0) {
-    showToast('No Action Items Found', 'We could not detect any items starting with the user icon (👤) in the minutes list.', 'warning');
+    showToast('No Action Items Found', 'We could not detect any action items in the meeting minutes list.', 'warning');
     return;
   }
 
@@ -935,34 +936,82 @@ function extractAndCreateTasks() {
 }
 
 function parseActionItems(text) {
-  const lines = text.split('\n');
+  // Normalize line breaks and remove common HTML tags
+  let normalizedText = text
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<div[^>]*>/gi, '')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n');
+
+  const lines = normalizedText.split('\n');
   const tasks = [];
   
+  const staffNames = ['lisa thompson', 'lisa', 'raj patel', 'raj', 'james wilson', 'james', 'sudaraka perera', 'sudaraka'];
+  
   lines.forEach(line => {
-    if (line.includes('👤')) {
-      // Clean asterisks, HTML tags, and prefix emojis
-      let cleanLine = line.replace(/<\/?[^>]+(>|$)/g, "").replace(/\*\*/g, "").replace(/\*/g, "").trim();
-      cleanLine = cleanLine.replace('👤', '').trim();
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    
+    // Determine if this line contains action item cues
+    let isActionItem = trimmed.includes('👤') || trimmed.includes('Action Item');
+    
+    // Clean up markdown formatting and bullets
+    let cleanLine = trimmed
+      .replace(/<\/?[^>]+(>|$)/g, "") // Remove HTML tags
+      .replace(/\*\*/g, "") // Remove bold indicators
+      .replace(/\*/g, "")  // Remove bullet asterisks
+      .replace(/^[-\d\.\s*•]+/, "") // Remove prefixes like "-", "1.", "*", "•"
+      .replace('👤', '')
+      .trim();
       
-      const colonIndex = cleanLine.indexOf(':');
-      if (colonIndex > 0) {
-        const assignee = cleanLine.substring(0, colonIndex).trim();
-        const desc = cleanLine.substring(colonIndex + 1).trim();
-        
-        if (assignee && desc) {
-          // Default due date: 3 days from now
-          const targetDate = new Date();
-          targetDate.setDate(targetDate.getDate() + 3);
-          const dateStr = targetDate.toISOString().split('T')[0];
-
-          tasks.push({
-            assignee: assignee,
-            title: desc,
-            dueDate: dateStr,
-            priority: 'Medium'
-          });
+    // Look for separator patterns (colon, hyphen, or common connectors)
+    let separatorIndex = cleanLine.indexOf(':');
+    if (separatorIndex === -1) {
+      separatorIndex = cleanLine.indexOf(' - ');
+    }
+    
+    let assignee = '';
+    let desc = '';
+    
+    if (separatorIndex > 0) {
+      assignee = cleanLine.substring(0, separatorIndex).trim();
+      desc = cleanLine.substring(separatorIndex + 1).trim();
+    } else {
+      // Fallback: check if the line starts with a known staff member name
+      const lowerClean = cleanLine.toLowerCase();
+      for (const name of staffNames) {
+        if (lowerClean.startsWith(name)) {
+          assignee = cleanLine.substring(0, name.length).trim();
+          desc = cleanLine.substring(name.length).replace(/^(to|will|should|must)\s+/, '').trim();
+          isActionItem = true;
+          break;
         }
       }
+    }
+    
+    // If it has a valid description, we can map it
+    if (isActionItem || (assignee && desc)) {
+      if (!assignee) {
+        assignee = 'Lisa Thompson'; // Safe default
+      }
+      if (!desc) {
+        desc = cleanLine;
+      }
+      
+      // Default due date: 3 days from now
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + 3);
+      const dateStr = targetDate.toISOString().split('T')[0];
+
+      tasks.push({
+        assignee: assignee,
+        title: desc,
+        dueDate: dateStr,
+        priority: 'Medium'
+      });
     }
   });
 

@@ -2355,8 +2355,8 @@ ul { list-style: none; }
   box-shadow: var(--shadow-glow);
 }
 .bento-company-logo-wrap {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--radius-md);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2364,7 +2364,7 @@ ul { list-style: none; }
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 4px;
+  padding: 6px;
   margin-bottom: var(--space-3);
   box-shadow: var(--shadow-xs);
   transition: all var(--transition-base);
@@ -2454,8 +2454,8 @@ ul { list-style: none; }
   margin-bottom: var(--space-4);
 }
 .bento-focus-logo-wrap {
-  width: 72px;
-  height: 72px;
+  width: 96px;
+  height: 96px;
   border-radius: var(--radius-lg);
   background: var(--surface);
   border: 1px solid var(--border);
