@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+  <script src="js/auth.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lyceum Connect — Your Digital Employee Workplace Portal. Access HR, IT, Facility, Administration, Knowledge and Communication services in one place.">
@@ -219,6 +220,44 @@
     @media (max-width: 900px) {
       .grid-6 { grid-template-columns: repeat(2, 1fr); }
     }
+
+    /* Task reminder dropdown styling */
+    .reminder-dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      min-width: 170px;
+      padding: 6px;
+      margin-top: 4px;
+      transform-origin: top right;
+    }
+    .reminder-dropdown-menu.show {
+      display: block;
+    }
+    .reminder-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 12.5px;
+      text-align: left;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      transition: background var(--transition-fast);
+    }
+    .reminder-dropdown-item:hover {
+      background: var(--bg-tertiary);
+    }
   </style>
 </head>
 <body>
@@ -273,13 +312,28 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span class="nav-item-text">Employee Directory</span>
       </a>
+
+      <a href="meeting-transcription.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        <span class="nav-item-text">Meeting Transcriber</span>
+      </a>
+
+      <a href="tasks.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span class="nav-item-text">Tasks Manager</span>
+      </a>
+
+      <a href="sectors.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="2" width="8" height="5" rx="1"/><rect x="3" y="17" width="8" height="5" rx="1"/><rect x="13" y="17" width="8" height="5" rx="1"/><path d="M8 17V12h8v5M12 7v5"/></svg>
+        <span class="nav-item-text">Company Hierarchy</span>
+      </a>
     </nav>
 
     <div class="sidebar-footer">
       <a href="profile.html" class="sidebar-user">
-        <div class="sidebar-avatar">IS</div>
+        <div class="sidebar-avatar">SP</div>
         <div class="sidebar-user-info">
-          <div class="sidebar-user-name">Ishara Silva</div>
+          <div class="sidebar-user-name">Sudaraka Perera</div>
           <div class="sidebar-user-role">IT Governance Lead</div>
         </div>
       </a>
@@ -393,9 +447,9 @@
         <div class="topbar-divider"></div>
 
         <a href="profile.html" class="topbar-user" id="topbarUser">
-          <div class="topbar-avatar">IS</div>
+          <div class="topbar-avatar">SP</div>
           <div class="topbar-user-info">
-            <div class="topbar-user-name">Ishara Silva</div>
+            <div class="topbar-user-name">Sudaraka Perera</div>
             <div class="topbar-user-dept">IT Governance</div>
           </div>
         </a>
@@ -408,7 +462,7 @@
       <!-- ===== WELCOME BANNER ===== -->
       <div class="welcome-banner animate-fadeIn">
         <div class="welcome-content">
-          <h1 class="welcome-name">Good <span id="greeting">morning</span>, <span id="welcomeUserName">Ishara</span></h1>
+          <h1 class="welcome-name">Good <span id="greeting">morning</span>, <span id="welcomeUserName">Sudaraka</span></h1>
           <p class="welcome-dept"><span id="currentDateTime">Thursday, 04 June 2026</span> &nbsp;·&nbsp; Zuse Technologies &nbsp;·&nbsp; IT Governance</p>
         </div>
 
@@ -672,6 +726,46 @@
 
       </div>
 
+      <!-- ===== PORTAL ACTION TASKS ===== -->
+      <div class="bottom-split-container animate-slideUp" style="margin-top: 24px">
+        <div class="split-card" style="grid-column: span 2">
+          <div class="split-card-header" style="border-bottom: 1px solid var(--border-light); padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center">
+            <h3 class="split-card-title" style="margin-bottom: 0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              My Action Items & Tasks Tracker
+            </h3>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <span class="badge badge-blue" id="taskCounter" style="font-size:10px; font-weight:700">0 Tasks</span>
+              <a href="tasks.html" class="split-card-action" style="font-size: 12.5px; font-weight: 600; text-decoration: none; color: var(--primary)">Manage Tasks ➔</a>
+            </div>
+          </div>
+          
+          <!-- Task Manager Toolbar -->
+          <div class="task-manager-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap">
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 260px">
+              <input type="text" id="taskSearchInput" placeholder="Search tasks by description or assignee..." style="height: 38px; padding: var(--space-2) var(--space-3); font-size: 13px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); width: 100%" oninput="renderDashboardTasks()">
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <select id="taskFilterStatus" onchange="renderDashboardTasks()" style="height: 38px; padding: 0 var(--space-3); font-size: 13px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer">
+                <option value="all">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="completed">Completed</option>
+              </select>
+              <select id="taskFilterPriority" onchange="renderDashboardTasks()" style="height: 38px; padding: 0 var(--space-3); font-size: 13px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer">
+                <option value="all">All Priorities</option>
+                <option value="High">🔴 High Priority</option>
+                <option value="Medium">🟡 Medium Priority</option>
+                <option value="Low">⚪ Low Priority</option>
+              </select>
+            </div>
+          </div>
+          
+          <div id="homepageTaskList" style="display: flex; flex-direction: column; gap: var(--space-3)">
+            <!-- Tasks populated dynamically by JS -->
+          </div>
+        </div>
+      </div>
+
       <!-- Centered decorative down arrow overlay -->
       <div class="arrow-separator-wrap">
         <button class="arrow-circle-btn" aria-label="Scroll down">
@@ -781,9 +875,48 @@
   // Show welcome toast after short delay
   window.addEventListener('load', function() {
     setTimeout(() => {
-      showToast('Welcome back, Ishara! 👋', '5 new notifications await you.', 'info');
+      showToast('Welcome back, Sudaraka! 👋', '5 new notifications await you.', 'info');
     }, 800);
   });
 </script>
+
+<!-- Edit Task Modal -->
+<div class="modal-overlay" id="editTaskModal">
+  <div class="modal" style="max-width: 500px">
+    <div class="modal-header">
+      <h3 class="modal-title">✏️ Edit Task Details</h3>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="closeModal('editTaskModal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding: var(--space-5) var(--space-6)">
+      <input type="hidden" id="editTaskId">
+      <div class="form-group" style="margin-bottom: var(--space-4)">
+        <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block">Task Description</label>
+        <input type="text" class="form-control" id="editTaskTitle" style="width: 100%; height: 38px; font-size: 13.5px" placeholder="Enter task description" required>
+      </div>
+      <div class="form-group" style="margin-bottom: var(--space-4)">
+        <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block">Assignee</label>
+        <input type="text" class="form-control" id="editTaskAssignee" style="width: 100%; height: 38px; font-size: 13.5px; placeholder="Enter assignee name" required>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4)">
+        <div class="form-group">
+          <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block">Due Date</label>
+          <input type="date" class="form-control" id="editTaskDueDate" style="width: 100%; height: 38px; font-size: 13.5px" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block">Priority</label>
+          <select class="form-control form-select" id="editTaskPriority" style="width: 100%; height: 38px; font-size: 13.5px; padding: 0 var(--space-3)">
+            <option value="High">🔴 High Priority</option>
+            <option value="Medium">🟡 Medium Priority</option>
+            <option value="Low">⚪ Low Priority</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: var(--space-2); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border-light)">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('editTaskModal')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveTaskEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

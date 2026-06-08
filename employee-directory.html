@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+  <script src="js/auth.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lyceum Connect Employee Directory. Search staff members, contact information, office locations, and departments.">
@@ -230,13 +231,27 @@
         <span class="nav-item-text">Employee Directory</span>
       </a>
 
+      <a href="meeting-transcription.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        <span class="nav-item-text">Meeting Transcriber</span>
+      </a>
+
+      <a href="tasks.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span class="nav-item-text">Tasks Manager</span>
+      </a>
+
+      <a href="sectors.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="2" width="8" height="5" rx="1"/><rect x="3" y="17" width="8" height="5" rx="1"/><rect x="13" y="17" width="8" height="5" rx="1"/><path d="M8 17V12h8v5M12 7v5"/></svg>
+        <span class="nav-item-text">Company Hierarchy</span>
+      </a>
     </nav>
 
     <div class="sidebar-footer">
       <a href="profile.html" class="sidebar-user">
-        <div class="sidebar-avatar">IS</div>
+        <div class="sidebar-avatar">SP</div>
         <div class="sidebar-user-info">
-          <div class="sidebar-user-name">Ishara Silva</div>
+          <div class="sidebar-user-name">Sudaraka Perera</div>
           <div class="sidebar-user-role">IT Governance Lead</div>
         </div>
       </a>
@@ -290,9 +305,9 @@
         </button>
 
         <a href="profile.html" class="topbar-user" id="topbarUser">
-          <div class="topbar-avatar">IS</div>
+          <div class="topbar-avatar">SP</div>
           <div class="topbar-user-info">
-            <div class="topbar-user-name">Ishara Silva</div>
+            <div class="topbar-user-name">Sudaraka Perera</div>
             <div class="topbar-user-dept">IT Governance</div>
           </div>
         </a>
@@ -435,7 +450,7 @@
       <div class="profile-hero">
         <div class="profile-large-avatar" id="modalEmpAvatar">IS</div>
         <div>
-          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary)" id="modalEmpName">Ishara Silva</h2>
+          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary)" id="modalEmpName">Sudaraka Perera</h2>
           <div style="font-size: 13px; color: var(--text-secondary)" id="modalEmpRole">IT Governance Lead</div>
           <span class="badge badge-blue" style="font-size: 10px; margin-top: 4px" id="modalEmpDept">IT Governance</span>
         </div>
@@ -517,7 +532,7 @@
 <script>
   // Full Employees Dataset (20 required items)
   const directoryData = [
-    { id: '1', initials: 'IS', name: 'Ishara Silva', designation: 'IT Governance Lead', department: 'IT Governance', location: 'HQ - Block A, Floor 2', bg: 'linear-gradient(135deg,#059669,#10B981)', email: 'ishara.silva@lyceum.edu', phone: '+968 2451 1150', ext: '1150', empId: 'EMP-2024-00381', manager: 'Dr. Omar Khalid', reports: 0 },
+    { id: '1', initials: 'SP', name: 'Sudaraka Perera', designation: 'IT Governance Lead', department: 'IT Governance', location: 'HQ - Block A, Floor 2', bg: 'linear-gradient(135deg,#059669,#10B981)', email: 'sudaraka.perera@lyceum.edu', phone: '+968 2451 1150', ext: '1150', empId: 'EMP-2024-00381', manager: 'Dr. Omar Khalid', reports: 0 },
     { id: '2', initials: 'RP', name: 'Raj Patel', designation: 'IT Manager', department: 'Information Technology', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,var(--primary),var(--primary-light))', email: 'raj.patel@lyceum.edu', phone: '+968 2451 1005', ext: '1005', empId: 'EMP-2020-0087', manager: 'Ahmed Al-Rashid', reports: 5 },
     { id: '3', initials: 'FA', name: 'Fatima Al-Hassan', designation: 'Finance Director', department: 'Finance', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#7C3AED,#A855F7)', email: 'fatima.hassan@lyceum.edu', phone: '+968 2451 1010', ext: '1010', empId: 'EMP-2015-0012', manager: 'Office of the CEO', reports: 8 },
     { id: '4', initials: 'MC', name: 'Michael Chen', designation: 'Principal', department: 'Academic Staff', location: 'Campus A', bg: 'linear-gradient(135deg,#D97706,#F59E0B)', email: 'michael.chen@lyceum.edu', phone: '+968 2451 2001', ext: '2001', empId: 'EMP-2018-0054', manager: 'Fatima Al-Hassan', reports: 34 },

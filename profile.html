@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+  <script src="js/auth.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Manage your Lyceum Connect employee profile, settings, preferences and review your requested service history.">
@@ -244,13 +245,27 @@
         <span class="nav-item-text">Employee Directory</span>
       </a>
 
+      <a href="meeting-transcription.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        <span class="nav-item-text">Meeting Transcriber</span>
+      </a>
+
+      <a href="tasks.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span class="nav-item-text">Tasks Manager</span>
+      </a>
+
+      <a href="sectors.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="2" width="8" height="5" rx="1"/><rect x="3" y="17" width="8" height="5" rx="1"/><rect x="13" y="17" width="8" height="5" rx="1"/><path d="M8 17V12h8v5M12 7v5"/></svg>
+        <span class="nav-item-text">Company Hierarchy</span>
+      </a>
     </nav>
 
     <div class="sidebar-footer">
       <a href="profile.html" class="sidebar-user active" style="background:rgba(255,255,255,0.08)">
-        <div class="sidebar-avatar">IS</div>
+        <div class="sidebar-avatar">SP</div>
         <div class="sidebar-user-info">
-          <div class="sidebar-user-name">Ishara Silva</div>
+          <div class="sidebar-user-name">Sudaraka Perera</div>
           <div class="sidebar-user-role">IT Governance Lead</div>
         </div>
       </a>
@@ -304,9 +319,9 @@
         </button>
 
         <a href="profile.html" class="topbar-user" id="topbarUser">
-          <div class="topbar-avatar">IS</div>
+          <div class="topbar-avatar">SP</div>
           <div class="topbar-user-info">
-            <div class="topbar-user-name">Ishara Silva</div>
+            <div class="topbar-user-name">Sudaraka Perera</div>
             <div class="topbar-user-dept">IT Governance</div>
           </div>
         </a>
@@ -325,9 +340,9 @@
 
       <!-- Profile Hero Card -->
       <div class="profile-hero-card">
-        <div class="profile-hero-avatar">IS</div>
+        <div class="profile-hero-avatar">SP</div>
         <div class="profile-hero-info">
-          <h1 style="font-family:var(--font-display); font-size:22px; font-weight:800; color:var(--text-primary)">Ishara Silva</h1>
+          <h1 style="font-family:var(--font-display); font-size:22px; font-weight:800; color:var(--text-primary)">Sudaraka Perera</h1>
           <p style="font-size:13px; color:var(--text-secondary); font-weight:500">IT Governance Lead &nbsp;·&nbsp; IT Governance</p>
           <p style="font-size:11px; color:var(--text-tertiary); margin-top:2px">Employee ID: <b style="color:var(--text-secondary)">EMP-2024-00381</b> &nbsp;·&nbsp; Joined: <b style="color:var(--text-secondary)">June 01, 2024</b></p>
           
@@ -340,6 +355,7 @@
         <div style="display:flex; flex-direction:column; gap:var(--space-2)">
           <button class="btn btn-primary" onclick="toggleEditMode()" id="editSaveBtn">✍ Edit Profile</button>
           <button class="btn btn-secondary btn-sm" onclick="showToast('Upload Avatar', 'Photo upload dialog triggered.', 'info')">📷 Upload Photo</button>
+          <button class="btn btn-outline btn-sm" onclick="logoutSession()" style="color:var(--error); border-color:rgba(239, 68, 68, 0.2)">🚪 Sign Out</button>
         </div>
       </div>
 
@@ -368,11 +384,11 @@
                 <div class="form-two-col">
                   <div class="form-group">
                     <label class="form-label">First Name</label>
-                    <div class="profile-form-val" id="firstNameVal">Ishara</div>
+                    <div class="profile-form-val" id="firstNameVal">Sudaraka</div>
                   </div>
                   <div class="form-group">
                     <label class="form-label">Last Name</label>
-                    <div class="profile-form-val" id="lastNameVal">Silva</div>
+                    <div class="profile-form-val" id="lastNameVal">Perera</div>
                   </div>
                 </div>
 
@@ -417,11 +433,11 @@
                 <div class="form-two-col">
                   <div class="form-group">
                     <label class="form-label">Work Email</label>
-                    <div class="profile-form-val" style="background:var(--bg-tertiary); font-family:monospace">ishara.silva@lyceum.edu</div>
+                    <div class="profile-form-val" style="background:var(--bg-tertiary); font-family:monospace">sudaraka.perera@lyceum.edu</div>
                   </div>
                   <div class="form-group">
                     <label class="form-label">Personal Email</label>
-                    <div class="profile-form-val" id="personalEmailVal">ishara.silva@gmail.com</div>
+                    <div class="profile-form-val" id="personalEmailVal">sudaraka.perera@gmail.com</div>
                   </div>
                 </div>
 
@@ -716,15 +732,15 @@
 
   // Personal fields list
   const personalFields = {
-    firstNameVal: 'Ishara',
-    lastNameVal: 'Silva',
+    firstNameVal: 'Sudaraka',
+    lastNameVal: 'Perera',
     locationVal: 'HQ - Block A, Floor 2',
     extVal: '1150'
   };
 
   // Contact fields list
   const contactFields = {
-    personalEmailVal: 'ishara.silva@gmail.com',
+    personalEmailVal: 'sudaraka.perera@gmail.com',
     workPhoneVal: '+968 2451 1150',
     personalPhoneVal: '+968 9988 7766',
     emergencyNameVal: 'Ahmed Al-Masry',

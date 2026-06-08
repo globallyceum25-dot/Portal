@@ -136,7 +136,7 @@ const searchData = [
   { type: 'service', name: 'Facility Request', desc: 'Group Facility Management', url: 'request-form.html?service=facility' },
   { type: 'service', name: 'Password Reset', desc: 'IT Department', url: 'request-form.html?service=password' },
   { type: 'service', name: 'Asset Request', desc: 'IT Department', url: 'request-form.html?service=asset' },
-  { type: 'employee', name: 'Ishara Silva', desc: 'IT Governance Lead · IT Governance', url: 'employee-directory.html' },
+  { type: 'employee', name: 'Sudaraka Perera', desc: 'IT Governance Lead · IT Governance', url: 'employee-directory.html' },
   { type: 'employee', name: 'Raj Patel', desc: 'IT Manager · Information Technology', url: 'employee-directory.html' },
   { type: 'document', name: 'Employee Handbook 2025', desc: 'HR Policy', url: 'knowledge-center.html' },
   { type: 'document', name: 'IT Security Policy', desc: 'IT Policy', url: 'knowledge-center.html' },
@@ -439,4 +439,280 @@ document.addEventListener('DOMContentLoaded', function() {
       item.classList.add('active');
     }
   });
+
+  // Render tasks widget if on index.html
+  if (currentPage === 'index.html' || currentPage === '') {
+    renderDashboardTasks();
+  }
 });
+
+// ============================================================
+// 13. Portal Homepage Action Tasks Tracker Controller
+// ============================================================
+
+function renderDashboardTasks() {
+  const container = document.getElementById('homepageTaskList');
+  const counter = document.getElementById('taskCounter');
+  if (!container) return;
+
+  const tasks = JSON.parse(localStorage.getItem('lc-tasks') || '[]');
+  
+  // Get search filter input
+  const searchInput = document.getElementById('taskSearchInput');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+  // Get status filter selection
+  const statusSelect = document.getElementById('taskFilterStatus');
+  const statusFilter = statusSelect ? statusSelect.value : 'all';
+
+  // Get priority filter selection
+  const prioritySelect = document.getElementById('taskFilterPriority');
+  const priorityFilter = prioritySelect ? prioritySelect.value : 'all';
+
+  // Apply filtering
+  const filteredTasks = tasks.filter(task => {
+    const matchesSearch = !query || 
+      task.title.toLowerCase().includes(query) || 
+      task.assignee.toLowerCase().includes(query);
+
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && !task.completed) || 
+      (statusFilter === 'completed' && task.completed);
+
+    const matchesPriority = priorityFilter === 'all' || 
+      task.priority === priorityFilter;
+
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  if (counter) {
+    const activeTasks = tasks.filter(t => !t.completed).length;
+    counter.textContent = `${activeTasks} Active / ${tasks.length} Total`;
+    counter.className = activeTasks > 0 ? 'badge badge-blue' : 'badge badge-green';
+  }
+
+  if (filteredTasks.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:var(--space-6); color:var(--text-tertiary); font-size:13.5px">
+        🔍 No matching tasks found.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filteredTasks.map(task => {
+    const priorityClass = task.priority === 'High' ? 'badge-red' : task.priority === 'Medium' ? 'badge-amber' : 'badge-gray';
+    const textStyle = task.completed ? 'text-decoration: line-through; color: var(--text-tertiary); font-style: italic' : 'color: var(--text-primary)';
+    
+    // Render reminder metadata if present
+    let reminderText = '';
+    if (task.lastReminder) {
+      reminderText = `<span>•</span><span style="color:var(--primary); font-weight:500; display:inline-flex; align-items:center; gap:3px" title="Sent to ${task.lastReminder.recipient}">🔔 Last reminder: ${task.lastReminder.type} (${task.lastReminder.time})</span>`;
+    }
+
+    return `
+      <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px var(--space-4); display:flex; align-items:center; justify-content:space-between; gap:16px">
+        <div style="display:flex; align-items:center; gap:var(--space-3); flex:1">
+          <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTask('${task.id}')" style="width:18px; height:18px; cursor:pointer; accent-color:var(--primary)">
+          <div style="flex:1">
+            <div style="font-weight:600; font-size:13.5px; ${textStyle}">${task.title}</div>
+            <div style="font-size:11px; color:var(--text-secondary); margin-top:2px; display:flex; align-items:center; gap:8px; flex-wrap:wrap">
+              <span>👤 Assignee: <b>${task.assignee}</b></span>
+              <span>•</span>
+              <span>📅 Due: <b>${task.dueDate}</b></span>
+              <span>•</span>
+              <span>🔗 Origin: <b>${task.meetingTitle}</b></span>
+              ${reminderText}
+            </div>
+          </div>
+        </div>
+        
+        <div style="display:flex; align-items:center; gap:var(--space-3)">
+          <span class="badge ${priorityClass}" style="font-size:10px; font-weight:700">${task.priority}</span>
+          
+          <!-- Remind Dropdown Button -->
+          <div style="position:relative; display:inline-block">
+            <button class="btn btn-outline btn-sm btn-icon" data-remind-btn="${task.id}" onclick="toggleReminderMenu('${task.id}', event)" style="gap:4px; font-size:11px; padding:4px 8px; height:28px" title="Send Reminder" ${task.completed ? 'disabled' : ''}>
+              🔔 Remind
+            </button>
+            <div id="reminder-menu-${task.id}" class="reminder-dropdown-menu">
+              <button class="reminder-dropdown-item" onclick="sendReminder('${task.id}', 'email')">
+                📧 Email Notification
+              </button>
+              <button class="reminder-dropdown-item" onclick="sendReminder('${task.id}', 'telegram')">
+                💬 Telegram Message
+              </button>
+            </div>
+          </div>
+
+          <!-- Edit Button -->
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="openEditModal('${task.id}')" style="padding:4px 8px" title="Edit Task">✏️</button>
+
+          <!-- Delete Button -->
+          <button class="btn btn-ghost btn-sm btn-icon" onclick="deleteTask('${task.id}')" style="color:var(--error); padding:4px 8px" title="Delete Task">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.toggleTask = function(id) {
+  let tasks = JSON.parse(localStorage.getItem('lc-tasks') || '[]');
+  tasks = tasks.map(t => {
+    if (t.id === id) {
+      t.completed = !t.completed;
+    }
+    return t;
+  });
+  localStorage.setItem('lc-tasks', JSON.stringify(tasks));
+  renderDashboardTasks();
+};
+
+window.deleteTask = function(id) {
+  if (confirm('Are you sure you want to delete this task?')) {
+    let tasks = JSON.parse(localStorage.getItem('lc-tasks') || '[]');
+    tasks = tasks.filter(t => t.id !== id);
+    localStorage.setItem('lc-tasks', JSON.stringify(tasks));
+    renderDashboardTasks();
+  }
+};
+
+// Toggle Reminder Dropdown Menu
+window.toggleReminderMenu = function(taskId, event) {
+  event.stopPropagation();
+  
+  // Close any other open dropdowns
+  document.querySelectorAll('.reminder-dropdown-menu').forEach(menu => {
+    if (menu.id !== `reminder-menu-${taskId}`) {
+      menu.classList.remove('show');
+    }
+  });
+
+  const menu = document.getElementById(`reminder-menu-${taskId}`);
+  if (menu) {
+    menu.classList.toggle('show');
+  }
+};
+
+// Global click listener to close dropdowns on outer click
+document.addEventListener('click', function() {
+  document.querySelectorAll('.reminder-dropdown-menu').forEach(menu => {
+    menu.classList.remove('show');
+  });
+});
+
+// Staff directory lookup for Email/Telegram simulation
+const STAFF_DIRECTORIES = {
+  'lisa thompson': { email: 'lisa.thompson@lyceum.edu', telegram: '@lisa_t_lyceum' },
+  'lisa': { email: 'lisa.thompson@lyceum.edu', telegram: '@lisa_t_lyceum' },
+  'raj patel': { email: 'raj.patel@lyceum.edu', telegram: '@raj_patel_it' },
+  'raj': { email: 'raj.patel@lyceum.edu', telegram: '@raj_patel_it' },
+  'james wilson': { email: 'james.wilson@lyceum.edu', telegram: '@james_net_eng' },
+  'james': { email: 'james.wilson@lyceum.edu', telegram: '@james_net_eng' },
+  'sudaraka perera': { email: 'sudaraka.perera@lyceum.edu', telegram: '@sudaraka_p_it' },
+  'sudaraka': { email: 'sudaraka.perera@lyceum.edu', telegram: '@sudaraka_p_it' }
+};
+
+// Dispatch simulated Email or Telegram reminders
+window.sendReminder = function(taskId, channel) {
+  let tasks = JSON.parse(localStorage.getItem('lc-tasks') || '[]');
+  const taskIndex = tasks.findIndex(t => t.id === taskId);
+  if (taskIndex === -1) return;
+  const task = tasks[taskIndex];
+
+  // Set visual loading state
+  const remindBtn = document.querySelector(`[data-remind-btn="${taskId}"]`);
+  if (remindBtn) {
+    remindBtn.disabled = true;
+    remindBtn.innerHTML = `⌛ Sending...`;
+  }
+
+  setTimeout(() => {
+    const assigneeLower = task.assignee.toLowerCase().trim();
+    let contactInfo = { 
+      email: `${assigneeLower.replace(/\s+/g, '.')}@lyceum.edu`, 
+      telegram: `@${assigneeLower.replace(/\s+/g, '_')}_connect` 
+    };
+
+    // Attempt standard lookup
+    for (const key in STAFF_DIRECTORIES) {
+      if (assigneeLower.includes(key)) {
+        contactInfo = STAFF_DIRECTORIES[key];
+        break;
+      }
+    }
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+
+    // Store reminder logs
+    task.lastReminder = {
+      type: channel === 'email' ? 'Email' : 'Telegram',
+      time: timeStr,
+      recipient: channel === 'email' ? contactInfo.email : contactInfo.telegram
+    };
+
+    tasks[taskIndex] = task;
+    localStorage.setItem('lc-tasks', JSON.stringify(tasks));
+
+    // Show nice custom premium toast
+    if (channel === 'email') {
+      showToast(
+        `📧 Email Sent to ${task.assignee}`,
+        `<b>To:</b> ${contactInfo.email}<br><b>Subject:</b> Action Item: ${task.title}<br><b>Body:</b> Hello ${task.assignee}, you are assigned this task. Due: ${task.dueDate}.`,
+        'success'
+      );
+    } else {
+      showToast(
+        `💬 Telegram Sent to ${task.assignee}`,
+        `<b>Recipient:</b> ${contactInfo.telegram}<br><b>Message:</b> 🔔 Reminder: "${task.title}" is due by ${task.dueDate}. Please update status.`,
+        'success'
+      );
+    }
+
+    renderDashboardTasks();
+  }, 1200);
+};
+
+// Edit Task Modal Handlers
+window.openEditModal = function(taskId) {
+  const tasks = JSON.parse(localStorage.getItem('lc-tasks') || '[]');
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  document.getElementById('editTaskId').value = task.id;
+  document.getElementById('editTaskTitle').value = task.title;
+  document.getElementById('editTaskAssignee').value = task.assignee;
+  document.getElementById('editTaskDueDate').value = task.dueDate;
+  document.getElementById('editTaskPriority').value = task.priority;
+
+  openModal('editTaskModal');
+};
+
+window.saveTaskEdit = function() {
+  const id = document.getElementById('editTaskId').value;
+  const title = document.getElementById('editTaskTitle').value.trim();
+  const assignee = document.getElementById('editTaskAssignee').value.trim();
+  const dueDate = document.getElementById('editTaskDueDate').value;
+  const priority = document.getElementById('editTaskPriority').value;
+
+  if (!title || !assignee || !dueDate) {
+    showToast('Invalid Input', 'Please fill in all fields before saving.', 'error');
+    return;
+  }
+
+  let tasks = JSON.parse(localStorage.getItem('lc-tasks') || '[]');
+  const index = tasks.findIndex(t => t.id === id);
+  if (index !== -1) {
+    tasks[index].title = title;
+    tasks[index].assignee = assignee;
+    tasks[index].dueDate = dueDate;
+    tasks[index].priority = priority;
+
+    localStorage.setItem('lc-tasks', JSON.stringify(tasks));
+    closeModal('editTaskModal');
+    showToast('Changes Saved', 'The task action item has been successfully updated.', 'success');
+    renderDashboardTasks();
+  }
+};
+
