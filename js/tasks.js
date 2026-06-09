@@ -218,8 +218,54 @@ if (document.readyState === 'loading') {
   initTasksModule();
 }
 
+// ──────────────────────────────────────────────
+// AI OUTCOME PREDICTION ENGINE
+// ──────────────────────────────────────────────
+function predictTaskOutcome(task) {
+  if (task.completed) {
+    return { label: 'Completed', icon: '✅', color: '#059669', bg: '#D1FAE5', confidence: 100, reason: 'Task has been marked complete.' };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(task.dueDate);
+  due.setHours(0, 0, 0, 0);
+  const daysLeft = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+  const hasReminder = !!task.lastReminder;
+
+  if (daysLeft < 0) {
+    return { label: 'Overdue', icon: '🚨', color: '#DC2626', bg: '#FEE2E2', confidence: 95, reason: `Past due by ${Math.abs(daysLeft)} day${Math.abs(daysLeft) > 1 ? 's' : ''}. Immediate action required.` };
+  }
+
+  if (task.priority === 'High' && daysLeft <= 2) {
+    return { label: 'Critical Risk', icon: '🔴', color: '#B91C1C', bg: '#FEE2E2', confidence: 88, reason: `High priority with only ${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining.` };
+  }
+
+  if (task.priority === 'High' && daysLeft <= 5 && !hasReminder) {
+    return { label: 'At Risk', icon: '⚠️', color: '#D97706', bg: '#FEF3C7', confidence: 74, reason: `High priority task due in ${daysLeft} days with no reminders sent yet.` };
+  }
+
+  if (task.priority === 'Medium' && daysLeft <= 3) {
+    return { label: 'At Risk', icon: '⚠️', color: '#D97706', bg: '#FEF3C7', confidence: 68, reason: `Due in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}. Consider escalating priority.` };
+  }
+
+  if (daysLeft <= 1) {
+    return { label: 'Due Soon', icon: '⏰', color: '#EA580C', bg: '#FFEDD5', confidence: 80, reason: 'Due today or tomorrow — take action now.' };
+  }
+
+  if (daysLeft <= 5 && hasReminder) {
+    return { label: 'On Track', icon: '🟢', color: '#059669', bg: '#D1FAE5', confidence: 82, reason: `Reminder sent, ${daysLeft} days remaining. Good progress expected.` };
+  }
+
+  if (daysLeft <= 7) {
+    return { label: 'Monitor', icon: '👁️', color: '#2563EB', bg: '#EFF6FF', confidence: 71, reason: `${daysLeft} days left. Watch progress closely.` };
+  }
+
+  return { label: 'On Track', icon: '🟢', color: '#059669', bg: '#D1FAE5', confidence: 90, reason: `${daysLeft} days remaining. Well within deadline.` };
+}
+
 // Render tasks list & statistics
-function renderTasksList() {
+window.renderTasksList = function renderTasksList() {
   const container = document.getElementById('tasksContainer');
   if (!container) return;
 
@@ -255,24 +301,58 @@ function renderTasksList() {
   if (filtered.length === 0) {
     container.innerHTML = `
       <div style="text-align:center; padding:var(--space-8); background:var(--bg-secondary); border:1px dashed var(--border); border-radius:var(--radius-lg); color:var(--text-tertiary)">
-        📋 No action tasks match your search filters. 
+        📋 No action tasks match your search filters.
       </div>
     `;
     return;
   }
 
-  container.innerHTML = filtered.map(task => {
+  // AI Insights summary panel
+  const allActive = filtered.filter(t => !t.completed);
+  const atRisk = allActive.filter(t => ['At Risk','Critical Risk','Overdue','Due Soon'].includes(predictTaskOutcome(t).label));
+  const onTrack = allActive.filter(t => ['On Track'].includes(predictTaskOutcome(t).label));
+  const aiInsightsHtml = `
+    <div style="background:linear-gradient(135deg,#EFF6FF,#F0FDF4); border:1px solid #BFDBFE; border-radius:var(--radius-lg); padding:14px 18px; margin-bottom:16px; display:flex; align-items:center; gap:16px; flex-wrap:wrap">
+      <div style="display:flex; align-items:center; gap:8px; flex-shrink:0">
+        <span style="font-size:20px">🤖</span>
+        <div>
+          <div style="font-size:12px; font-weight:800; color:#1D4ED8; text-transform:uppercase; letter-spacing:0.05em">AI Outcome Prediction</div>
+          <div style="font-size:11px; color:#3B82F6; font-weight:500">Analysing ${allActive.length} active task${allActive.length !== 1 ? 's' : ''}</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; flex:1">
+        <div style="background:#D1FAE5; border:1px solid #6EE7B7; border-radius:8px; padding:6px 12px; text-align:center; min-width:80px">
+          <div style="font-size:18px; font-weight:800; color:#059669">${onTrack.length}</div>
+          <div style="font-size:10px; font-weight:700; color:#065F46">On Track</div>
+        </div>
+        <div style="background:#FEF3C7; border:1px solid #FCD34D; border-radius:8px; padding:6px 12px; text-align:center; min-width:80px">
+          <div style="font-size:18px; font-weight:800; color:#D97706">${atRisk.length}</div>
+          <div style="font-size:10px; font-weight:700; color:#92400E">Needs Attention</div>
+        </div>
+        <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:6px 12px; text-align:center; min-width:80px">
+          <div style="font-size:18px; font-weight:800; color:#2563EB">${filtered.filter(t=>t.completed).length}</div>
+          <div style="font-size:10px; font-weight:700; color:#1E40AF">Completed</div>
+        </div>
+      </div>
+      <div style="font-size:11.5px; color:#374151; background:rgba(255,255,255,0.7); border-radius:6px; padding:6px 10px; max-width:280px; line-height:1.4">
+        💡 ${atRisk.length > 0 ? `<b>${atRisk.length} task${atRisk.length>1?'s':''}</b> need immediate attention. Send reminders or reassign to avoid delays.` : `All active tasks appear to be progressing well. Keep monitoring due dates.`}
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = aiInsightsHtml + filtered.map(task => {
     const priorityClass = task.priority === 'High' ? 'badge-red' : task.priority === 'Medium' ? 'badge-amber' : 'badge-gray';
     const textStyle = task.completed ? 'text-decoration: line-through; color: var(--text-tertiary); font-style: italic' : 'color: var(--text-primary)';
+    const prediction = predictTaskOutcome(task);
 
-    // Check if task has a lastReminder value
+
     let reminderText = '';
     if (task.lastReminder) {
       reminderText = `<span>•</span><span style="color:var(--primary); font-weight:500; display:inline-flex; align-items:center; gap:3px" title="Sent to ${task.lastReminder.recipient}">🔔 Last reminder: ${task.lastReminder.type} (${task.lastReminder.time})</span>`;
     }
 
     return `
-      <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px var(--space-4); display:flex; align-items:center; justify-content:space-between; gap:16px">
+      <div style="background:var(--bg-secondary); border:1px solid var(--border); border-left:3px solid ${prediction.color}; border-radius:var(--radius-md); padding:14px var(--space-4); display:flex; align-items:center; justify-content:space-between; gap:16px">
         <div style="display:flex; align-items:center; gap:var(--space-3); flex:1">
           <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="toggleTaskStatus('${task.id}')" style="width:18px; height:18px; cursor:pointer; accent-color:var(--primary)">
           <div style="flex:1">
@@ -280,42 +360,41 @@ function renderTasksList() {
             <div style="font-size:11.5px; color:var(--text-secondary); margin-top:2px; display:flex; align-items:center; gap:8px; flex-wrap:wrap">
               <span>👤 Assignee: <b>${task.assignee}</b></span>
               <span>•</span>
-              <span>📅 Due Date: <b>${task.dueDate}</b></span>
+              <span>📅 Due: <b>${task.dueDate}</b></span>
               <span>•</span>
-              <span>🔗 Meeting Source: <b>${task.meetingTitle}</b></span>
+              <span>🔗 <b>${task.meetingTitle}</b></span>
               ${reminderText}
+            </div>
+            <!-- AI Prediction Row -->
+            <div style="margin-top:6px; display:inline-flex; align-items:center; gap:6px; background:${prediction.bg}; border:1px solid ${prediction.color}33; border-radius:20px; padding:3px 10px">
+              <span style="font-size:12px">${prediction.icon}</span>
+              <span style="font-size:11px; font-weight:700; color:${prediction.color}">AI: ${prediction.label}</span>
+              <span style="font-size:10px; color:${prediction.color}; opacity:0.8">${prediction.confidence}% confidence</span>
+              <span style="font-size:10px; color:var(--text-tertiary); margin-left:2px" title="${prediction.reason}">ℹ️</span>
             </div>
           </div>
         </div>
-        
+
         <div style="display:flex; align-items:center; gap:var(--space-3)">
           <span class="badge ${priorityClass}" style="font-size:10px; font-weight:700">${task.priority}</span>
-          
-          <!-- Remind Dropdown Button -->
+
           <div style="position:relative; display:inline-block">
             <button class="btn btn-outline btn-sm btn-icon" data-remind-btn="${task.id}" onclick="toggleReminderMenu('${task.id}', event)" style="gap:4px; font-size:11.5px; padding:4px 10px; height:28px" title="Send Reminder" ${task.completed ? 'disabled' : ''}>
               🔔 Remind
             </button>
             <div id="reminder-menu-${task.id}" class="reminder-dropdown-menu">
-              <button class="reminder-dropdown-item" onclick="sendReminder('${task.id}', 'email')">
-                📧 Email Notification
-              </button>
-              <button class="reminder-dropdown-item" onclick="sendReminder('${task.id}', 'telegram')">
-                💬 Telegram Message
-              </button>
+              <button class="reminder-dropdown-item" onclick="sendReminder('${task.id}', 'email')">📧 Email Notification</button>
+              <button class="reminder-dropdown-item" onclick="sendReminder('${task.id}', 'telegram')">💬 Telegram Message</button>
             </div>
           </div>
 
-          <!-- Edit Button -->
           <button class="btn btn-ghost btn-sm btn-icon" onclick="openEditModal('${task.id}')" style="padding:4px 8px" title="Edit Task">✏️</button>
-
-          <!-- Delete Button -->
           <button class="btn btn-ghost btn-sm btn-icon" onclick="deleteTaskItem('${task.id}')" style="color:var(--error); padding:4px 8px" title="Delete Task">🗑️</button>
         </div>
       </div>
     `;
   }).join('');
-}
+};
 
 // Update Stats counters banner
 function updateMetricsBanner(tasks) {

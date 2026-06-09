@@ -13,14 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Sector-specific styling and metadata configuration
   const SECTOR_METADATA = {
-    corporate: { color: '#3b82f6', emoji: '🏢', theme: 'Holding Company', estYear: 1993, employeesCount: '2,500+' },
-    education: { color: '#06b6d4', emoji: '🎓', theme: 'Education Services', estYear: 1993, employeesCount: '1,800+' },
-    speed: { color: '#f97316', emoji: '⚡', theme: 'Automotive & Logistics', estYear: 2012, employeesCount: '320+' },
-    read: { color: '#a855f7', emoji: '📚', theme: 'Publications & Stationery', estYear: 2008, employeesCount: '120+' },
-    build: { color: '#10b981', emoji: '🏗️', theme: 'Infrastructure & Facility', estYear: 2015, employeesCount: '450+' },
-    tech: { color: '#6366f1', emoji: '💻', theme: 'Software & Event Media', estYear: 2018, employeesCount: '280+' },
-    kit: { color: '#f59e0b', emoji: '👕', theme: 'Uniforms & Merchandising', estYear: 2011, employeesCount: '95+' },
-    heracle: { color: '#ec4899', emoji: '🏋️', theme: 'Sports, Care & Wellness', estYear: 2016, employeesCount: '180+' }
+    corporate: { color: '#3b82f6', emoji: '🏢', theme: 'Holding Company', estYear: 1993, employeesCount: '2,500+', logo: 'https://lyceumglobal.co/wp-content/uploads/2024/05/LGH-2-2.png' },
+    education: { color: '#06b6d4', emoji: '🎓', theme: 'Education Services', estYear: 1993, employeesCount: '1,800+', logo: 'https://lyceumglobal.co/wp-content/uploads/2024/04/Picture-sc1-3.png' },
+    speed: { color: '#f97316', emoji: '⚡', theme: 'Automotive & Logistics', estYear: 2012, employeesCount: '320+', logo: 'https://lyceumglobal.co/wp-content/uploads/2024/04/Pictucsre-1-4.png' },
+    read: { color: '#a855f7', emoji: '📚', theme: 'Publications & Stationery', estYear: 2008, employeesCount: '120+', logo: 'https://lyceumglobal.co/wp-content/uploads/2024/04/Picture-1-4.png' },
+    build: { color: '#10b981', emoji: '🏗️', theme: 'Infrastructure & Facility', estYear: 2015, employeesCount: '450+', logo: 'https://lyceumglobal.co/wp-content/uploads/2024/04/Group-100bd0002115.png' },
+    tech: { color: '#6366f1', emoji: '💻', theme: 'Software & Event Media', estYear: 2018, employeesCount: '280+', logo: 'https://lyceumglobal.co/wp-content/uploads/2024/04/Picture-1-3.png' },
+    kit: { color: '#f59e0b', emoji: '👕', theme: 'Uniforms & Merchandising', estYear: 2011, employeesCount: '95+', logo: 'https://lyceumglobal.co/wp-content/uploads/2024/04/Group-1000002116bd.png' },
+    heracle: { color: '#ec4899', emoji: '🏋️', theme: 'Sports, Care & Wellness', estYear: 2016, employeesCount: '180+', logo: 'https://lyceumglobal.co/wp-content/uploads/2024/04/Picture-1-dd4.png' }
   };
 
   // State Management
@@ -160,7 +160,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       card.innerHTML = `
         <div class="bento-sector-icon" style="${isActive ? `background: linear-gradient(135deg, ${meta.color}, ${meta.color}dd)` : ''}">
-          ${meta.emoji}
+          ${meta.logo
+            ? `<img src="${meta.logo}" alt="${sector.name}" style="width:100%;height:100%;object-fit:contain;border-radius:6px;" onerror="this.outerHTML='${meta.emoji}'">`
+            : meta.emoji}
         </div>
         <div class="bento-sector-info-wrap">
           <div class="bento-sector-name">${sector.name}</div>
