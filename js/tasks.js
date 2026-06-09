@@ -21,7 +21,7 @@ window.STAFF_DIRECTORIES = window.STAFF_DIRECTORIES || {
 // ──────────────────────────────────────────────
 // SAMPLE DATA — Pre-seed from meeting minutes
 // ──────────────────────────────────────────────
-const SAMPLE_MEETING_TASKS = [
+const TASKS_PAGE_SEED = [
   // Meeting 1: Q3 Budget Review — June 3, 2026
   {
     id: 'TSK-SEED-001',
@@ -192,10 +192,10 @@ const SAMPLE_MEETING_TASKS = [
 /**
  * Seed sample tasks into localStorage if they aren't already present
  */
-function seedSampleTasks() {
+function seedTasksPage() {
   let existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   const existingIds = existing.map(t => t.id);
-  const missingSamples = SAMPLE_MEETING_TASKS.filter(t => !existingIds.includes(t.id));
+  const missingSamples = TASKS_PAGE_SEED.filter(t => !existingIds.includes(t.id));
 
   if (missingSamples.length > 0) {
     existing = [...existing, ...missingSamples];
@@ -207,7 +207,7 @@ console.log('Lyceum Connect: tasks.js loaded');
 
 function initTasksModule() {
   console.log('Lyceum Connect: Initializing tasks module...');
-  seedSampleTasks();
+  seedTasksPage();
   renderTasksList();
   populateMeetingFilters();
 }
