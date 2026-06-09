@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Lyceum Connect Employee Portal - A premium digital employee workplace portal.",
   "scripts": {
-    "dev": "npx -y live-server"
+    "dev": "npx -y live-server",
+    "build": "rm -rf dist && mkdir -p dist && cp -R *.html css js assets dist/"
   },
   "keywords": [],
   "author": "",
