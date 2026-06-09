@@ -7,7 +7,7 @@
 const STORAGE_KEY = 'lc-tasks';
 
 // Staff directory lookup for Email/Telegram simulation
-const STAFF_DIRECTORIES = {
+window.STAFF_DIRECTORIES = window.STAFF_DIRECTORIES || {
   'lisa thompson': { email: 'lisa.thompson@lyceum.edu', telegram: '@lisa_t_lyceum' },
   'lisa': { email: 'lisa.thompson@lyceum.edu', telegram: '@lisa_t_lyceum' },
   'raj patel': { email: 'raj.patel@lyceum.edu', telegram: '@raj_patel_it' },
@@ -146,6 +146,46 @@ const SAMPLE_MEETING_TASKS = [
     completed: false,
     meetingTitle: 'HR Policy Update — June 7',
     dateCreated: '6/7/2026'
+  },
+  {
+    id: 'TSK-SEED-013',
+    title: 'Integrate Bitrock payment gateway APIs into the student portal registrations link',
+    assignee: 'Raj Patel',
+    dueDate: '2026-06-25',
+    priority: 'High',
+    completed: false,
+    meetingTitle: 'IT Infrastructure Planning — June 5',
+    dateCreated: '6/5/2026'
+  },
+  {
+    id: 'TSK-SEED-014',
+    title: 'Organize launch event schedule for Zeus Gymnasium corporate wellness challenge',
+    assignee: 'Lisa Thompson',
+    dueDate: '2026-06-18',
+    priority: 'Medium',
+    completed: false,
+    meetingTitle: 'HR Policy Update — June 7',
+    dateCreated: '6/7/2026'
+  },
+  {
+    id: 'TSK-SEED-015',
+    title: 'Review and draft lease agreement for the new NCG Warehouse logistics hub',
+    assignee: 'Sudaraka Perera',
+    dueDate: '2026-06-20',
+    priority: 'Low',
+    completed: false,
+    meetingTitle: 'Q3 Budget Review — June 3',
+    dateCreated: '6/3/2026'
+  },
+  {
+    id: 'TSK-SEED-016',
+    title: 'Coordinate Nextgen Publications syllabus distribution logistics review',
+    assignee: 'James Wilson',
+    dueDate: '2026-06-14',
+    priority: 'Medium',
+    completed: true,
+    meetingTitle: 'HR Policy Update — June 7',
+    dateCreated: '6/7/2026'
   }
 ];
 
@@ -156,7 +196,7 @@ function seedSampleTasks() {
   let existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   const existingIds = existing.map(t => t.id);
   const missingSamples = SAMPLE_MEETING_TASKS.filter(t => !existingIds.includes(t.id));
-  
+
   if (missingSamples.length > 0) {
     existing = [...existing, ...missingSamples];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
@@ -196,13 +236,13 @@ function renderTasksList() {
 
   // Apply filters
   const filtered = tasks.filter(task => {
-    const matchesSearch = !searchVal || 
-      task.title.toLowerCase().includes(searchVal) || 
+    const matchesSearch = !searchVal ||
+      task.title.toLowerCase().includes(searchVal) ||
       task.assignee.toLowerCase().includes(searchVal) ||
       task.meetingTitle.toLowerCase().includes(searchVal);
 
-    const matchesStatus = statusVal === 'all' || 
-      (statusVal === 'active' && !task.completed) || 
+    const matchesStatus = statusVal === 'all' ||
+      (statusVal === 'active' && !task.completed) ||
       (statusVal === 'completed' && task.completed);
 
     const matchesPriority = priorityVal === 'all' || task.priority === priorityVal;
@@ -224,7 +264,7 @@ function renderTasksList() {
   container.innerHTML = filtered.map(task => {
     const priorityClass = task.priority === 'High' ? 'badge-red' : task.priority === 'Medium' ? 'badge-amber' : 'badge-gray';
     const textStyle = task.completed ? 'text-decoration: line-through; color: var(--text-tertiary); font-style: italic' : 'color: var(--text-primary)';
-    
+
     // Check if task has a lastReminder value
     let reminderText = '';
     if (task.lastReminder) {
@@ -298,12 +338,12 @@ function populateMeetingFilters() {
   const tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   const meetings = [...new Set(tasks.map(t => t.meetingTitle))].filter(Boolean);
 
-  select.innerHTML = '<option value="all">All Meeting Origins</option>' + 
+  select.innerHTML = '<option value="all">All Meeting Origins</option>' +
     meetings.map(m => `<option value="${m}">${m}</option>`).join('');
 }
 
 // Toggle task status
-window.toggleTaskStatus = function(id) {
+window.toggleTaskStatus = function (id) {
   let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   tasks = tasks.map(t => {
     if (t.id === id) {
@@ -316,7 +356,7 @@ window.toggleTaskStatus = function(id) {
 };
 
 // Delete task
-window.deleteTaskItem = function(id) {
+window.deleteTaskItem = function (id) {
   if (confirm('Are you sure you want to delete this action task?')) {
     let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     tasks = tasks.filter(t => t.id !== id);
@@ -328,9 +368,9 @@ window.deleteTaskItem = function(id) {
 };
 
 // Toggle dropdown popovers
-window.toggleReminderMenu = function(taskId, event) {
+window.toggleReminderMenu = function (taskId, event) {
   event.stopPropagation();
-  
+
   // Close any other open dropdowns
   document.querySelectorAll('.reminder-dropdown-menu').forEach(menu => {
     if (menu.id !== `reminder-menu-${taskId}`) {
@@ -345,14 +385,14 @@ window.toggleReminderMenu = function(taskId, event) {
 };
 
 // Global click dismisses open menus
-document.addEventListener('click', function() {
+document.addEventListener('click', function () {
   document.querySelectorAll('.reminder-dropdown-menu').forEach(menu => {
     menu.classList.remove('show');
   });
 });
 
 // Dispatch simulated notifications
-window.sendReminder = function(taskId, channel) {
+window.sendReminder = function (taskId, channel) {
   let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   const taskIndex = tasks.findIndex(t => t.id === taskId);
   if (taskIndex === -1) return;
@@ -367,9 +407,9 @@ window.sendReminder = function(taskId, channel) {
 
   setTimeout(() => {
     const assigneeLower = task.assignee.toLowerCase().trim();
-    let contactInfo = { 
-      email: `${assigneeLower.replace(/\s+/g, '.')}@lyceum.edu`, 
-      telegram: `@${assigneeLower.replace(/\s+/g, '_')}_connect` 
+    let contactInfo = {
+      email: `${assigneeLower.replace(/\s+/g, '.')}@lyceum.edu`,
+      telegram: `@${assigneeLower.replace(/\s+/g, '_')}_connect`
     };
 
     // Find standard lookup
@@ -413,7 +453,7 @@ window.sendReminder = function(taskId, channel) {
 };
 
 // Edit modal actions
-window.openEditModal = function(taskId) {
+window.openEditModal = function (taskId) {
   const tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   const task = tasks.find(t => t.id === taskId);
   if (!task) return;
@@ -427,7 +467,7 @@ window.openEditModal = function(taskId) {
   openModal('editTaskModal');
 };
 
-window.saveTaskEdit = function() {
+window.saveTaskEdit = function () {
   const id = document.getElementById('editTaskId').value;
   const title = document.getElementById('editTaskTitle').value.trim();
   const assignee = document.getElementById('editTaskAssignee').value.trim();
@@ -455,11 +495,11 @@ window.saveTaskEdit = function() {
 };
 
 // Create manual tasks actions
-window.openCreateModal = function() {
+window.openCreateModal = function () {
   document.getElementById('createTaskTitle').value = '';
   document.getElementById('createTaskAssignee').value = '';
   document.getElementById('createTaskOrigin').value = 'Manual Task Creation';
-  
+
   // Set default due date: 3 days from now
   const defaultDate = new Date();
   defaultDate.setDate(defaultDate.getDate() + 3);
@@ -468,7 +508,7 @@ window.openCreateModal = function() {
   openModal('createTaskModal');
 };
 
-window.createTaskManually = function() {
+window.createTaskManually = function () {
   const title = document.getElementById('createTaskTitle').value.trim();
   const assignee = document.getElementById('createTaskAssignee').value.trim();
   const dueDate = document.getElementById('createTaskDueDate').value;
@@ -497,16 +537,16 @@ window.createTaskManually = function() {
 
   closeModal('createTaskModal');
   showToast('Task Created', `"${title}" has been added to your tracker.`, 'success');
-  
+
   renderTasksList();
   populateMeetingFilters();
 };
 
 // Bulk reminders dispatcher for all active tasks
-window.dispatchBulkReminders = function() {
+window.dispatchBulkReminders = function () {
   let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
   const activeTasks = tasks.filter(t => !t.completed);
-  
+
   if (activeTasks.length === 0) {
     showToast('No Active Tasks', 'There are no active tasks to send reminders for.', 'warning');
     return;
@@ -521,15 +561,15 @@ window.dispatchBulkReminders = function() {
   setTimeout(() => {
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
-    
+
     const notifiedUsers = [];
-    
+
     tasks = tasks.map(task => {
       if (!task.completed) {
         const assigneeLower = task.assignee.toLowerCase().trim();
-        let contactInfo = { 
-          email: `${assigneeLower.replace(/\s+/g, '.')}@lyceum.edu`, 
-          telegram: `@${assigneeLower.replace(/\s+/g, '_')}_connect` 
+        let contactInfo = {
+          email: `${assigneeLower.replace(/\s+/g, '.')}@lyceum.edu`,
+          telegram: `@${assigneeLower.replace(/\s+/g, '_')}_connect`
         };
 
         for (const key in STAFF_DIRECTORIES) {
@@ -544,7 +584,7 @@ window.dispatchBulkReminders = function() {
           time: timeStr,
           recipient: `${contactInfo.email} / ${contactInfo.telegram}`
         };
-        
+
         if (!notifiedUsers.includes(task.assignee)) {
           notifiedUsers.push(task.assignee);
         }
@@ -553,7 +593,7 @@ window.dispatchBulkReminders = function() {
     });
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-    
+
     if (btn) {
       btn.disabled = false;
       btn.innerHTML = `🔔 Send Reminders`;
@@ -570,7 +610,7 @@ window.dispatchBulkReminders = function() {
 };
 
 // Toggle Scheduled Auto Reminders
-window.toggleAutoReminders = function() {
+window.toggleAutoReminders = function () {
   const isChecked = document.getElementById('autoRemindToggle')?.checked;
   if (isChecked) {
     showToast('Auto-Reminders Active', 'Simulated background scheduler will auto-remind owners before due dates.', 'success');

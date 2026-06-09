@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <script src="js/auth.js"></script>
+  <script src="js/sectors-data.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lyceum Connect Service Catalog. Browse and request services across IT, HR, Facilities, and Administration.">
@@ -577,15 +578,26 @@
         </div>
       </div>
 
-      <!-- Catalog Tabs -->
-      <div class="catalog-tabs">
-        <button class="catalog-tab active" onclick="filterCatalog('all', this)">All Services</button>
-        <button class="catalog-tab" onclick="filterCatalog('hr', this)">Human Resources</button>
-        <button class="catalog-tab" onclick="filterCatalog('it', this)">Information Technology</button>
-        <button class="catalog-tab" onclick="filterCatalog('facility', this)">Group Facility Management</button>
-        <button class="catalog-tab" onclick="filterCatalog('admin', this)">Administration</button>
-        <button class="catalog-tab" onclick="filterCatalog('knowledge', this)">Knowledge Center</button>
-        <button class="catalog-tab" onclick="filterCatalog('comm', this)">Communications</button>
+      <!-- Filter Bar (Tabs & Company dropdown) -->
+      <div class="filter-bar-row" style="display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:var(--space-6); flex-wrap:wrap">
+        <!-- Catalog Tabs -->
+        <div class="catalog-tabs" style="margin-bottom:0; border-bottom:none; flex:1; min-width:300px; display:flex; gap:var(--space-2); overflow-x:auto; padding-bottom:2px">
+          <button class="catalog-tab active" onclick="filterCatalog('all', this)">All Services</button>
+          <button class="catalog-tab" onclick="filterCatalog('hr', this)">Human Resources</button>
+          <button class="catalog-tab" onclick="filterCatalog('it', this)">Information Technology</button>
+          <button class="catalog-tab" onclick="filterCatalog('facility', this)">Group Facility Management</button>
+          <button class="catalog-tab" onclick="filterCatalog('admin', this)">Administration</button>
+          <button class="catalog-tab" onclick="filterCatalog('knowledge', this)">Knowledge Center</button>
+          <button class="catalog-tab" onclick="filterCatalog('comm', this)">Communications</button>
+        </div>
+        
+        <!-- Company Dropdown Selector -->
+        <div class="company-filter-wrap" style="display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); padding:6px 12px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm)">
+          <span style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px">🏢 Company:</span>
+          <select id="catalogCompanyFilter" onchange="onCompanyFilterChange(this.value)" style="border:none; background:none; font-size:13px; font-weight:600; color:var(--text-primary); cursor:pointer; outline:none; padding-right:20px; max-width:240px">
+            <option value="all">All Companies</option>
+          </select>
+        </div>
       </div>
 
       <!-- Category Cards Grid -->
@@ -917,21 +929,120 @@
   };
 
   let activeCategory = 'hr';
+  let selectedCompany = 'all';
+
+  // Helper to determine if a service is applicable to a specific company
+  function isServiceApplicable(service, companyName) {
+    if (companyName === 'all') return true;
+    const nameLower = companyName.toLowerCase();
+    
+    // Zuse Technologies (IT/Consulting) gets IT, Knowledge docs, and Comm
+    if (nameLower.includes('zuse')) {
+      return service.id.startsWith('it-') || service.id === 'password-reset' || service.id === 'policies-doc' || service.id === 'sops' || service.id === 'announce-detail' || service.id === 'events-list';
+    }
+    
+    // NCG Speed/Fleet/Automotive gets logistics, vehicle bookings, driver support
+    if (nameLower.includes('speed') || nameLower.includes('automotive') || nameLower.includes('fleet') || nameLower.includes('journey')) {
+      return service.id === 'vehicle-booking' || service.id === 'driver-request' || service.id === 'maintenance' || service.id === 'policies-doc' || service.id === 'announce-detail';
+    }
+
+    // Nextgen Facility / Property management gets Facility services
+    if (nameLower.includes('facility') || nameLower.includes('vebuild') || nameLower.includes('property') || nameLower.includes('warehouse')) {
+      return service.id === 'cleaning' || service.id === 'maintenance' || service.id === 'electrical' || service.id === 'ac-issues' || service.id === 'plumbing' || service.id === 'furniture';
+    }
+
+    // Ledgerwall (Finance/Audit) gets HR, admin tasks, corporate policies
+    if (nameLower.includes('ledgerwall')) {
+      return service.id.startsWith('hr-') || service.id === 'service-letter' || service.id === 'stationery' || service.id === 'courier' || service.id === 'policies-doc' || service.id === 'sops';
+    }
+
+    // Default universal services allowed for any group employee
+    const universalServices = [
+      'service-letter', 'emp-confirm', 'bcard', 'personnel-change', 'bank-update', 
+      'emergency-contact', 'idcard', 'leave-welfare', 'policies-doc', 'sops', 
+      'announce-detail', 'events-list', 'achievements'
+    ];
+    if (universalServices.includes(service.id)) return true;
+
+    // Default fallback (allow general admin/IT services)
+    return service.id === 'it-support' || service.id === 'password-reset' || service.id === 'stationery';
+  }
+
+  // Populate Company Dropdown dynamically from SECTORS_DATA
+  function initCompanyFilter() {
+    const select = document.getElementById('catalogCompanyFilter');
+    if (!select || typeof SECTORS_DATA === 'undefined') return;
+
+    let optionsHtml = '<option value="all">All Companies</option>';
+    SECTORS_DATA.forEach(sector => {
+      optionsHtml += `<optgroup label="${sector.name}">`;
+      sector.companies.forEach(company => {
+        optionsHtml += `<option value="${company.name}">${company.name}</option>`;
+      });
+      optionsHtml += `</optgroup>`;
+    });
+    select.innerHTML = optionsHtml;
+  }
+
+  // Update counts and visibility of Category Cards dynamically
+  function updateCategoryCardCounts() {
+    document.querySelectorAll('.service-category-card').forEach(card => {
+      const cat = card.getAttribute('data-category');
+      if (cat && services[cat]) {
+        const applicable = services[cat].filter(s => isServiceApplicable(s, selectedCompany));
+        const badge = card.querySelector('.sc-count-badge');
+        if (badge) {
+          badge.textContent = `${applicable.length} Service${applicable.length === 1 ? '' : 's'}`;
+        }
+        
+        // Dim card if no services are applicable to this company
+        if (applicable.length === 0 && selectedCompany !== 'all') {
+          card.style.opacity = '0.4';
+          card.style.pointerEvents = 'none';
+        } else {
+          card.style.opacity = '1';
+          card.style.pointerEvents = 'auto';
+        }
+      }
+    });
+  }
+
+  // Triggered when selected company changes
+  window.onCompanyFilterChange = function(val) {
+    selectedCompany = val;
+    updateCategoryCardCounts();
+
+    const searchVal = document.getElementById('catalogSearch')?.value.trim() || '';
+    if (searchVal) {
+      searchCatalog(searchVal);
+    } else {
+      // Re-trigger category display filtering
+      filterCatalog(activeCategory, document.querySelector('.catalog-tab.active'));
+    }
+  };
 
   function filterCatalog(category, tabBtn) {
     // Update active tab styles
     document.querySelectorAll('.catalog-tab').forEach(btn => btn.classList.remove('active'));
-    tabBtn.classList.add('active');
+    if (tabBtn) tabBtn.classList.add('active');
 
+    activeCategory = category;
     const cards = document.querySelectorAll('.service-category-card');
+    
     if (category === 'all') {
-      activeCategory = 'all';
-      cards.forEach(card => card.style.display = 'flex');
+      cards.forEach(card => {
+        const cat = card.getAttribute('data-category');
+        const count = cat && services[cat] ? services[cat].filter(s => isServiceApplicable(s, selectedCompany)).length : 0;
+        
+        if (count > 0 || selectedCompany === 'all') {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+        card.classList.remove('selected');
+      });
       
-      // Deselect active card in categories grid
-      cards.forEach(c => c.classList.remove('selected'));
-      
-      // Hide details section completely
+      // Hide details section
       const detailsSection = document.getElementById('serviceListSection');
       if (detailsSection) {
         detailsSection.style.display = 'none';
@@ -940,16 +1051,11 @@
       cards.forEach(card => {
         if (card.getAttribute('data-category') === category) {
           card.style.display = 'flex';
+          selectCategory(category, card);
         } else {
           card.style.display = 'none';
         }
       });
-    }
-
-    // Default select the category if not 'all'
-    if (category !== 'all') {
-      const targetCard = Array.from(cards).find(c => c.getAttribute('data-category') === category);
-      selectCategory(category, targetCard);
     }
   }
 
@@ -982,7 +1088,18 @@
       return;
     }
 
-    container.innerHTML = list.map(item => `
+    // Filter list by selected company
+    const filteredList = list.filter(item => isServiceApplicable(item, selectedCompany));
+
+    if (filteredList.length === 0) {
+      container.innerHTML = `
+        <div style="padding:40px; text-align:center; color:var(--text-tertiary)">
+          🏢 No services available for <b>${selectedCompany}</b> in this category.
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = filteredList.map(item => `
       <div class="service-row" id="row-${item.id}">
         <div class="service-row-info">
           <div class="service-row-name">
@@ -1042,22 +1159,16 @@
     q = q.trim().toLowerCase();
     
     if (!q) {
-      // Restore active category if search cleared
-      if (activeCategory === 'all') {
-        const allTab = document.querySelector('.catalog-tab[onclick*="\'all\'"]');
-        filterCatalog('all', allTab);
-      } else {
-        selectCategory(activeCategory, document.querySelector(`.service-category-card[data-category="${activeCategory}"]`));
-      }
       document.getElementById('categoriesGrid').style.display = 'grid';
+      filterCatalog(activeCategory, document.querySelector('.catalog-tab.active'));
       return;
     }
 
-    // Filter services across all categories
+    // Filter services across all categories with query and company filter
     let matchingServices = [];
     Object.keys(services).forEach(cat => {
       services[cat].forEach(s => {
-        if (s.name.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q)) {
+        if ((s.name.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q)) && isServiceApplicable(s, selectedCompany)) {
           matchingServices.push(s);
         }
       });
@@ -1087,6 +1198,10 @@
         else greetEl.textContent = 'evening';
       }
     })();
+
+    // Initialize company filter dropdown
+    initCompanyFilter();
+    updateCategoryCardCounts();
 
     // Auto-select All Services tab initially
     const allTab = document.querySelector('.catalog-tab[onclick*="\'all\'"]');

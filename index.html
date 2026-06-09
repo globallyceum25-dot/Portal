@@ -103,7 +103,7 @@
     }
     .rsc-label { font-size: 12px; font-weight: 500; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; }
     .rsc-value { font-family: var(--font-display); font-size: 32px; font-weight: 800; color: var(--text-primary); line-height: 1; }
-    .rsc-progress { }
+    /* .rsc-progress { } */
     .rsc-meta { font-size: 11px; color: var(--text-tertiary); display: flex; align-items: center; gap: 4px; }
 
     /* News card */
@@ -134,7 +134,7 @@
     .news-card-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; }
     .news-card-title { font-size: 14px; font-weight: 700; color: var(--text-primary); line-height: 1.4; }
     .news-card-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; flex: 1;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+      display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .news-card-meta { font-size: 11px; color: var(--text-tertiary); margin-top: auto; }
 
     /* Favourite star button */
@@ -895,7 +895,7 @@
       </div>
       <div class="form-group" style="margin-bottom: var(--space-4)">
         <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block">Assignee</label>
-        <input type="text" class="form-control" id="editTaskAssignee" style="width: 100%; height: 38px; font-size: 13.5px; placeholder="Enter assignee name" required>
+        <input type="text" class="form-control" id="editTaskAssignee" style="width: 100%; height: 38px; font-size: 13.5px;" placeholder="Enter assignee name" required>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4)">
         <div class="form-group">

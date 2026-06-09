@@ -442,9 +442,190 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Render tasks widget if on index.html
   if (currentPage === 'index.html' || currentPage === '') {
+    seedSampleTasks();
     renderDashboardTasks();
   }
 });
+
+// Seed data definition
+const SAMPLE_MEETING_TASKS = [
+  // Meeting 1: Q3 Budget Review — June 3, 2026
+  {
+    id: 'TSK-SEED-001',
+    title: 'Prepare revised Q3 budget projection with updated enrollment figures',
+    assignee: 'Lisa Thompson',
+    dueDate: '2026-06-12',
+    priority: 'High',
+    completed: false,
+    meetingTitle: 'Q3 Budget Review — June 3',
+    dateCreated: '6/3/2026'
+  },
+  {
+    id: 'TSK-SEED-002',
+    title: 'Submit capital expenditure approval form for new campus servers',
+    assignee: 'Raj Patel',
+    dueDate: '2026-06-10',
+    priority: 'High',
+    completed: true,
+    meetingTitle: 'Q3 Budget Review — June 3',
+    dateCreated: '6/3/2026'
+  },
+  {
+    id: 'TSK-SEED-003',
+    title: 'Consolidate department spend reports and share with finance team',
+    assignee: 'Sudaraka Perera',
+    dueDate: '2026-06-14',
+    priority: 'Medium',
+    completed: false,
+    meetingTitle: 'Q3 Budget Review — June 3',
+    dateCreated: '6/3/2026'
+  },
+  {
+    id: 'TSK-SEED-004',
+    title: 'Schedule follow-up meeting with procurement for vendor renegotiation',
+    assignee: 'Lisa Thompson',
+    dueDate: '2026-06-09',
+    priority: 'Low',
+    completed: true,
+    meetingTitle: 'Q3 Budget Review — June 3',
+    dateCreated: '6/3/2026'
+  },
+
+  // Meeting 2: IT Infrastructure Planning — June 5, 2026
+  {
+    id: 'TSK-SEED-005',
+    title: 'Audit current network bandwidth across all campus locations',
+    assignee: 'James Wilson',
+    dueDate: '2026-06-15',
+    priority: 'High',
+    completed: false,
+    meetingTitle: 'IT Infrastructure Planning — June 5',
+    dateCreated: '6/5/2026'
+  },
+  {
+    id: 'TSK-SEED-006',
+    title: 'Draft RFP for cloud migration of legacy student records system',
+    assignee: 'Raj Patel',
+    dueDate: '2026-06-18',
+    priority: 'High',
+    completed: false,
+    meetingTitle: 'IT Infrastructure Planning — June 5',
+    dateCreated: '6/5/2026'
+  },
+  {
+    id: 'TSK-SEED-007',
+    title: 'Evaluate Azure vs AWS pricing for disaster recovery hosting',
+    assignee: 'Sudaraka Perera',
+    dueDate: '2026-06-20',
+    priority: 'Medium',
+    completed: false,
+    meetingTitle: 'IT Infrastructure Planning — June 5',
+    dateCreated: '6/5/2026'
+  },
+  {
+    id: 'TSK-SEED-008',
+    title: 'Complete endpoint security rollout for teacher laptops — Phase 2',
+    assignee: 'James Wilson',
+    dueDate: '2026-06-13',
+    priority: 'High',
+    completed: true,
+    meetingTitle: 'IT Infrastructure Planning — June 5',
+    dateCreated: '6/5/2026'
+  },
+
+  // Meeting 3: HR Policy Update — June 7, 2026
+  {
+    id: 'TSK-SEED-009',
+    title: 'Circulate updated work-from-home policy draft to all department heads',
+    assignee: 'Lisa Thompson',
+    dueDate: '2026-06-11',
+    priority: 'Medium',
+    completed: false,
+    meetingTitle: 'HR Policy Update — June 7',
+    dateCreated: '6/7/2026'
+  },
+  {
+    id: 'TSK-SEED-010',
+    title: 'Compile employee feedback survey results from May wellbeing check-in',
+    assignee: 'Sudaraka Perera',
+    dueDate: '2026-06-16',
+    priority: 'Medium',
+    completed: false,
+    meetingTitle: 'HR Policy Update — June 7',
+    dateCreated: '6/7/2026'
+  },
+  {
+    id: 'TSK-SEED-011',
+    title: 'Update onboarding handbook with new mandatory compliance training modules',
+    assignee: 'Raj Patel',
+    dueDate: '2026-06-22',
+    priority: 'Low',
+    completed: false,
+    meetingTitle: 'HR Policy Update — June 7',
+    dateCreated: '6/7/2026'
+  },
+  {
+    id: 'TSK-SEED-012',
+    title: 'Confirm new leave approval workflow integration with Lyceum Connect portal',
+    assignee: 'James Wilson',
+    dueDate: '2026-06-19',
+    priority: 'High',
+    completed: false,
+    meetingTitle: 'HR Policy Update — June 7',
+    dateCreated: '6/7/2026'
+  },
+  {
+    id: 'TSK-SEED-013',
+    title: 'Integrate Bitrock payment gateway APIs into the student portal registrations link',
+    assignee: 'Raj Patel',
+    dueDate: '2026-06-25',
+    priority: 'High',
+    completed: false,
+    meetingTitle: 'IT Infrastructure Planning — June 5',
+    dateCreated: '6/5/2026'
+  },
+  {
+    id: 'TSK-SEED-014',
+    title: 'Organize launch event schedule for Zeus Gymnasium corporate wellness challenge',
+    assignee: 'Lisa Thompson',
+    dueDate: '2026-06-18',
+    priority: 'Medium',
+    completed: false,
+    meetingTitle: 'HR Policy Update — June 7',
+    dateCreated: '6/7/2026'
+  },
+  {
+    id: 'TSK-SEED-015',
+    title: 'Review and draft lease agreement for the new NCG Warehouse logistics hub',
+    assignee: 'Sudaraka Perera',
+    dueDate: '2026-06-20',
+    priority: 'Low',
+    completed: false,
+    meetingTitle: 'Q3 Budget Review — June 3',
+    dateCreated: '6/3/2026'
+  },
+  {
+    id: 'TSK-SEED-016',
+    title: 'Coordinate Nextgen Publications syllabus distribution logistics review',
+    assignee: 'James Wilson',
+    dueDate: '2026-06-14',
+    priority: 'Medium',
+    completed: true,
+    meetingTitle: 'HR Policy Update — June 7',
+    dateCreated: '6/7/2026'
+  }
+];
+
+function seedSampleTasks() {
+  let existing = JSON.parse(localStorage.getItem('lc-tasks') || '[]');
+  const existingIds = existing.map(t => t.id);
+  const missingSamples = SAMPLE_MEETING_TASKS.filter(t => !existingIds.includes(t.id));
+
+  if (missingSamples.length > 0) {
+    existing = [...existing, ...missingSamples];
+    localStorage.setItem('lc-tasks', JSON.stringify(existing));
+  }
+}
 
 // ============================================================
 // 13. Portal Homepage Action Tasks Tracker Controller
@@ -602,7 +783,7 @@ document.addEventListener('click', function() {
 });
 
 // Staff directory lookup for Email/Telegram simulation
-const STAFF_DIRECTORIES = {
+window.STAFF_DIRECTORIES = window.STAFF_DIRECTORIES || {
   'lisa thompson': { email: 'lisa.thompson@lyceum.edu', telegram: '@lisa_t_lyceum' },
   'lisa': { email: 'lisa.thompson@lyceum.edu', telegram: '@lisa_t_lyceum' },
   'raj patel': { email: 'raj.patel@lyceum.edu', telegram: '@raj_patel_it' },
