@@ -7,7 +7,7 @@ const SECTORS_DATA = [
   {
     "id": "corporate",
     "name": "Lyceum Global Holdings",
-    "description": "This can be perceived as a vibrant community where innovation meets impact. We believe in the power of each individual to achieve greatness, with a growth mindset and a sprinkle of goodness; along with our foundations of transforming lives and nurturing \"Global Citizens\" \u2013 empowered learners and educators who will change the world. Fueled by passion, we're a united force ready to make a real difference, not just in the field of education, but also in many other aspects of \"Life\".",
+    "description": "This can be perceived as a vibrant community where innovation meets impact. We believe in the power of each individual to achieve greatness, with a growth mindset and a sprinkle of goodness; along with our foundations of transforming lives and nurturing \"Global Citizens\" – empowered learners and educators who will change the world. Fueled by passion, we're a united force ready to make a real difference, not just in the field of education, but also in many other aspects of \"Life\".",
     "companies": [
       {
         "name": "LEDGERWALL (PRIVATE) LIMITED",
@@ -48,7 +48,7 @@ const SECTORS_DATA = [
           "linkedin": "https://www.linkedin.com/company/lyceum-international-school-sri-lanka/",
           "instagram": "https://www.instagram.com/lyceum_official?utm_source=ig_web_button_share_sheet&#038;igsh=ZDNlZDc0MzIxNw=="
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/leaf-300x111.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/lyc.png"
       },
       {
         "name": "LYCEUM LEAF SCHOOL",
@@ -58,7 +58,7 @@ const SECTORS_DATA = [
           "facebook": "https://web.facebook.com/LyceumLeafSchool",
           "instagram": "https://www.instagram.com/lyceum_leafschool?utm_source=ig_web_button_share_sheet&#038;igsh=ZDNlZDc0MzIxNw=="
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Picture-3-2.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/leaf.png"
       },
       {
         "name": "LYCEUM DAY CARE",
@@ -68,7 +68,7 @@ const SECTORS_DATA = [
           "facebook": "https://web.facebook.com/lyceumdaycare",
           "instagram": "https://www.instagram.com/lyceum_daycare?utm_source=ig_web_button_share_sheet&#038;igsh=ZDNlZDc0MzIxNw=="
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/cam-300x93.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Picture-3-2.png"
       },
       {
         "name": "LYCEUM CAMPUS",
@@ -80,7 +80,7 @@ const SECTORS_DATA = [
           "linkedin": "https://www.linkedin.com/company/lyceum-campus/",
           "instagram": "https://www.instagram.com/lyceumcampus?utm_source=ig_web_button_share_sheet&#038;igsh=ZDNlZDc0MzIxNw=="
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/place.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/cam.png"
       },
       {
         "name": "LYCEUM PLACEMENTS",
@@ -92,7 +92,7 @@ const SECTORS_DATA = [
           "youtube": "https://www.youtube.com/@lyceumplacements",
           "instagram": "https://www.instagram.com/lyceumplacements?utm_source=ig_web_button_share_sheet&#038;igsh=ZDNlZDc0MzIxNw=="
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/asses.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/place.png"
       },
       {
         "name": "LYCEUM ASSESSMENTS",
@@ -103,7 +103,7 @@ const SECTORS_DATA = [
           "linkedin": "https://www.linkedin.com/company/lyceumassessments/",
           "instagram": "https://www.instagram.com/lyceum_assessments?utm_source=ig_web_button_share_sheet&#038;igsh=ZDNlZDc0MzIxNw=="
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/aca.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/asses.png"
       },
       {
         "name": "LYCEUM ACADEMY",
@@ -112,7 +112,7 @@ const SECTORS_DATA = [
         "socials": {
           "facebook": "https://web.facebook.com/lyceumaca/?_rdc=1&#038;_rdr"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/next.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/aca.png"
       },
       {
         "name": "NEXTGEN PUBLICATIONS",
@@ -137,7 +137,7 @@ const SECTORS_DATA = [
           "facebook": "https://web.facebook.com/NCGAutomotives/",
           "instagram": "https://www.instagram.com/ncg_automotive/"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/NCG-Express-Logo-01-300x99.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/automative.png"
       },
       {
         "name": "NCG EXPRESS (PRIVATE) LIMITED",
@@ -147,7 +147,7 @@ const SECTORS_DATA = [
           "facebook": "https://www.facebook.com/NcgExpress/",
           "instagram": "https://www.instagram.com/ncg_expresslk/"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/ncgfm-logo-300x150.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/NCG-Express-Logo-01.png"
       },
       {
         "name": "NCG FLEET MANAGEMENT (PRIVATE) LIMITED",
@@ -156,7 +156,7 @@ const SECTORS_DATA = [
         "socials": {
           "facebook": "https://web.facebook.com/NcgFleetManagement/"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/NCG-Spare-Parts-Logo-Final-01-300x267.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/ncgfm-logo.png"
       },
       {
         "name": "NCG SPARE PARTS (PRIVATE) LIMITED",
@@ -165,7 +165,7 @@ const SECTORS_DATA = [
         "socials": {
           "facebook": "https://web.facebook.com/ncgspares/"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Group-177145.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/NCG-Spare-Parts-Logo-Final-01.png"
       },
       {
         "name": "Journey by Design (Private) Limited",
@@ -175,7 +175,7 @@ const SECTORS_DATA = [
           "facebook": "https://www.facebook.com/profile.php?id=61573790942387",
           "instagram": "https://www.instagram.com/journey.by.design/"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Group-1000002092-300x61.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Group-177145.png"
       }
     ]
   },
@@ -183,7 +183,7 @@ const SECTORS_DATA = [
     "id": "read",
     "name": "NCG Read",
     "holding": "NCG Read Holdings (Private) Limited",
-    "description": "The NCG Read sector with \u201cBook Studio\u201d, offers a universe of knowledge, where students and readers find the latest publications, international textbooks, and essential stationery. \u201cNextgen Library Solutions\u201d \u2013 its latest innovation works on a mission to champion learning equity, book by book; believing in inspiring curious minds and fostering a love of learning for all through innovative library solutions and resources.",
+    "description": "The NCG Read sector with “Book Studio”, offers a universe of knowledge, where students and readers find the latest publications, international textbooks, and essential stationery. “Nextgen Library Solutions” – its latest innovation works on a mission to champion learning equity, book by book; believing in inspiring curious minds and fostering a love of learning for all through innovative library solutions and resources.",
     "companies": [
       {
         "name": "THE BOOK STUDIO (PRIVATE) LIMITED",
@@ -192,7 +192,7 @@ const SECTORS_DATA = [
         "socials": {
           "instagram": "https://www.instagram.com/bookstudiolk/?utm_source=ig_web_button_share_sheet"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/photo_2024-04-01_15-05-54-removebg-preview-1.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/book-removebg-preview.png"
       },
       {
         "name": "NEXTGEN LIBRARY SOLUTIONS (PRIVATE) LIMITED",
@@ -218,7 +218,7 @@ const SECTORS_DATA = [
           "instagram": "https://instagram.com/vebuildlk?igshid=OGQ5ZDc2ODk2ZA==",
           "tiktok": "https://www.tiktok.com/@vebuild?_t=8h2rFVZWGbx&#038;_r=1"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/04/Logo-ncg-green-02-11-1.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/04/Vebuild.png"
       },
       {
         "name": "NCG GREEN ENERGY (PRIVATE) LIMITED",
@@ -228,7 +228,7 @@ const SECTORS_DATA = [
           "facebook": "https://www.facebook.com/ncggreenenergy?mibextid=ZbWKwL",
           "instagram": "https://instagram.com/greenenergylk?igshid=OGQ5ZDc2ODk2ZA=="
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/next-removebg-preview-e1715588782310.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/04/Logo-ncg-green-02-11-1.png"
       },
       {
         "name": "NEXTGEN SHIELD (PRIVATE) LIMITED",
@@ -238,21 +238,21 @@ const SECTORS_DATA = [
           "facebook": "https://www.facebook.com/nextgenshield?mibextid=ZbWKwL",
           "instagram": "https://instagram.com/nextgenshield?igshid=OGQ5ZDc2ODk2ZA=="
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/dsd-removebg-preview-e1715589345867.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/next-removebg-preview-e1715588782310.png"
       },
       {
         "name": "NEXTGEN FACILITY MANAGEMENT (PRIVATE) LIMITED",
         "description": "",
         "website": "",
         "socials": {},
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/rewrewr-removebg-preview.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/dsd-removebg-preview-e1715589345867.png"
       },
       {
         "name": "NCG WAREHOUSE SOLUTIONS (PRIVATE) LIMITED",
         "description": "",
         "website": "",
         "socials": {},
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/serengeti-1.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/rewrewr-removebg-preview.png"
       },
       {
         "name": "SERENGETTI PROPERTY MANAGEMENT (PRIVATE) LIMITED",
@@ -280,7 +280,7 @@ const SECTORS_DATA = [
           "instagram": "https://www.instagram.com/zusetech__?utm_source=ig_web_button_share_sheet&#038;igsh=ZDNlZDc0MzIxNw==",
           "tiktok": "https://www.tiktok.com/@zusetech"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Rectangle-4022-1.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Screenshot_2024-03-28_164949-removebg-preview.png"
       },
       {
         "name": "DREAMTEAM MEDIA (PRIVATE) LIMITED",
@@ -302,7 +302,7 @@ const SECTORS_DATA = [
           "facebook": "https://web.facebook.com/dreamteamlk",
           "youtube": "https://www.youtube.com/channel/UCoHKosXfK3e7vMN_uvwrLRw"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Rectangle-4023.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Rectangle-4022-1.png"
       }
     ]
   },
@@ -310,7 +310,7 @@ const SECTORS_DATA = [
     "id": "kit",
     "name": "NCG Kit",
     "holding": "NCG Kit Holdings (Private) Limited",
-    "description": "As an integral unit of the NCG Kit sector, \u201cThe Lyceum Collection\u201d offers unique souvenirs and memorabilia that capture the essence of the vibrant Lyceum community. Whether you're browsing in our dedicated school outlets, exploring our outdoor showrooms, NCG Kit makes it easy to find everything you need to thrive in your educational journey and celebrate the Lyceum pride; while gearing up for success with stylish and high-quality uniforms, sportswear and much more from \u201cThe Uniform Hub\u201d.",
+    "description": "As an integral unit of the NCG Kit sector, “The Lyceum Collection” offers unique souvenirs and memorabilia that capture the essence of the vibrant Lyceum community. Whether you're browsing in our dedicated school outlets, exploring our outdoor showrooms, NCG Kit makes it easy to find everything you need to thrive in your educational journey and celebrate the Lyceum pride; while gearing up for success with stylish and high-quality uniforms, sportswear and much more from “The Uniform Hub”.",
     "companies": [
       {
         "name": "LYCEUM COLLECTION (PRIVATE) LIMITED",
@@ -320,7 +320,7 @@ const SECTORS_DATA = [
           "facebook": "https://web.facebook.com/LyceumTLC/",
           "instagram": "https://www.instagram.com/thelyceumcollection/?utm_source=ig_web_button_share_sheet"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Uniform-Hub1.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/col.png"
       },
       {
         "name": "THE UNIFORM HUB (PRIVATE) LIMITED",
@@ -329,7 +329,7 @@ const SECTORS_DATA = [
         "socials": {
           "facebook": "https://web.facebook.com/uniformslk"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Uniform-Hub.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Uniform-Hub1.png"
       }
     ]
   },
@@ -346,7 +346,7 @@ const SECTORS_DATA = [
         "socials": {
           "instagram": "https://www.instagram.com/lyfekitchenlk/?utm_source=ig_web_button_share_sheet&#038;igsh=ZDNlZDc0MzIxNw%3D%3D"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/gym-e1715591957586-300x143.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/lyfe.png"
       },
       {
         "name": "ZEUS GYMNASIUM AND REHABILITATION (PRIVATE) LIMITED",
@@ -356,7 +356,7 @@ const SECTORS_DATA = [
           "facebook": "https://www.facebook.com/Zeusgymnasium.lk",
           "instagram": "https://www.instagram.com/zeusgymnasium.lk/?igsh=MXQyN29yeXRyYTJ5NQ%3D%3D"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/spo-removebg-preview.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/gym-e1715591957586.png"
       },
       {
         "name": "HERACLE SPORTS (PRIVATE) LIMITED",
@@ -365,14 +365,14 @@ const SECTORS_DATA = [
         "socials": {
           "instagram": "https://www.instagram.com/heracle.sports/?igsh=MWhtcGlyOHVscnpkdg%3D%3D"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/earth-removebg-preview-e1715592109376.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/spo-removebg-preview.png"
       },
       {
         "name": "NCG EARTH (PRIVATE) LIMITED",
         "description": "",
         "website": "",
         "socials": {},
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/Assessments.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/earth-removebg-preview-e1715592109376.png"
       },
       {
         "name": "HERACLE CARE & WELLNESS (PRIVATE) LIMITED",
@@ -381,7 +381,7 @@ const SECTORS_DATA = [
         "socials": {
           "instagram": "https://www.instagram.com/next_gencare/?igsh=d2xoZ250Y3A3NWpk"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/NCG-Earth-300x143.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/care-and-wellness-1-1.png"
       },
       {
         "name": "HERACLE ADVENTURE (PRIVATE) LIMITED",
@@ -392,7 +392,7 @@ const SECTORS_DATA = [
           "instagram": "https://www.instagram.com/heracle.cafe/?utm_source=ig_web_button_share_sheet&#038;igsh=ZDNlZDc0MzIxNw%3D%3D",
           "tiktok": "https://www.tiktok.com/@heracalecafe"
         },
-        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/NCG-Earth-300x143.png"
+        "logo": "https://lyceumglobal.co/wp-content/uploads/2024/03/NCG-Earth.png"
       }
     ]
   }
