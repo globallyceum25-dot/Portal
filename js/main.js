@@ -418,8 +418,27 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+// Apply the profile saved on the Profile page (name + avatar initials)
+// across every page's sidebar, topbar and dashboard greeting.
+function applyStoredProfile() {
+  let p;
+  try { p = JSON.parse(localStorage.getItem('lc-profile') || '{}'); } catch (e) { p = {}; }
+  if (!p || (!p.firstNameVal && !p.lastNameVal)) return;
+
+  const first = (p.firstNameVal || 'Sudaraka').trim();
+  const last = (p.lastNameVal || 'Perera').trim();
+  const full = `${first} ${last}`.trim();
+  const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase();
+
+  document.querySelectorAll('.sidebar-user-name, .topbar-user-name').forEach(el => { el.textContent = full; });
+  document.querySelectorAll('.sidebar-avatar, .topbar-avatar').forEach(el => { el.textContent = initials; });
+  const welcome = document.getElementById('welcomeUserName');
+  if (welcome) welcome.textContent = first;
+}
+
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', function() {
+  applyStoredProfile();
   initSearch();
   initTabs();
   initDropdowns();
