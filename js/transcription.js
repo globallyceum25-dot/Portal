@@ -271,7 +271,7 @@ function initSpeechRecognition(SpeechRecognitionClass) {
 
 // Helper to determine mock speaker based on current state
 function getSpeakerName() {
-  const userName = document.getElementById('welcomeUserName')?.textContent || 'Sudaraka Perera';
+  const userName = document.getElementById('welcomeUserName')?.textContent || 'LGH IT Test';
   return finalTranscript.split('<br><br>').length % 2 === 0 ? `${userName} (Me)` : 'Participant';
 }
 
@@ -752,7 +752,7 @@ function downloadTranscript(type) {
 // 11. Caching & Persistence in LocalStorage
 function saveMeetingSession() {
   const title = document.getElementById('meetingTitle')?.value || 'Weekly Sync Meeting';
-  const attendees = document.getElementById('meetingAttendees')?.value || 'Sudaraka Perera';
+  const attendees = document.getElementById('meetingAttendees')?.value || 'LGH IT Test';
   const langSelect = document.getElementById('transLanguage');
   const lang = langSelect ? langSelect.options[langSelect.selectedIndex].text : 'English (US)';
   const duration = document.getElementById('transcriptTimer')?.textContent || '00:00:00';

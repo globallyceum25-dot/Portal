@@ -425,8 +425,8 @@ function applyStoredProfile() {
   try { p = JSON.parse(localStorage.getItem('lc-profile') || '{}'); } catch (e) { p = {}; }
   if (!p || (!p.firstNameVal && !p.lastNameVal)) return;
 
-  const first = (p.firstNameVal || 'Sudaraka').trim();
-  const last = (p.lastNameVal || 'Perera').trim();
+  const first = (p.firstNameVal || 'LGH IT').trim();
+  const last = (p.lastNameVal || 'Test').trim();
   const full = `${first} ${last}`.trim();
   const initials = ((first.charAt(0) || '') + (last.charAt(0) || '')).toUpperCase();
 
