@@ -6,7 +6,8 @@
 
 (function() {
   const sessionActive = localStorage.getItem('lc-auth-session') === 'true';
-  const isLoginPage = window.location.pathname.includes('login.html');
+  // Match both "/login.html" and Cloudflare Pages' clean URL "/login"
+  const isLoginPage = /\/login(\.html)?$/.test(window.location.pathname);
 
   if (!sessionActive && !isLoginPage) {
     // Force redirect to login page
