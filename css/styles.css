@@ -1744,7 +1744,7 @@ ul { list-style: none; }
    MOCKUP UI REDESIGN SECTION (OVERRIDES & LAYOUTS)
    ============================================================ */
 .welcome-banner {
-  background: #0b4291 !important; /* Deep navy blue to match mockup */
+  background: linear-gradient(135deg, #0F172A 0%, #0B3A5C 55%, #0369A1 100%) !important; /* Charter navy → corporate blue */
   border-radius: 16px !important;
   padding: 24px 32px !important;
   display: flex !important;
@@ -2715,5 +2715,74 @@ ul { list-style: none; }
   .bento-company-focus {
     grid-column: 1;
   }
+}
+
+/* ============================================================
+   CURSOR-REACTIVE MOTION LAYER
+   Powered by js/motion.js — opt in with data-tilt / data-spotlight /
+   data-magnetic. All effects self-disable on coarse pointers and
+   when prefers-reduced-motion is set.
+   ============================================================ */
+[data-tilt],
+[data-spotlight] {
+  position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Instant follow while the cursor is inside; smooth ease-back on leave */
+[data-tilt].is-pointing {
+  transition: box-shadow var(--transition-base), border-color var(--transition-base) !important;
+}
+[data-tilt].is-pointing {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-200);
+  z-index: 2;
+}
+
+/* Cursor-following spotlight glow (both tilt and spotlight-only cards) */
+[data-tilt]::after,
+[data-spotlight]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  background: radial-gradient(
+    340px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(3, 105, 161, 0.12),
+    transparent 60%
+  );
+  z-index: 1;
+}
+[data-tilt].is-pointing::after,
+[data-spotlight].is-pointing::after { opacity: 1; }
+
+/* Keep real content above the glow layer */
+[data-tilt] > *,
+[data-spotlight] > * { position: relative; z-index: 2; }
+
+/* On dark surfaces the banner glow reads better lightened */
+.welcome-banner[data-spotlight]::after {
+  background: radial-gradient(
+    420px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, 0.10),
+    transparent 62%
+  );
+}
+
+[data-magnetic] {
+  transition: transform var(--transition-spring);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tilt],
+  [data-spotlight],
+  [data-magnetic] { transform: none !important; transition: none !important; }
+  [data-tilt]::after,
+  [data-spotlight]::after { display: none !important; }
 }
 
