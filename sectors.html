@@ -179,18 +179,6 @@
     <!-- PAGE CONTENT -->
     <main class="page-content">
 
-      <!-- View Mode Toggle -->
-      <div class="view-mode-bar">
-        <span class="view-mode-label">View</span>
-        <button class="view-mode-btn active" id="viewModeBento" onclick="switchView('bento')">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="4"/><rect x="14" y="10" width="7" height="7"/><rect x="3" y="13" width="7" height="4"/></svg>
-          Bento Grid
-        </button>
-        <button class="view-mode-btn" id="viewMode3D" onclick="switchView('3d')">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          3D Hierarchy
-        </button>
-      </div>
 
       <!-- BENTO GRID VIEW -->
       <div class="bento-dashboard-wrapper" id="bentoDashboardView">
@@ -241,26 +229,7 @@
         </div>
       </div>
 
-      <!-- 3D HIERARCHY VIEW -->
-      <div id="hierarchy3dContainer">
-        <!-- Three.js canvas injected here by hierarchy3d.js -->
 
-        <!-- Tooltip -->
-        <div class="h3d-tooltip" id="h3dTooltip">
-          <button class="h3d-tooltip-close" id="h3dTooltipClose">&times;</button>
-          <div id="h3dTooltipContent"></div>
-        </div>
-
-        <!-- Legend -->
-        <div class="h3d-legend" id="h3dLegend"></div>
-
-        <!-- Controls Hint -->
-        <div class="h3d-controls-hint">
-          <span><kbd>Drag</kbd> Orbit</span>
-          <span><kbd>Scroll</kbd> Zoom</span>
-          <span><kbd>Click</kbd> Details</span>
-        </div>
-      </div>
 
     </main>
 
@@ -275,40 +244,6 @@
 <script src="js/sectors-data.js?v=2"></script>
 <script src="js/sectors.js?v=3"></script>
 
-<!-- Three.js CDN (ES Module build for import maps) -->
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
-  }
-}
-</script>
-<script type="module" src="js/hierarchy3d.js"></script>
 
-<!-- View switcher logic -->
-<script>
-function switchView(mode) {
-  const bentoView = document.getElementById('bentoDashboardView');
-  const h3dView   = document.getElementById('hierarchy3dContainer');
-  const btnBento  = document.getElementById('viewModeBento');
-  const btn3D     = document.getElementById('viewMode3D');
-  if (mode === '3d') {
-    bentoView.style.display = 'none';
-    h3dView.classList.add('visible');
-    btnBento.classList.remove('active');
-    btn3D.classList.add('active');
-    // Dispatch resize so Three.js recalculates
-    window.dispatchEvent(new Event('resize'));
-    // Dispatch custom event for hierarchy3d.js to init if needed
-    window.dispatchEvent(new CustomEvent('hierarchy3d:activate'));
-  } else {
-    bentoView.style.display = '';
-    h3dView.classList.remove('visible');
-    btnBento.classList.add('active');
-    btn3D.classList.remove('active');
-  }
-}
-</script>
 </body>
 </html>

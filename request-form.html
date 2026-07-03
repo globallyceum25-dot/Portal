@@ -8,173 +8,115 @@
   <title>Submit a Request — Lyceum Connect</title>
   <link rel="stylesheet" href="css/styles.css">
   <style>
-    /* Step Indicator Styling */
+    /* Step Indicator Styling - Segmented Glass Pill Design */
     .steps-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: var(--space-8);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 4px;
+      max-width: 400px;
+      margin: 0 auto var(--space-8) auto;
       position: relative;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
+      backdrop-filter: var(--glass-blur-sm);
+      -webkit-backdrop-filter: var(--glass-blur-sm);
+      box-shadow: var(--shadow-sm);
+    }
+    [data-theme="dark"] .steps-container {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.08);
     }
     .steps-line {
-      position: absolute;
-      top: 50%;
-      left: 10%;
-      right: 10%;
-      height: 3px;
-      background: var(--border-strong);
-      transform: translateY(-50%);
-      z-index: 1;
-    }
-    .steps-line-fill {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 0%;
-      background: var(--primary);
-      transition: width var(--transition-base);
+      display: none;
     }
     .step-dot-wrap {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      position: relative;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      transition: all var(--transition-base);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 13px;
       z-index: 2;
       cursor: pointer;
     }
     .step-dot {
-      width: 36px;
-      height: 36px;
-      border-radius: var(--radius-full);
-      background: var(--surface);
-      border: 3px solid var(--border-strong);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(30, 40, 80, 0.05);
+      border: 1px solid var(--border-strong);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 11px;
       font-weight: 700;
-      color: var(--text-tertiary);
+      color: var(--text-secondary);
       transition: all var(--transition-base);
     }
+    [data-theme="dark"] .step-dot {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .step-dot-wrap.active {
+      color: var(--text-inverse) !important;
+      background: var(--primary-gradient);
+      box-shadow: 0 4px 14px rgba(59, 123, 248, 0.25);
+    }
     .step-dot-wrap.active .step-dot {
-      border-color: var(--primary);
-      background: var(--primary);
-      color: #fff;
-      box-shadow: var(--shadow-glow);
+      background: #fff;
+      color: var(--primary);
+      border-color: #fff;
+    }
+    [data-theme="dark"] .step-dot-wrap.active .step-dot {
+      background: #fff;
+      color: var(--primary-dark);
+      border-color: #fff;
+    }
+    .step-dot-wrap.completed {
+      color: var(--success);
     }
     .step-dot-wrap.completed .step-dot {
-      border-color: var(--primary);
-      background: var(--primary);
-      color: #fff;
+      background: rgba(16, 185, 129, 0.1);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    [data-theme="dark"] .step-dot-wrap.completed .step-dot {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--success);
+      color: var(--success);
     }
     .step-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      margin-top: var(--space-2);
-      transition: color var(--transition-base);
-    }
-    .step-dot-wrap.active .step-label {
-      color: var(--primary);
+      margin-top: 0;
+      font-size: 12.5px;
+      color: inherit;
     }
 
-    /* Step Cards and Selection Grid */
+    /* Spring-slide Animations for step transition */
+    @keyframes slideFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
     .form-step {
       display: none;
-      animation: fadeIn var(--transition-base);
     }
     .form-step.active {
       display: block;
+      animation: slideFadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     
-    .radio-card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-5);
-      margin-bottom: var(--space-6);
-    }
-    @media (max-width: 900px) {
-      .radio-card-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 600px) {
-      .radio-card-grid { grid-template-columns: 1fr; }
-    }
-
-    .radio-card {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: var(--space-6);
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-3);
-      cursor: pointer;
-      transition: all var(--transition-spring);
-      position: relative;
-    }
-    .radio-card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--primary-300);
-    }
-    .radio-card.selected {
-      border-color: var(--primary);
-      background: var(--primary-50);
-      box-shadow: var(--shadow-md);
-    }
-    [data-theme="dark"] .radio-card.selected {
-      background: rgba(58, 154, 217, 0.15);
-    }
-
-    .rc-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: var(--radius-md);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-    .rc-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-    .rc-desc {
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.5;
-    }
-    .rc-radio {
-      position: absolute;
-      top: var(--space-4);
-      right: var(--space-4);
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 2px solid var(--border-strong);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all var(--transition-fast);
-    }
-    .radio-card.selected .rc-radio {
-      border-color: var(--primary);
-      background: var(--primary);
-    }
-    .radio-card.selected .rc-radio::after {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #fff;
-    }
-
-    /* Form Details Page styling */
+    /* Two Column Layout */
     .form-two-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -184,50 +126,147 @@
       .form-two-col { grid-template-columns: 1fr; }
     }
 
-    /* Priority selector custom style */
-    .priority-select-wrap {
+    /* Interactive Upload Zone */
+    .upload-zone {
+      border: 2px dashed var(--border-strong);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      text-align: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: var(--glass-blur-sm);
+      -webkit-backdrop-filter: var(--glass-blur-sm);
+      transition: all var(--transition-spring);
       position: relative;
     }
-    .priority-indicator {
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: none;
+    [data-theme="dark"] .upload-zone {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--primary);
+      background: rgba(59, 123, 248, 0.06);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .upload-icon-wrap {
+      width: 48px;
+      height: 48px;
+      font-size: 22px;
+      border-radius: var(--radius-md);
+      background: rgba(59, 123, 248, 0.08);
+      color: var(--primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-3);
+      transition: all var(--transition-base);
+    }
+    .upload-zone:hover .upload-icon-wrap {
+      transform: scale(1.1) rotate(5deg);
+      background: var(--primary-gradient);
+      color: #fff;
     }
 
-    /* Review Summary Styling */
-    .review-card {
-      background: var(--surface);
+    /* File tag UI styling */
+    .file-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.4);
       border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 4px;
+      animation: scaleUp 0.2s ease forwards;
+      backdrop-filter: var(--glass-blur-sm);
+      -webkit-backdrop-filter: var(--glass-blur-sm);
+      box-shadow: var(--shadow-sm);
+    }
+    [data-theme="dark"] .file-tag {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .file-tag-remove {
+      cursor: pointer;
+      color: var(--text-tertiary);
+      transition: color var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.05);
+    }
+    [data-theme="dark"] .file-tag-remove {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .file-tag-remove:hover {
+      color: var(--error);
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    /* Review Card Glass Redesign */
+    .review-card {
+      background: var(--surface-raised);
+      border: 1px solid var(--border-strong);
       border-radius: var(--radius-xl);
       padding: var(--space-6);
       margin-bottom: var(--space-6);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--shadow-md);
     }
     .review-header {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 800;
       border-bottom: 1px solid var(--border);
-      padding-bottom: var(--space-3);
-      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-4);
+      margin-bottom: var(--space-5);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
     .review-grid {
       display: grid;
-      grid-template-columns: 150px 1fr;
-      row-gap: 12px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-4);
       font-size: 14px;
     }
+    @media (max-width: 600px) {
+      .review-grid { grid-template-columns: 1fr; }
+    }
+    .review-item {
+      background: rgba(255, 255, 255, 0.3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    [data-theme="dark"] .review-item {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .review-item.full-width {
+      grid-column: span 2;
+    }
+    @media (max-width: 600px) {
+      .review-item.full-width { grid-column: span 1; }
+    }
     .review-label {
-      font-weight: 600;
-      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-tertiary);
     }
     .review-value {
+      font-weight: 600;
       color: var(--text-primary);
     }
 
@@ -240,7 +279,7 @@
       padding-top: var(--space-5);
     }
 
-    /* Loader styling on submit success */
+    /* Success Panel */
     .submit-success-panel {
       text-align: center;
       padding: var(--space-10) var(--space-6);
@@ -276,6 +315,10 @@
     @keyframes loadProgress {
       0% { width: 0%; }
       100% { width: 100%; }
+    }
+    @keyframes scaleUp {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
     }
   </style>
 </head>
@@ -436,20 +479,16 @@
       </div>
 
       <!-- Step Indicator Bar -->
-      <div class="steps-container">
+      <div class="steps-container" style="max-width: 400px">
         <div class="steps-line">
           <div class="steps-line-fill" id="stepsLineFill"></div>
         </div>
         <div class="step-dot-wrap active" id="stepIndicator1" onclick="goToStep(1)">
           <div class="step-dot">1</div>
-          <span class="step-label">Select Service</span>
+          <span class="step-label">Request Details</span>
         </div>
         <div class="step-dot-wrap" id="stepIndicator2" onclick="goToStep(2)">
           <div class="step-dot">2</div>
-          <span class="step-label">Request Details</span>
-        </div>
-        <div class="step-dot-wrap" id="stepIndicator3" onclick="goToStep(3)">
-          <div class="step-dot">3</div>
           <span class="step-label">Review & Submit</span>
         </div>
       </div>
@@ -460,89 +499,9 @@
           
           <form id="requestForm" onsubmit="event.preventDefault()">
 
-            <!-- ================= STEP 1 ================= -->
+            <!-- ================= STEP 1: Request Details ================= -->
             <div class="form-step active" id="step1">
-              <h2 class="section-title mb-4" style="font-size:18px">Step 1: Select Service Category</h2>
-              <p style="color:var(--text-secondary); font-size:14px; margin-bottom:var(--space-6)">Choose the type of service you wish to raise.</p>
-              
-              <div class="radio-card-grid">
-                
-                <div class="radio-card" data-service="it-support" onclick="selectRadioCard('it-support', 'Information Technology', 'IT Support Request')">
-                  <div class="rc-radio"></div>
-                  <div class="rc-icon" style="background:var(--primary-50);color:var(--primary)">💻</div>
-                  <div class="rc-title">IT Support Request</div>
-                  <div class="rc-desc">Software installation, accounts, email, password resets, and WiFi.</div>
-                </div>
-
-                <div class="radio-card" data-service="hr-request" onclick="selectRadioCard('hr-request', 'Human Resources', 'HR Service Request')">
-                  <div class="rc-radio"></div>
-                  <div class="rc-icon" style="background:#FFE4E6;color:#E11D48">👥</div>
-                  <div class="rc-title">HR Service Request</div>
-                  <div class="rc-desc">Letters requests, salary transfer, B card, benefits, emergency updates.</div>
-                </div>
-
-                <div class="radio-card" data-service="facility-request" onclick="selectRadioCard('facility-request', 'Group Facility Management', 'Facility Request')">
-                  <div class="rc-radio"></div>
-                  <div class="rc-icon" style="background:#CCFBF1;color:#0D9488">🏢</div>
-                  <div class="rc-title">Facility Request</div>
-                  <div class="rc-desc">Office repairs, AC controls, lights, cleaning, and moving furniture.</div>
-                </div>
-
-                <div class="radio-card" data-service="admin-request" onclick="selectRadioCard('admin-request', 'Administration', 'Administrative Request')">
-                  <div class="rc-radio"></div>
-                  <div class="rc-icon" style="background:#FEF3C7;color:#D97706">📋</div>
-                  <div class="rc-title">Administrative Request</div>
-                  <div class="rc-desc">Stationery stock, courier services, vehicle, room booking, driver logistics.</div>
-                </div>
-
-                <div class="radio-card" data-service="access-security" onclick="selectRadioCard('access-security', 'IT Security', 'Access & Security Request')">
-                  <div class="rc-radio"></div>
-                  <div class="rc-icon" style="background:#F3E8FF;color:#7C3AED">🔐</div>
-                  <div class="rc-title">Access & Security</div>
-                  <div class="rc-desc">VPN request, firewall updates, folder/server access permissions.</div>
-                </div>
-
-                <div class="radio-card" data-service="other-request" onclick="selectRadioCard('other-request', 'General Support', 'Other Request')">
-                  <div class="rc-radio"></div>
-                  <div class="rc-icon" style="background:#F1F5F9;color:#475569">⚙️</div>
-                  <div class="rc-title">Other Request</div>
-                  <div class="rc-desc">Miscellaneous requests that do not fall in specified categories.</div>
-                </div>
-
-              </div>
-
-              <!-- ===== SERVICE DROPDOWN PANEL (appears after category selection) ===== -->
-              <div id="serviceDropdownPanel" style="display:none; animation: fadeIn 0.3s ease">
-                <div style="height:1px; background:var(--border); margin: var(--space-5) 0"></div>
-                <div style="background:var(--primary-50); border:1px solid var(--primary-100); border-radius:var(--radius-xl); padding:var(--space-5)">
-                  <div style="display:flex; align-items:center; gap:10px; margin-bottom:var(--space-4)">
-                    <span id="sdpCategoryIcon" style="font-size:20px">💼</span>
-                    <div>
-                      <div style="font-size:13px; font-weight:700; color:var(--text-primary)" id="sdpCategoryTitle">Select a specific service</div>
-                      <div style="font-size:12px; color:var(--text-secondary)">Choose the service that best describes your request</div>
-                    </div>
-                  </div>
-                  <div class="form-group" style="margin-bottom:0">
-                    <label class="form-label" style="font-size:13px">Specific Service <span class="required">*</span></label>
-                    <select class="form-control form-select" id="specificServiceSelect" onchange="onSpecificServiceChange()" required>
-                      <option value="">— Select a service —</option>
-                    </select>
-                    <!-- Other: free text field -->
-                    <div id="otherServiceWrap" style="display:none; margin-top:var(--space-3)">
-                      <label class="form-label" style="font-size:13px">Please describe your request <span class="required">*</span></label>
-                      <input type="text" class="form-control" id="otherServiceText"
-                             placeholder="e.g. Request for employee clearance letter, uniform reimbursement..."
-                             oninput="onOtherServiceInput()">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- ================= STEP 2 ================= -->
-            <div class="form-step" id="step2">
-              <h2 class="section-title mb-4" style="font-size:18px">Step 2: Request Details</h2>
+              <h2 class="section-title mb-4" style="font-size:18px">Step 1: Request Details</h2>
               <p style="color:var(--text-secondary); font-size:14px; margin-bottom:var(--space-6)">Please fill out the detailed parameters of your request.</p>
 
               <div class="form-two-col">
@@ -551,10 +510,12 @@
                   <input type="text" class="form-control" id="serviceCategory" readonly style="background:var(--bg-tertiary); cursor:not-allowed">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Request Title<span class="required">*</span></label>
-                  <input type="text" class="form-control" id="requestTitle" placeholder="e.g. WiFi issue in block B, Salary statement request" required>
+                  <label class="form-label">Selected Service</label>
+                  <input type="text" class="form-control" id="selectedServiceField" readonly style="background:var(--bg-tertiary); cursor:not-allowed">
                 </div>
               </div>
+
+
 
               <div class="form-two-col">
                 <div class="form-group">
@@ -604,9 +565,9 @@
               <!-- File Upload Zone -->
               <div class="form-group">
                 <label class="form-label">Attachments (Optional)</label>
-                <div class="upload-zone" style="border: 2px dashed var(--border-strong); border-radius: var(--radius-xl); padding: var(--space-6); text-align: center; cursor: pointer; transition: border-color var(--transition-fast)">
+                <div class="upload-zone" id="dropZone">
                   <input type="file" id="fileUpload" multiple style="display:none">
-                  <span style="font-size:24px; display:block; margin-bottom:8px">📁</span>
+                  <div class="upload-icon-wrap">📁</div>
                   <div style="font-size:13px; font-weight:600; color:var(--text-primary)">Drag and drop files here, or click to browse</div>
                   <div style="font-size:11px; color:var(--text-tertiary); margin-top:4px">Accepts PDF, PNG, JPG up to 10MB</div>
                   <div class="file-list" id="fileListContainer" style="margin-top:12px"></div>
@@ -619,9 +580,9 @@
               </div>
             </div>
 
-            <!-- ================= STEP 3 ================= -->
-            <div class="form-step" id="step3">
-              <h2 class="section-title mb-4" style="font-size:18px">Step 3: Review & Submit</h2>
+            <!-- ================= STEP 2: Review & Submit ================= -->
+            <div class="form-step" id="step2">
+              <h2 class="section-title mb-4" style="font-size:18px">Step 2: Review & Submit</h2>
               <p style="color:var(--text-secondary); font-size:14px; margin-bottom:var(--space-6)">Please verify the parameters below before confirming your request submission.</p>
 
               <div class="review-card">
@@ -633,26 +594,40 @@
                   </div>
                 </div>
                 <div class="review-grid">
-                  <div class="review-label">Priority:</div>
-                  <div class="review-value" id="reviewPriorityVal">-</div>
+                  <div class="review-item">
+                    <span class="review-label">Priority</span>
+                    <span class="review-value" id="reviewPriorityVal">-</span>
+                  </div>
 
-                  <div class="review-label">Department:</div>
-                  <div class="review-value" id="reviewDeptVal">-</div>
+                  <div class="review-item">
+                    <span class="review-label">Department</span>
+                    <span class="review-value" id="reviewDeptVal">-</span>
+                  </div>
 
-                  <div class="review-label">Needed By:</div>
-                  <div class="review-value" id="reviewDateVal">-</div>
+                  <div class="review-item">
+                    <span class="review-label">Needed By</span>
+                    <span class="review-value" id="reviewDateVal">-</span>
+                  </div>
 
-                  <div class="review-label">Location:</div>
-                  <div class="review-value" id="reviewLocationVal">-</div>
+                  <div class="review-item">
+                    <span class="review-label">Location</span>
+                    <span class="review-value" id="reviewLocationVal">-</span>
+                  </div>
 
-                  <div class="review-label">Description:</div>
-                  <div class="review-value" id="reviewDescVal" style="white-space: pre-wrap">-</div>
+                  <div class="review-item full-width">
+                    <span class="review-label">Description</span>
+                    <span class="review-value" id="reviewDescVal" style="white-space: pre-wrap">-</span>
+                  </div>
 
-                  <div class="review-label">Attachments:</div>
-                  <div class="review-value" id="reviewFileVal">No files uploaded</div>
+                  <div class="review-item full-width">
+                    <span class="review-label">Attachments</span>
+                    <div class="review-value" id="reviewFileVal">No files uploaded</div>
+                  </div>
 
-                  <div class="review-label">Notes:</div>
-                  <div class="review-value" id="reviewNotesVal" style="white-space: pre-wrap">-</div>
+                  <div class="review-item full-width">
+                    <span class="review-label">Notes</span>
+                    <span class="review-value" id="reviewNotesVal" style="white-space: pre-wrap">-</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -686,37 +661,7 @@
   </div><!-- /MAIN CONTENT -->
 </div><!-- /APP LAYOUT -->
 
-<!-- ========= AI ASSISTANT FAB ========= -->
-<div class="ai-fab" id="aiFab">
-  <div class="ai-chat-panel" id="aiChatPanel">
-    <div class="ai-chat-header">
-      <div class="ai-chat-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l2 2"/><circle cx="18" cy="6" r="4" fill="white" stroke="none"/></svg>
-      </div>
-      <div>
-        <div class="ai-chat-name">Lexi — AI Assistant</div>
-        <div class="ai-chat-status">● Online · Powered by AI</div>
-      </div>
-      <button onclick="toggleAIChat()" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:28px;height:28px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="ai-messages" id="aiMessages">
-      <div class="ai-msg bot">
-        <div class="ai-msg-bubble">I'm here to help you complete this request form. Let me know if you get stuck!</div>
-      </div>
-    </div>
-    <div class="ai-chat-input-wrap">
-      <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Ask Lexi anything...">
-      <button class="ai-send-btn" onclick="sendAIMessage()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
-    </div>
-  </div>
-  <button class="ai-fab-btn" onclick="toggleAIChat()">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="white"/><circle cx="12" cy="10" r="1" fill="white"/><circle cx="15" cy="10" r="1" fill="white"/></svg>
-  </button>
-</div>
+
 
 <!-- ========= TOAST CONTAINER ========= -->
 <div class="toast-container" id="toastContainer"></div>
@@ -728,7 +673,7 @@
   let selectedService = '';
   let selectedCategoryText = '';
   let selectedServiceLabel = '';
-  let specificServiceSelected = '';
+  let uploadedFiles = [];
 
   const serviceIcons = {
     'it-support':       '💻',
@@ -739,160 +684,13 @@
     'other-request':    '⚙️'
   };
 
-  // Per-category service lists — includes 'Other' at the end
-  const categoryServices = {
-    'hr-request': [
-      'Service Letter Request',
-      'Employment Confirmation Letter',
-      'B Card Services',
-      'Personnel Information Change',
-      'Bank Detail Update',
-      'Emergency Contact Update',
-      'Employee ID Card Request',
-      'Welfare Request',
-      'Internal Transfer Request',
-      'Exit Clearance Status',
-      'Other'
-    ],
-    'it-support': [
-      'IT Support Ticket',
-      'Hardware / Asset Request',
-      'Software Installation',
-      'Email Account Setup',
-      'System Access Request',
-      'Password Reset',
-      'Network / WiFi Issue',
-      'Printer / Peripheral Issue',
-      'Other'
-    ],
-    'facility-request': [
-      'General Maintenance Request',
-      'Electrical Issue',
-      'Air Conditioning Issue',
-      'Plumbing Issue',
-      'Cleaning Request',
-      'Furniture / Fixture Request',
-      'Safety Hazard Report',
-      'Other'
-    ],
-    'admin-request': [
-      'Stationery Request',
-      'Courier / Dispatch Service',
-      'Vehicle Booking',
-      'Driver Request',
-      'Other'
-    ],
-    'access-security': [
-      'VPN Access Request',
-      'Firewall Rule Update',
-      'Folder / Server Access',
-      'New User Account Setup',
-      'Account Modification',
-      'Access Card Request',
-      'Other'
-    ],
-    'other-request': [
-      'Other'
-    ]
-  };
-
-  function selectRadioCard(serviceKey, categoryLabel, serviceLabel) {
-    selectedService    = serviceKey;
-    selectedCategoryText = categoryLabel;
-    selectedServiceLabel = '';           // reset until dropdown picked
-    specificServiceSelected = '';
-
-    // Highlight card
-    document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
-    const targetCard = document.querySelector(`.radio-card[data-service="${serviceKey}"]`);
-    if (targetCard) targetCard.classList.add('selected');
-
-    // Populate & show the service dropdown panel
-    populateServiceDropdown(serviceKey, categoryLabel);
-
-    // Fill Read-only Category in Step 2 (will be set again on service pick)
-    document.getElementById('serviceCategory').value = categoryLabel;
-  }
-
-  function populateServiceDropdown(serviceKey, categoryLabel) {
-    const panel  = document.getElementById('serviceDropdownPanel');
-    const select = document.getElementById('specificServiceSelect');
-    const icons  = { 'hr-request':'👥', 'it-support':'💻', 'facility-request':'🏢',
-                     'admin-request':'📋', 'access-security':'🔐', 'other-request':'⚙️' };
-
-    // Reset
-    select.innerHTML = '<option value="">— Select a service —</option>';
-    document.getElementById('otherServiceWrap').style.display = 'none';
-    document.getElementById('otherServiceText').value = '';
-
-    // Populate options
-    const services = categoryServices[serviceKey] || ['Other'];
-    services.forEach(svc => {
-      const opt = document.createElement('option');
-      opt.value = svc;
-      opt.textContent = svc;
-      select.appendChild(opt);
-    });
-
-    // Update panel header
-    document.getElementById('sdpCategoryIcon').textContent  = icons[serviceKey] || '💼';
-    document.getElementById('sdpCategoryTitle').textContent = categoryLabel + ' Services';
-
-    // Show panel
-    panel.style.display = 'block';
-    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-
-  function onSpecificServiceChange() {
-    const val = document.getElementById('specificServiceSelect').value;
-    const otherWrap = document.getElementById('otherServiceWrap');
-
-    if (val === 'Other') {
-      otherWrap.style.display = 'block';
-      document.getElementById('otherServiceText').focus();
-      specificServiceSelected = '';
-    } else {
-      otherWrap.style.display = 'none';
-      specificServiceSelected = val;
-      selectedServiceLabel    = val;
-    }
-  }
-
-  function onOtherServiceInput() {
-    const txt = document.getElementById('otherServiceText').value.trim();
-    specificServiceSelected = txt;
-    selectedServiceLabel    = txt || 'Other';
-  }
-
   function goToStep(step) {
     if (step === currentStep) return;
 
     // Validation
     if (step > currentStep) {
       if (currentStep === 1) {
-        if (!selectedService) {
-          showToast('Please select a service category first', '', 'warning');
-          return;
-        }
-        const selectEl = document.getElementById('specificServiceSelect');
-        if (!selectEl.value) {
-          showToast('Please select a specific service', '', 'warning');
-          selectEl.focus();
-          return;
-        }
-        if (selectEl.value === 'Other') {
-          const otherTxt = document.getElementById('otherServiceText').value.trim();
-          if (!otherTxt) {
-            showToast('Please describe your request in the text field', '', 'warning');
-            document.getElementById('otherServiceText').focus();
-            return;
-          }
-          selectedServiceLabel = otherTxt;
-          specificServiceSelected = otherTxt;
-        }
-      }
-      if (currentStep === 2) {
-        if (!validateStep2()) return;
+        if (!validateStep1()) return;
       }
     }
 
@@ -910,7 +708,7 @@
     });
 
     // Animate Indicator line
-    const progressPercents = { 1: 0, 2: 50, 3: 100 };
+    const progressPercents = { 1: 0, 2: 100 };
     document.getElementById('stepsLineFill').style.width = `${progressPercents[currentStep]}%`;
 
     // Toggle navigation buttons visibility
@@ -920,7 +718,7 @@
 
     backBtn.style.visibility = currentStep === 1 ? 'hidden' : 'visible';
     
-    if (currentStep === 3) {
+    if (currentStep === 2) {
       nextBtn.style.display = 'none';
       submitBtn.style.display = 'inline-flex';
       prepareSummary();
@@ -938,16 +736,10 @@
     goToStep(currentStep - 1);
   }
 
-  function validateStep2() {
-    const title = document.getElementById('requestTitle');
+  function validateStep1() {
     const desc = document.getElementById('requestDesc');
     let valid = true;
 
-    if (!title.value.trim()) {
-      title.style.borderColor = 'var(--error)';
-      valid = false;
-      title.addEventListener('input', () => title.style.borderColor = '', { once: true });
-    }
     if (!desc.value.trim()) {
       desc.style.borderColor = 'var(--error)';
       valid = false;
@@ -962,7 +754,7 @@
 
   function prepareSummary() {
     document.getElementById('reviewIcon').textContent = serviceIcons[selectedService] || '⚙️';
-    document.getElementById('reviewTitleVal').textContent = document.getElementById('requestTitle').value;
+    document.getElementById('reviewTitleVal').textContent = selectedServiceLabel;
     document.getElementById('reviewCatVal').textContent = `${selectedCategoryText} — ${selectedServiceLabel}`;
     
     const priority = document.getElementById('requestPriority').value;
@@ -983,12 +775,37 @@
     document.getElementById('reviewDescVal').textContent = document.getElementById('requestDesc').value;
 
     // Files summary
-    const fileInput = document.getElementById('fileUpload');
-    if (fileInput && fileInput.files.length > 0) {
-      const names = Array.from(fileInput.files).map(f => f.name).join(', ');
-      document.getElementById('reviewFileVal').innerHTML = `📎 <span style="font-weight:600">${names}</span>`;
+    const reviewFileContainer = document.getElementById('reviewFileVal');
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      reviewFileContainer.innerHTML = '';
+      uploadedFiles.forEach(file => {
+        const ext = file.name.split('.').pop().toLowerCase();
+        let emoji = '📄';
+        if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(ext)) {
+          emoji = '🖼️';
+        } else if (ext === 'pdf') {
+          emoji = '📕';
+        } else if (['doc', 'docx'].includes(ext)) {
+          emoji = '📘';
+        } else if (['xls', 'xlsx'].includes(ext)) {
+          emoji = '📗';
+        }
+        const chip = document.createElement('div');
+        chip.style.display = 'inline-flex';
+        chip.style.alignItems = 'center';
+        chip.style.gap = '6px';
+        chip.style.background = 'rgba(255, 255, 255, 0.4)';
+        chip.style.border = '1px solid var(--border)';
+        chip.style.borderRadius = 'var(--radius-full)';
+        chip.style.padding = '4px 10px';
+        chip.style.fontSize = '11.5px';
+        chip.style.margin = '2px';
+        chip.style.fontWeight = '600';
+        chip.innerHTML = `${emoji} ${file.name}`;
+        reviewFileContainer.appendChild(chip);
+      });
     } else {
-      document.getElementById('reviewFileVal').textContent = 'No files uploaded';
+      reviewFileContainer.textContent = 'No files uploaded';
     }
 
     const notes = document.getElementById('additionalNotes').value.trim();
@@ -997,7 +814,7 @@
 
   function submitFinalForm() {
     // Hide active step panel and navs
-    document.getElementById('step3').style.display = 'none';
+    document.getElementById('step2').style.display = 'none';
     document.getElementById('formNavigation').style.display = 'none';
     
     // Show success panel
@@ -1006,11 +823,10 @@
 
     showToast('Request Raised Successfully!', 'Your request ID is REQ-2025-048.', 'success');
 
-    // Add new request to mock database or trigger a refresh in request-tracking.html
-    // For prototype purposes, let's store the new ticket parameters in sessionStorage
+    // Add new request to mock database
     const newRequest = {
       id: 'REQ-2025-048',
-      title: document.getElementById('requestTitle').value,
+      title: selectedServiceLabel,
       service: selectedServiceLabel,
       category: selectedCategoryText,
       priority: document.getElementById('requestPriority').value,
@@ -1037,8 +853,8 @@
     'password':       ['access-security',   'IT Security',                'Password Reset'],
     'asset':          ['it-support',        'Information Technology',     'Hardware / Asset Request'],
     'software':       ['it-support',        'Information Technology',     'Software Installation'],
-    'hr':             ['hr-request',        'Human Resources',            ''],
-    'admin':          ['admin-request',     'Administration',             ''],
+    'hr':             ['hr-request',        'Human Resources',            'General HR Request'],
+    'admin':          ['admin-request',     'Administration',             'General Administrative Request'],
     'vpn':            ['access-security',   'IT Security',                'VPN Access Request'],
     'b-card':         ['hr-request',        'Human Resources',            'B Card Services'],
     'bank-update':    ['hr-request',        'Human Resources',            'Bank Detail Update'],
@@ -1052,25 +868,118 @@
     if (serviceType && urlServiceMap[serviceType]) {
       const [catKey, catLabel, specificSvc] = urlServiceMap[serviceType];
 
-      // 1. Select the category card
       selectedService      = catKey;
       selectedCategoryText = catLabel;
-      document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('selected'));
-      const card = document.querySelector(`.radio-card[data-service="${catKey}"]`);
-      if (card) card.classList.add('selected');
+      selectedServiceLabel = specificSvc || 'General Request';
+
+      // Populate read-only form fields
       document.getElementById('serviceCategory').value = catLabel;
+      document.getElementById('selectedServiceField').value = selectedServiceLabel;
 
-      // 2. Populate the dropdown
-      populateServiceDropdown(catKey, catLabel);
-
-      // 3. Pre-select the specific service if provided
-      if (specificSvc) {
-        const sel = document.getElementById('specificServiceSelect');
-        sel.value = specificSvc;
-        onSpecificServiceChange();
-        // Smoothly advance to step 2 after a short delay
-        setTimeout(() => goToStep(2), 400);
+      // Auto-select department based on service category
+      const deptSelect = document.getElementById('requestDept');
+      if (deptSelect) {
+        if (catKey === 'hr-request') {
+          deptSelect.value = 'Human Resources';
+        } else if (catKey === 'it-support' || catKey === 'access-security') {
+          deptSelect.value = 'Information Technology';
+        } else if (catKey === 'facility-request') {
+          deptSelect.value = 'Operations';
+        } else if (catKey === 'admin-request') {
+          deptSelect.value = 'Administration';
+        }
       }
+    } else {
+      // If service is invalid or missing, send user to the catalog to choose a service first
+      window.location.href = 'service-catalog.html';
+    }
+
+    // Drag and Drop interactive JS setup
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileUpload');
+    const fileListContainer = document.getElementById('fileListContainer');
+
+    if (dropZone && fileInput) {
+      dropZone.addEventListener('click', (e) => {
+        // Prevent click trigger when clicking on file tag remove button
+        if (e.target.closest('.file-tag-remove') || e.target.closest('.file-tag')) {
+          return;
+        }
+        fileInput.click();
+      });
+
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      });
+
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+          uploadedFiles = Array.from(e.dataTransfer.files);
+          syncFileInput();
+          updateFileList();
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        uploadedFiles = Array.from(fileInput.files);
+        updateFileList();
+      });
+    }
+
+    function updateFileList() {
+      if (!fileListContainer) return;
+      fileListContainer.innerHTML = '';
+      
+      if (uploadedFiles.length === 0) {
+        return;
+      }
+
+      uploadedFiles.forEach((file, index) => {
+        const tag = document.createElement('span');
+        tag.className = 'file-tag';
+        
+        let emoji = '📄';
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(ext)) {
+          emoji = '🖼️';
+        } else if (ext === 'pdf') {
+          emoji = '📕';
+        } else if (['doc', 'docx'].includes(ext)) {
+          emoji = '📘';
+        } else if (['xls', 'xlsx'].includes(ext)) {
+          emoji = '📗';
+        }
+        
+        tag.innerHTML = `
+          <span>${emoji} ${file.name} (${(file.size / 1024).toFixed(1)} KB)</span>
+          <span class="file-tag-remove" data-index="${index}">×</span>
+        `;
+        fileListContainer.appendChild(tag);
+      });
+
+      fileListContainer.querySelectorAll('.file-tag-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = parseInt(btn.getAttribute('data-index'));
+          uploadedFiles.splice(idx, 1);
+          syncFileInput();
+          updateFileList();
+        });
+      });
+    }
+
+    function syncFileInput() {
+      if (!fileInput) return;
+      const dt = new DataTransfer();
+      uploadedFiles.forEach(file => dt.items.add(file));
+      fileInput.files = dt.files;
     }
   });
 </script>

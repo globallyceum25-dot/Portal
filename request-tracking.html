@@ -42,93 +42,146 @@
 
     /* ── Filter bar ──────────────────────────────────────────── */
     .filter-bar {
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.25);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
       display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-3);
-      align-items: center;
+      flex-direction: column;
+      gap: var(--space-4);
       margin-bottom: var(--space-5);
-      box-shadow: var(--shadow-xs);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      box-shadow: var(--shadow-card);
     }
-    .filter-bar .search-input-wrap {
+    [data-theme="dark"] .filter-bar {
+      background: rgba(17, 22, 34, 0.45);
+    }
+    .filter-row {
+      display: flex;
+      gap: var(--space-3);
+      width: 100%;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-row .search-input-wrap {
+      flex: 2;
+      min-width: 240px;
+    }
+    .filter-row .form-select,
+    .filter-row select.form-control {
       flex: 1;
-      min-width: 200px;
+      min-width: 150px;
+      width: auto;
     }
-    .filter-bar .form-select {
-      min-width: 160px;
-      flex: 0 0 auto;
+    .date-range-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex: 2;
+      min-width: 340px;
     }
-    .filter-bar input[type="date"] {
-      flex: 0 0 auto;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      font-size: 0.875rem;
-      color: var(--text-primary);
-      background: var(--bg-primary);
-      outline: none;
-      transition: border-color 0.2s;
+    .date-range-wrap .filter-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
     }
-    .filter-bar input[type="date"]:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+    .date-range-wrap input[type="date"] {
+      flex: 1;
+      min-width: 120px;
+      width: auto;
+    }
+    .date-separator {
+      color: var(--text-tertiary);
+      font-size: 13px;
     }
     .filter-bar-actions {
       display: flex;
       gap: var(--space-2);
-      flex: 0 0 auto;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    @media (max-width: 1024px) {
+      .filter-bar-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-end;
+      }
     }
 
     /* ── Tabs ────────────────────────────────────────────────── */
     .req-tabs {
-      display: flex;
-      gap: 0;
-      border-bottom: 2px solid var(--border);
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 4px;
+      gap: 4px;
       margin-bottom: var(--space-5);
+      backdrop-filter: var(--glass-blur-sm);
+      -webkit-backdrop-filter: var(--glass-blur-sm);
+      box-shadow: var(--shadow-sm);
+    }
+    [data-theme="dark"] .req-tabs {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.08);
     }
     .req-tab {
-      padding: var(--space-3) var(--space-5);
-      font-size: 0.875rem;
-      font-weight: 500;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
       color: var(--text-secondary);
       cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: all 0.15s;
+      border-radius: var(--radius-full);
+      border: none;
+      transition: all var(--transition-base);
       display: flex;
       align-items: center;
-      gap: var(--space-2);
+      gap: 8px;
       white-space: nowrap;
     }
-    .req-tab:hover { color: var(--primary); }
-    .req-tab.active {
+    .req-tab:hover {
       color: var(--primary);
-      border-bottom-color: var(--primary);
-      font-weight: 600;
+      background: rgba(255, 255, 255, 0.4);
+    }
+    [data-theme="dark"] .req-tab:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .req-tab.active {
+      color: #fff !important;
+      background: var(--primary-gradient);
+      box-shadow: 0 4px 14px rgba(59, 123, 248, 0.25);
     }
     .tab-count {
-      background: var(--bg-tertiary);
+      background: rgba(0, 0, 0, 0.05);
       color: var(--text-secondary);
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 1px 7px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
       border-radius: var(--radius-full);
+      transition: all var(--transition-base);
+    }
+    [data-theme="dark"] .tab-count {
+      background: rgba(255, 255, 255, 0.1);
     }
     .req-tab.active .tab-count {
-      background: rgba(37,99,235,0.1);
-      color: var(--primary);
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
     }
 
     /* ── Table ───────────────────────────────────────────────── */
     .table-wrap {
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.25);
       border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow-xs);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
       overflow: hidden;
+    }
+    [data-theme="dark"] .table-wrap {
+      background: rgba(255, 255, 255, 0.02);
     }
     .table {
       width: 100%;
@@ -136,14 +189,19 @@
       font-size: 0.875rem;
     }
     .table thead tr {
-      background: var(--bg-tertiary);
+      background: rgba(255, 255, 255, 0.4);
       border-bottom: 1px solid var(--border);
+      backdrop-filter: var(--glass-blur-sm);
+      -webkit-backdrop-filter: var(--glass-blur-sm);
+    }
+    [data-theme="dark"] .table thead tr {
+      background: rgba(255, 255, 255, 0.04);
     }
     .table thead th {
-      padding: var(--space-3) var(--space-4);
+      padding: var(--space-4) var(--space-4);
       text-align: left;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 700;
       color: var(--text-tertiary);
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -151,13 +209,18 @@
     }
     .table tbody tr {
       border-bottom: 1px solid var(--border);
-      transition: background 0.12s;
+      transition: all var(--transition-fast);
       cursor: pointer;
     }
     .table tbody tr:last-child { border-bottom: none; }
-    .table tbody tr:hover { background: rgba(37,99,235,0.03); }
+    .table tbody tr:hover {
+      background: rgba(59, 123, 248, 0.06);
+    }
+    [data-theme="dark"] .table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
     .table tbody td {
-      padding: var(--space-3) var(--space-4);
+      padding: var(--space-4) var(--space-4);
       color: var(--text-primary);
       vertical-align: middle;
     }
@@ -183,38 +246,76 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.82rem;
-      font-weight: 500;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      border: 1px solid currentColor;
     }
-    .priority-dot span {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
+    .priority-dot.high {
+      background: rgba(239, 68, 68, 0.08);
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.15);
     }
-    .priority-dot.high span { background: #EF4444; }
-    .priority-dot.medium span { background: #F59E0B; }
-    .priority-dot.low span { background: #22C55E; }
-    .priority-dot.high { color: #DC2626; }
-    .priority-dot.medium { color: #D97706; }
-    .priority-dot.low { color: #16A34A; }
+    .priority-dot.medium {
+      background: rgba(245, 158, 11, 0.08);
+      color: #f59e0b;
+      border-color: rgba(245, 158, 11, 0.15);
+    }
+    .priority-dot.low {
+      background: rgba(16, 185, 129, 0.08);
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.15);
+    }
+
+    /* Status pills - Modern Glass style */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11.5px;
+      font-weight: 700;
+      border: 1px solid currentColor;
+    }
+    .status-pill.status-open {
+      background: rgba(59, 123, 248, 0.08);
+      color: var(--primary);
+      border-color: rgba(59, 123, 248, 0.15);
+    }
+    .status-pill.status-pending {
+      background: rgba(245, 158, 11, 0.08);
+      color: #f59e0b;
+      border-color: rgba(245, 158, 11, 0.15);
+    }
+    .status-pill.status-inprogress {
+      background: rgba(139, 92, 246, 0.08);
+      color: #8b5cf6;
+      border-color: rgba(139, 92, 246, 0.15);
+    }
+    .status-pill.status-completed {
+      background: rgba(16, 185, 129, 0.08);
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.15);
+    }
 
     .sla-due { font-size: 0.82rem; color: var(--text-secondary); }
     .sla-due.overdue { color: #DC2626; font-weight: 600; }
 
     .cat-badge {
       display: inline-block;
-      padding: 2px 10px;
+      padding: 4px 10px;
       border-radius: var(--radius-full);
-      font-size: 0.7rem;
+      font-size: 11.5px;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+      border: 1px solid currentColor;
     }
-    .cat-it { background: var(--primary-100); color: var(--primary); }
-    .cat-hr { background: rgba(168,85,247,0.1); color: #9333EA; }
-    .cat-fm { background: rgba(249,115,22,0.1); color: #EA580C; }
-    .cat-admin { background: rgba(20,184,166,0.1); color: #0D9488; }
+    .cat-it { background: rgba(59, 123, 248, 0.08); color: var(--primary); border-color: rgba(59, 123, 248, 0.15); }
+    .cat-hr { background: rgba(168, 85, 247, 0.08); color: #9333EA; border-color: rgba(168, 85, 247, 0.15); }
+    .cat-fm { background: rgba(249, 115, 22, 0.08); color: #EA580C; border-color: rgba(249, 115, 22, 0.15); }
+    .cat-admin { background: rgba(20, 184, 166, 0.08); color: #0D9488; border-color: rgba(20, 184, 166, 0.15); }
 
     /* ── Detail modal / side panel ──────────────────────────── */
     .modal-overlay {
@@ -232,12 +333,18 @@
       width: 520px;
       max-width: 100vw;
       height: 100vh;
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-left: 1px solid var(--border);
       box-shadow: var(--shadow-2xl);
       display: flex;
       flex-direction: column;
       animation: slideIn 0.25s cubic-bezier(0.16,1,0.3,1);
       overflow: hidden;
+    }
+    [data-theme="dark"] .side-panel {
+      background: rgba(30, 30, 45, 0.7);
     }
     @keyframes slideIn {
       from { transform: translateX(100%); opacity: 0; }
@@ -362,9 +469,15 @@
       gap: var(--space-3);
     }
     .info-card {
-      background: var(--bg-tertiary);
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: var(--space-3) var(--space-4);
+      backdrop-filter: var(--glass-blur-sm);
+      -webkit-backdrop-filter: var(--glass-blur-sm);
+    }
+    [data-theme="dark"] .info-card {
+      background: rgba(255, 255, 255, 0.03);
     }
     .info-card-label {
       font-size: 0.7rem;
@@ -436,9 +549,15 @@
     }
     .comment-bubble {
       flex: 1;
-      background: var(--bg-tertiary);
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: var(--space-3);
+      backdrop-filter: var(--glass-blur-sm);
+      -webkit-backdrop-filter: var(--glass-blur-sm);
+    }
+    [data-theme="dark"] .comment-bubble {
+      background: rgba(255, 255, 255, 0.03);
     }
     .comment-header {
       display: flex;
@@ -698,75 +817,103 @@
 
       <!-- Stat Cards -->
       <div class="req-stats-grid">
-        <div class="stat-card" onclick="filterByTab('open')" style="cursor:pointer">
-          <div class="stat-icon stat-icon-blue">
+        <div class="stat-card" onclick="filterByTab('open')">
+          <div class="stat-card-icon box-blue">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
-          <div>
-            <div class="stat-value">2</div>
-            <div class="stat-label">Open</div>
+          <div class="stat-card-info">
+            <div class="stat-card-value">2</div>
+            <div class="stat-card-label">Open</div>
           </div>
         </div>
-        <div class="stat-card" onclick="filterByTab('pending')" style="cursor:pointer">
-          <div class="stat-icon stat-icon-amber">
+        <div class="stat-card" onclick="filterByTab('pending')">
+          <div class="stat-card-icon box-orange">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           </div>
-          <div>
-            <div class="stat-value">1</div>
-            <div class="stat-label">Pending Approval</div>
+          <div class="stat-card-info">
+            <div class="stat-card-value">1</div>
+            <div class="stat-card-label">Pending Approval</div>
           </div>
         </div>
-        <div class="stat-card" onclick="filterByTab('inprogress')" style="cursor:pointer">
-          <div class="stat-icon stat-icon-purple">
+        <div class="stat-card" onclick="filterByTab('inprogress')">
+          <div class="stat-card-icon box-purple">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           </div>
-          <div>
-            <div class="stat-value">3</div>
-            <div class="stat-label">In Progress</div>
+          <div class="stat-card-info">
+            <div class="stat-card-value">3</div>
+            <div class="stat-card-label">In Progress</div>
           </div>
         </div>
-        <div class="stat-card" onclick="filterByTab('completed')" style="cursor:pointer">
-          <div class="stat-icon stat-icon-green">
+        <div class="stat-card" onclick="filterByTab('completed')">
+          <div class="stat-card-icon box-green">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           </div>
-          <div>
-            <div class="stat-value">14</div>
-            <div class="stat-label">Completed</div>
+          <div class="stat-card-info">
+            <div class="stat-card-value">14</div>
+            <div class="stat-card-label">Completed</div>
           </div>
         </div>
       </div>
 
       <!-- Filter Bar -->
       <div class="filter-bar">
-        <div class="search-input-wrap">
-          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" class="search-input" placeholder="Search requests..." id="tableSearch" oninput="filterTable()">
+        <div class="filter-row">
+          <div class="search-input-wrap">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="form-control search-input" placeholder="Search requests..." id="tableSearch" oninput="filterTable()">
+          </div>
+          <select class="form-control form-select" id="deptFilter" onchange="filterTable()">
+            <option value="">All Departments</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="FM">Facilities</option>
+            <option value="Admin">Admin</option>
+          </select>
+          <select class="form-control form-select" id="statusFilter" onchange="filterTable()">
+            <option value="">All Statuses</option>
+            <option value="open">Open</option>
+            <option value="pending">Pending Approval</option>
+            <option value="inprogress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+          <select class="form-control form-select" id="priorityFilter" onchange="filterTable()">
+            <option value="">All Priorities</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
         </div>
-        <select class="form-select" id="statusFilter" onchange="filterTable()">
-          <option value="">All Statuses</option>
-          <option value="open">Open</option>
-          <option value="pending">Pending Approval</option>
-          <option value="inprogress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
-        <select class="form-select" id="deptFilter" onchange="filterTable()">
-          <option value="">All Departments</option>
-          <option value="IT">IT</option>
-          <option value="HR">HR</option>
-          <option value="FM">Facilities</option>
-          <option value="Admin">Admin</option>
-        </select>
-        <input type="date" id="dateFrom" onchange="filterTable()" title="From date">
-        <input type="date" id="dateTo" onchange="filterTable()" title="To date">
-        <div class="filter-bar-actions">
-          <button class="btn btn-outline btn-sm" onclick="clearFilters()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
-            Clear
-          </button>
-          <button class="btn btn-primary btn-sm" onclick="exportCSV()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Export
-          </button>
+        
+        <div class="filter-row">
+          <div class="date-range-wrap">
+            <span class="filter-label">Date Range:</span>
+            <input type="date" id="dateFrom" class="form-control" onchange="filterTable()" title="From date">
+            <span class="date-separator">to</span>
+            <input type="date" id="dateTo" class="form-control" onchange="filterTable()" title="To date">
+          </div>
+          <select class="form-control form-select" id="slaFilter" onchange="filterTable()">
+            <option value="">All SLA Statuses</option>
+            <option value="ontrack">SLA: On Track</option>
+            <option value="atrisk">SLA: At Risk</option>
+            <option value="overdue">SLA: Overdue</option>
+          </select>
+          <select class="form-control form-select" id="sortBy" onchange="filterTable()">
+            <option value="newest">Sort by: Newest First</option>
+            <option value="oldest">Sort by: Oldest First</option>
+            <option value="priority-desc">Sort by: Priority (High → Low)</option>
+            <option value="priority-asc">Sort by: Priority (Low → High)</option>
+            <option value="sla-due">Sort by: SLA Deadline</option>
+          </select>
+          <div class="filter-bar-actions">
+            <button class="btn btn-outline btn-sm" onclick="clearFilters()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+              Clear
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="exportCSV()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1101,8 +1248,43 @@ const priorityConfig = {
   low:    { label: 'Low',    cls: 'low'    }
 };
 
-let activeTab = 'all';
-let currentRequests = [...requests];
+function updateCounters() {
+  const counts = {
+    all: requests.length,
+    open: 0,
+    pending: 0,
+    inprogress: 0,
+    completed: 0
+  };
+
+  requests.forEach(r => {
+    if (counts[r.status] !== undefined) {
+      counts[r.status]++;
+    }
+  });
+
+  // Update tabs counts
+  document.querySelectorAll('.req-tab').forEach(tab => {
+    const tabName = tab.dataset.tab;
+    const badge = tab.querySelector('.tab-count');
+    if (badge && counts[tabName] !== undefined) {
+      badge.textContent = counts[tabName];
+    }
+  });
+
+  // Update top KPI cards values
+  const kpis = {
+    open: document.querySelector('.stat-card[onclick*="open"] .stat-card-value'),
+    pending: document.querySelector('.stat-card[onclick*="pending"] .stat-card-value'),
+    inprogress: document.querySelector('.stat-card[onclick*="inprogress"] .stat-card-value'),
+    completed: document.querySelector('.stat-card[onclick*="completed"] .stat-card-value')
+  };
+
+  if (kpis.open) kpis.open.textContent = counts.open;
+  if (kpis.pending) kpis.pending.textContent = counts.pending;
+  if (kpis.inprogress) kpis.inprogress.textContent = counts.inprogress;
+  if (kpis.completed) kpis.completed.textContent = counts.completed;
+}
 
 function renderTable(data) {
   const tbody = document.getElementById('requestsBody');
@@ -1123,7 +1305,7 @@ function renderTable(data) {
       <td><span class="cat-badge ${catConfig[r.cat]}">${r.cat}</span></td>
       <td>
         <span class="priority-dot ${pc.cls}">
-          <span></span>${pc.label}
+          ${pc.label}
         </span>
       </td>
       <td><span class="${sc.cls}">${sc.label}</span></td>
@@ -1142,14 +1324,66 @@ function filterTable() {
   const q = document.getElementById('tableSearch').value.toLowerCase();
   const s = document.getElementById('statusFilter').value;
   const d = document.getElementById('deptFilter').value;
+  const p = document.getElementById('priorityFilter').value;
+  const sla = document.getElementById('slaFilter').value;
+  const dateFromVal = document.getElementById('dateFrom').value;
+  const dateToVal = document.getElementById('dateTo').value;
+  const sortByVal = document.getElementById('sortBy').value;
 
   let filtered = requests.filter(r => {
     const matchTab = activeTab === 'all' || r.status === activeTab;
     const matchQ   = !q || r.id.toLowerCase().includes(q) || r.service.toLowerCase().includes(q);
     const matchS   = !s || r.status === s;
     const matchD   = !d || r.cat === d;
-    return matchTab && matchQ && matchS && matchD;
+    const matchP   = !p || r.priority === p;
+    
+    // SLA filter
+    let matchSla = true;
+    if (sla) {
+      if (sla === 'overdue') {
+        matchSla = r.slaOverdue;
+      } else if (sla === 'atrisk') {
+        matchSla = !r.slaOverdue && r.slaPct >= 70 && r.slaPct < 100;
+      } else if (sla === 'ontrack') {
+        matchSla = !r.slaOverdue && r.slaPct < 70;
+      }
+    }
+
+    // Date filters
+    const createdDate = new Date(r.created);
+    let matchDateFrom = true;
+    if (dateFromVal) {
+      const fromDate = new Date(dateFromVal);
+      fromDate.setHours(0,0,0,0);
+      matchDateFrom = createdDate >= fromDate;
+    }
+    let matchDateTo = true;
+    if (dateToVal) {
+      const toDate = new Date(dateToVal);
+      toDate.setHours(23,59,59,999);
+      matchDateTo = createdDate <= toDate;
+    }
+
+    return matchTab && matchQ && matchS && matchD && matchP && matchSla && matchDateFrom && matchDateTo;
   });
+
+  // Sorting
+  const priorityMap = { high: 3, medium: 2, low: 1 };
+  filtered.sort((a, b) => {
+    if (sortByVal === 'newest') {
+      return new Date(b.created) - new Date(a.created);
+    } else if (sortByVal === 'oldest') {
+      return new Date(a.created) - new Date(b.created);
+    } else if (sortByVal === 'priority-desc') {
+      return priorityMap[b.priority] - priorityMap[a.priority];
+    } else if (sortByVal === 'priority-asc') {
+      return priorityMap[a.priority] - priorityMap[b.priority];
+    } else if (sortByVal === 'sla-due') {
+      return new Date(a.sla) - new Date(b.sla);
+    }
+    return 0;
+  });
+
   currentRequests = filtered;
   renderTable(filtered);
 }
@@ -1169,11 +1403,14 @@ function clearFilters() {
   document.getElementById('tableSearch').value = '';
   document.getElementById('statusFilter').value = '';
   document.getElementById('deptFilter').value = '';
+  document.getElementById('priorityFilter').value = '';
+  document.getElementById('slaFilter').value = '';
   document.getElementById('dateFrom').value = '';
   document.getElementById('dateTo').value = '';
+  document.getElementById('sortBy').value = 'newest';
   activeTab = 'all';
   document.querySelectorAll('.req-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'all'));
-  renderTable(requests);
+  filterTable();
 }
 
 function exportCSV() {
@@ -1336,6 +1573,9 @@ document.addEventListener('click', e => {
 // ═══════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════
+let activeTab = 'all';
+let currentRequests = [...requests];
+updateCounters();
 renderTable(requests);
 lucide.createIcons();
 </script>

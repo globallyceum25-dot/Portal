@@ -103,10 +103,10 @@
       border-radius: 18px;
       padding: var(--space-5);
       display: flex;
-      flex-direction: row;
-      align-items: stretch;
+      flex-direction: column;
+      justify-content: space-between;
       gap: var(--space-4);
-      height: 220px;
+      height: 180px;
       cursor: pointer;
       transition: all var(--transition-spring);
       position: relative;
@@ -114,6 +114,83 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
       text-decoration: none;
       color: inherit;
+    }
+
+    /* Sub-Services grid & tiles */
+    .sub-services-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: var(--space-8);
+      animation: fadeIn var(--transition-base);
+    }
+    
+    @media (max-width: 1200px) and (min-width: 901px) {
+      .sub-services-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    @media (max-width: 900px) and (min-width: 601px) {
+      .sub-services-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .sub-services-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .sub-service-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: var(--space-4);
+      height: 200px;
+      cursor: pointer;
+      transition: all var(--transition-spring);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      text-decoration: none;
+      color: inherit;
+    }
+    .sub-service-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--sub-hover-border, var(--primary));
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--sub-hover-border, var(--primary));
+    }
+    .sub-service-card .sc-title {
+      transition: color var(--transition-fast);
+    }
+    .sub-service-card:hover .sc-title {
+      color: var(--sub-hover-border, var(--primary));
+    }
+    .sub-service-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--sub-icon-bg, var(--primary-50));
+      color: var(--sub-icon-color, var(--primary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .sub-service-sla {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
     
     .service-category-card::before {
@@ -390,6 +467,15 @@
       animation: highlightFlash 1.5s ease-out;
     }
 
+    /* Pulse highlight animation for sub-service card selection */
+    @keyframes pulseHighlight {
+      0% { border-color: var(--sub-hover-border); box-shadow: 0 0 0 4px var(--sub-icon-bg); }
+      50% { border-color: var(--sub-hover-border); box-shadow: 0 0 0 8px var(--sub-icon-bg); }
+      100% { border-color: var(--border); box-shadow: none; }
+    }
+    .sub-service-card.pulse-highlight {
+      animation: pulseHighlight 2s ease-in-out;
+    }
   </style>
 </head>
 <body>
@@ -607,7 +693,7 @@
       <div class="categories-grid" id="categoriesGrid">
         
         <!-- HR Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-hr" data-category="hr" onclick="selectCategory('hr', this)">
+        <div class="service-category-card border-hr" data-category="hr" onclick="showSubServices('hr')">
           <div class="sc-content-left">
             <div class="sc-header">
               <div class="sc-icon">👥</div>
@@ -618,34 +704,10 @@
               <p class="sc-desc">Manage your HR needs, personnel info, and employee services.</p>
             </div>
           </div>
-          <div class="sc-content-right">
-            <div class="sc-list-preview">
-              <div class="sc-list-item" onclick="scrollToService(event, 'hr', 'service-letter')">
-                <span class="sc-list-bullet">📄</span>
-                <span class="sc-list-text">Service Letter Request</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'hr', 'bcard')">
-                <span class="sc-list-bullet">💳</span>
-                <span class="sc-list-text">B Card Services</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'hr', 'personnel-change')">
-                <span class="sc-list-bullet">✏️</span>
-                <span class="sc-list-text">Personnel Change</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'hr', 'bank-update')">
-                <span class="sc-list-bullet">🏦</span>
-                <span class="sc-list-text">Bank Details Update</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'hr', 'idcard')">
-                <span class="sc-list-bullet">🆔</span>
-                <span class="sc-list-text">ID Card Request</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- IT Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-it" data-category="it" onclick="selectCategory('it', this)">
+        <div class="service-category-card border-it" data-category="it" onclick="showSubServices('it')">
           <div class="sc-content-left">
             <div class="sc-header">
               <div class="sc-icon">💻</div>
@@ -656,34 +718,10 @@
               <p class="sc-desc">Technical support, hardware, software, and IT infrastructure.</p>
             </div>
           </div>
-          <div class="sc-content-right">
-            <div class="sc-list-preview">
-              <div class="sc-list-item" onclick="scrollToService(event, 'it', 'it-support')">
-                <span class="sc-list-bullet">🛠️</span>
-                <span class="sc-list-text">IT Technical Support</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'it', 'it-asset')">
-                <span class="sc-list-bullet">🖥️</span>
-                <span class="sc-list-text">IT Asset Request</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'it', 'password-reset')">
-                <span class="sc-list-bullet">🔑</span>
-                <span class="sc-list-text">Password Reset</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'it', 'software-install')">
-                <span class="sc-list-bullet">💿</span>
-                <span class="sc-list-text">Software Install</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'it', 'vpn-access')">
-                <span class="sc-list-bullet">🌐</span>
-                <span class="sc-list-text">VPN Work Access</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Facility Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-fm" data-category="facility" onclick="selectCategory('facility', this)">
+        <div class="service-category-card border-fm" data-category="facility" onclick="showSubServices('facility')">
           <div class="sc-content-left">
             <div class="sc-header">
               <div class="sc-icon">🏢</div>
@@ -694,34 +732,10 @@
               <p class="sc-desc">Building maintenance, facilities, and physical repairs.</p>
             </div>
           </div>
-          <div class="sc-content-right">
-            <div class="sc-list-preview">
-              <div class="sc-list-item" onclick="scrollToService(event, 'facility', 'maintenance')">
-                <span class="sc-list-bullet">🔧</span>
-                <span class="sc-list-text">General Maintenance</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'facility', 'electrical')">
-                <span class="sc-list-bullet">⚡</span>
-                <span class="sc-list-text">Electrical Issues</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'facility', 'ac-issues')">
-                <span class="sc-list-bullet">❄️</span>
-                <span class="sc-list-text">AC Maintenance</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'facility', 'plumbing')">
-                <span class="sc-list-bullet">🚰</span>
-                <span class="sc-list-text">Plumbing repairs</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'facility', 'cleaning')">
-                <span class="sc-list-bullet">🧹</span>
-                <span class="sc-list-text">Cleaning Services</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Administration Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-admin" data-category="admin" onclick="selectCategory('admin', this)">
+        <div class="service-category-card border-admin" data-category="admin" onclick="showSubServices('admin')">
           <div class="sc-content-left">
             <div class="sc-header">
               <div class="sc-icon">📋</div>
@@ -732,30 +746,10 @@
               <p class="sc-desc">Administrative support, bookings, and logistics.</p>
             </div>
           </div>
-          <div class="sc-content-right">
-            <div class="sc-list-preview">
-              <div class="sc-list-item" onclick="scrollToService(event, 'admin', 'vehicle-booking')">
-                <span class="sc-list-bullet">🚗</span>
-                <span class="sc-list-text">Vehicle Booking</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'admin', 'courier')">
-                <span class="sc-list-bullet">📦</span>
-                <span class="sc-list-text">Courier Services</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'admin', 'driver-request')">
-                <span class="sc-list-bullet">👤</span>
-                <span class="sc-list-text">Driver Support</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'admin', 'stationery')">
-                <span class="sc-list-bullet">✏️</span>
-                <span class="sc-list-text">Stationery Supply</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Knowledge Center Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-know" data-category="knowledge" onclick="selectCategory('knowledge', this)">
+        <div class="service-category-card border-know" data-category="knowledge" onclick="showSubServices('knowledge')">
           <div class="sc-content-left">
             <div class="sc-header">
               <div class="sc-icon">📚</div>
@@ -766,26 +760,10 @@
               <p class="sc-desc">Access policies, SOP procedures, and templates.</p>
             </div>
           </div>
-          <div class="sc-content-right">
-            <div class="sc-list-preview">
-              <div class="sc-list-item" onclick="scrollToService(event, 'knowledge', 'policies-doc', 'knowledge-center.html')">
-                <span class="sc-list-bullet">📖</span>
-                <span class="sc-list-text">Corporate Policies</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'knowledge', 'sops', 'knowledge-center.html')">
-                <span class="sc-list-bullet">📋</span>
-                <span class="sc-list-text">SOPs & Guides</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'knowledge', 'templates', 'knowledge-center.html')">
-                <span class="sc-list-bullet">📁</span>
-                <span class="sc-list-text">Forms & Templates</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- Communications Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-comm" data-category="comm" onclick="selectCategory('comm', this)">
+        <div class="service-category-card border-comm" data-category="comm" onclick="showSubServices('comm')">
           <div class="sc-content-left">
             <div class="sc-header">
               <div class="sc-icon">📣</div>
@@ -796,33 +774,29 @@
               <p class="sc-desc">Latest company circulars, events, and awards postings.</p>
             </div>
           </div>
-          <div class="sc-content-right">
-            <div class="sc-list-preview">
-              <div class="sc-list-item" onclick="scrollToService(event, 'comm', 'announce-detail', 'announcements.html')">
-                <span class="sc-list-bullet">📢</span>
-                <span class="sc-list-text">Recent Bulletins</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'comm', 'events-list', 'announcements.html')">
-                <span class="sc-list-bullet">📅</span>
-                <span class="sc-list-text">Events Calendar</span>
-              </div>
-              <div class="sc-list-item" onclick="scrollToService(event, 'comm', 'achievements', 'announcements.html')">
-                <span class="sc-list-bullet">🏆</span>
-                <span class="sc-list-text">Staff Recognition</span>
-              </div>
-            </div>
-          </div>
         </div>
 
       </div>
 
-      <!-- Service Detail Lists -->
-      <div id="serviceListSection" style="margin-top:var(--space-6)">
-        <h2 id="currentCategoryTitle" class="section-title mb-4" style="font-size:18px">Human Resources Services</h2>
-        
-        <!-- SERVICE ROWS CONTAINER -->
-        <div class="service-rows-card" id="serviceRowsContainer">
-          <!-- Dynamically populated rows -->
+      <!-- SUB-SERVICES SCREEN (Hidden by default) -->
+      <div id="subServicesScreen" style="display:none; animation: fadeIn var(--transition-base)">
+        <!-- Category Title & Info -->
+        <div class="welcome-banner" id="subCategoryBanner" style="margin-bottom: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4)">
+          <div class="welcome-content">
+            <h1 class="welcome-name" id="subCategoryTitle">Human Resources Services</h1>
+            <p class="welcome-dept" id="subCategoryDesc">Manage your HR needs, personnel info, and employee services.</p>
+          </div>
+          <button class="btn btn-secondary" onclick="showCategoriesList()" 
+                  onmouseover="this.style.background='rgba(255,255,255,0.25)'" 
+                  onmouseout="this.style.background='rgba(255,255,255,0.15)'"
+                  style="padding: 10px 18px; border-radius: var(--radius-lg); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-shrink: 0; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #fff; transition: all var(--transition-fast); cursor: pointer">
+            ← Back to Categories
+          </button>
+        </div>
+
+        <!-- Sub-Services Bento Grid -->
+        <div class="sub-services-grid" id="subServicesGrid">
+          <!-- Populated dynamically via JavaScript -->
         </div>
       </div>
 
@@ -830,42 +804,7 @@
   </div><!-- /MAIN CONTENT -->
 </div><!-- /APP LAYOUT -->
 
-<!-- ========= AI ASSISTANT FAB ========= -->
-<div class="ai-fab" id="aiFab">
-  <div class="ai-chat-panel" id="aiChatPanel">
-    <div class="ai-chat-header">
-      <div class="ai-chat-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l2 2"/><circle cx="18" cy="6" r="4" fill="white" stroke="none"/></svg>
-      </div>
-      <div>
-        <div class="ai-chat-name">Lexi — AI Assistant</div>
-        <div class="ai-chat-status">● Online · Powered by AI</div>
-      </div>
-      <button onclick="toggleAIChat()" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;border-radius:50%;width:28px;height:28px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="ai-messages" id="aiMessages">
-      <div class="ai-msg bot">
-        <div class="ai-msg-bubble">Hi! I'm <b>Lexi</b>, your Lyceum Connect AI assistant. Need help finding a service? Ask me!</div>
-      </div>
-    </div>
-    <div class="ai-suggestions">
-      <button class="ai-suggestion-chip" onclick="sendAISuggestion('How do I raise an IT ticket?')">Raise IT ticket</button>
-      <button class="ai-suggestion-chip" onclick="sendAISuggestion('I need a service letter')">Service letter</button>
-      <button class="ai-suggestion-chip" onclick="sendAISuggestion('What policies can I view?')">View policies</button>
-    </div>
-    <div class="ai-chat-input-wrap">
-      <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Ask Lexi anything..." maxlength="200">
-      <button class="ai-send-btn" onclick="sendAIMessage()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
-    </div>
-  </div>
-  <button class="ai-fab-btn" onclick="toggleAIChat()">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><circle cx="9" cy="10" r="1" fill="white"/><circle cx="12" cy="10" r="1" fill="white"/><circle cx="15" cy="10" r="1" fill="white"/></svg>
-  </button>
-</div>
+
 
 <!-- ========= TOAST CONTAINER ========= -->
 <div class="toast-container" id="toastContainer"></div>
@@ -917,7 +856,7 @@
     ],
     comm: [
       { id: 'announce-detail', name: 'Recent Internal Announcements', desc: 'Read corporate circulars, organizational updates, and management notices.', sla: 'Read Only', slaClass: 'sla-badge-blue', formUrl: 'announcements.html' },
-      { id: 'events-list', name: 'Upcoming Events Calendar', desc: 'Browse training classes, annual activities, and sports events registration.', sla: 'Interactive', slaClass: 'sla-badge-green', formUrl: 'announcements.html' },
+      { id: 'events-list', name: 'Upcoming Events Calendar', desc: 'Browse training activities, annual gatherings, or corporate events register.', sla: 'Interactive', slaClass: 'sla-badge-green', formUrl: 'announcements.html' },
       { id: 'achievements', name: 'Employee Recognition & Awards', desc: 'Send cheers and browse employee of the month rewards lists.', sla: 'Read Only', slaClass: 'sla-badge-blue', formUrl: 'announcements.html' }
     ]
   };
@@ -931,7 +870,67 @@
     comm: 'Corporate Communications & News'
   };
 
-  let activeCategory = 'hr';
+  // Sub-service Tech Icons & Colors Themes Map
+  const subServiceThemes = {
+    // HR
+    'service-letter': { icon: '📄', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'emp-confirm': { icon: '💼', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'bcard': { icon: '💳', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'personnel-change': { icon: '👤', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'bank-update': { icon: '🏦', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'emergency-contact': { icon: '🚨', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'idcard': { icon: '🆔', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'leave-welfare': { icon: '🎁', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'internal-transfer': { icon: '🔄', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'exit-clearance': { icon: '🚪', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+
+    // IT
+    'it-support': { icon: '🛠️', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
+    'it-asset': { icon: '💻', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
+    'software-install': { icon: '📥', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
+    'email-setup': { icon: '✉️', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
+    'sys-access': { icon: '🔑', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
+    'password-reset': { icon: '🔒', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
+    'vpn-access': { icon: '🌐', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
+
+    // Facility
+    'maintenance': { icon: '🔧', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
+    'electrical': { icon: '⚡', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
+    'ac-issues': { icon: '❄️', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
+    'plumbing': { icon: '🚰', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
+    'cleaning': { icon: '🧹', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
+    'furniture': { icon: '🪑', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
+
+    // Admin
+    'stationery': { icon: '✏️', border: '#F59E0B', iconBg: 'rgba(245, 158, 11, 0.08)', iconColor: '#F59E0B' },
+    'courier': { icon: '📦', border: '#F59E0B', iconBg: 'rgba(245, 158, 11, 0.08)', iconColor: '#F59E0B' },
+    'vehicle-booking': { icon: '🚗', border: '#F59E0B', iconBg: 'rgba(245, 158, 11, 0.08)', iconColor: '#F59E0B' },
+    'driver-request': { icon: '🧑‍✈️', border: '#F59E0B', iconBg: 'rgba(245, 158, 11, 0.08)', iconColor: '#F59E0B' },
+
+    // Knowledge
+    'policies-doc': { icon: '📖', border: '#10B981', iconBg: 'rgba(16, 185, 129, 0.08)', iconColor: '#10B981' },
+    'sops': { icon: '📋', border: '#10B981', iconBg: 'rgba(16, 185, 129, 0.08)', iconColor: '#10B981' },
+    'templates': { icon: '📐', border: '#10B981', iconBg: 'rgba(16, 185, 129, 0.08)', iconColor: '#10B981' },
+
+    // Comm
+    'announce-detail': { icon: '📢', border: '#EF4444', iconBg: 'rgba(239, 68, 68, 0.08)', iconColor: '#EF4444' },
+    'events-list': { icon: '📅', border: '#EF4444', iconBg: 'rgba(239, 68, 68, 0.08)', iconColor: '#EF4444' },
+    'achievements': { icon: '🏆', border: '#EF4444', iconBg: 'rgba(239, 68, 68, 0.08)', iconColor: '#EF4444' },
+  };
+
+  // Maps from the home page (index.html) quick links hash to category and service card
+  const indexHashMaps = {
+    'network':   { category: 'it', serviceId: 'vpn-access' },
+    'security':  { category: 'it', serviceId: 'sys-access' },
+    'cctv':      { category: 'it', serviceId: 'it-support' },
+    'telecom':   { category: 'it', serviceId: 'it-support' },
+    'bitrix':    { category: 'it', serviceId: 'sys-access' },
+    'email':     { category: 'it', serviceId: 'email-setup' },
+    'printers':  { category: 'it', serviceId: 'it-support' },
+    'cloud':     { category: 'it', serviceId: 'software-install' }
+  };
+
+  let activeCategory = 'all';
   let selectedCompany = 'all';
 
   // Helper to determine if a service is applicable to a specific company
@@ -1019,155 +1018,228 @@
     if (searchVal) {
       searchCatalog(searchVal);
     } else {
-      // Re-trigger category display filtering
-      filterCatalog(activeCategory, document.querySelector('.catalog-tab.active'));
+      if (activeCategory === 'all') {
+        showCategoriesList();
+      } else {
+        showSubServices(activeCategory);
+      }
     }
   };
 
-  function filterCatalog(category, tabBtn) {
-    // Update active tab styles
+  // Main navigation / tab controller
+  window.filterCatalog = function(category, tabBtn) {
     document.querySelectorAll('.catalog-tab').forEach(btn => btn.classList.remove('active'));
     if (tabBtn) tabBtn.classList.add('active');
 
     activeCategory = category;
-    const cards = document.querySelectorAll('.service-category-card');
     
     if (category === 'all') {
-      cards.forEach(card => {
-        const cat = card.getAttribute('data-category');
-        const count = cat && services[cat] ? services[cat].filter(s => isServiceApplicable(s, selectedCompany)).length : 0;
-        
-        if (count > 0 || selectedCompany === 'all') {
-          card.style.display = 'flex';
-        } else {
-          card.style.display = 'none';
-        }
-        card.classList.remove('selected');
-      });
-      
-      // Hide details section
-      const detailsSection = document.getElementById('serviceListSection');
-      if (detailsSection) {
-        detailsSection.style.display = 'none';
-      }
+      showCategoriesList();
     } else {
-      cards.forEach(card => {
-        if (card.getAttribute('data-category') === category) {
-          card.style.display = 'flex';
-          selectCategory(category, card);
-        } else {
-          card.style.display = 'none';
-        }
-      });
+      showSubServices(category);
     }
-  }
+  };
 
-  function selectCategory(category, cardEl) {
+  // Render the categories screen
+  window.showCategoriesList = function() {
+    activeCategory = 'all';
+    
+    // Show categories list grid & main welcome banner
+    const welcomeBanner = document.getElementById('catalogWelcomeBanner');
+    if (welcomeBanner) welcomeBanner.style.display = 'flex';
+    document.getElementById('categoriesGrid').style.display = 'grid';
+    
+    // Hide sub-services screen
+    const subScreen = document.getElementById('subServicesScreen');
+    if (subScreen) subScreen.style.display = 'none';
+    
+    // Clear search input if present
+    const searchInput = document.getElementById('catalogSearch');
+    if (searchInput) searchInput.value = '';
+    
+    // Update tab bar selected state to "All Services"
+    document.querySelectorAll('.catalog-tab').forEach(btn => {
+      const onclickAttr = btn.getAttribute('onclick') || '';
+      if (onclickAttr.includes("'all'")) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    
+    // Hide catalog tabs initially
+    const catalogTabs = document.getElementById('catalogTabs');
+    if (catalogTabs) catalogTabs.style.display = 'none';
+    
+    updateCategoryCardCounts();
+  };
+
+  // Render sub-services for a chosen category as tiles/cards
+  window.showSubServices = function(category, highlightServiceId = null) {
     activeCategory = category;
     
-    // Highlight active card
-    document.querySelectorAll('.service-category-card').forEach(c => c.classList.remove('selected'));
-    if (cardEl) cardEl.classList.add('selected');
-
-    // Update section title
-    document.getElementById('currentCategoryTitle').textContent = categoryTitles[category];
-
-    // Populate service rows
-    populateServices(services[category]);
-
-    // Show details section
-    const detailsSection = document.getElementById('serviceListSection');
-    if (detailsSection) {
-      detailsSection.style.display = 'block';
+    // Hide welcome banner and categories grid
+    const welcomeBanner = document.getElementById('catalogWelcomeBanner');
+    if (welcomeBanner) welcomeBanner.style.display = 'none';
+    document.getElementById('categoriesGrid').style.display = 'none';
+    
+    // Show sub-services screen
+    const subScreen = document.getElementById('subServicesScreen');
+    if (subScreen) subScreen.style.display = 'block';
+    
+    // Synchronize tab highlights
+    document.querySelectorAll('.catalog-tab').forEach(btn => {
+      const onclickAttr = btn.getAttribute('onclick') || '';
+      if (onclickAttr.includes(`'${category}'`)) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    
+    // Show catalog tabs when active category is clicked
+    const catalogTabs = document.getElementById('catalogTabs');
+    if (catalogTabs) catalogTabs.style.display = 'flex';
+    
+    // Set banner titles and details
+    const banner = document.getElementById('subCategoryBanner');
+    const title = document.getElementById('subCategoryTitle');
+    const desc = document.getElementById('subCategoryDesc');
+    
+    if (title) title.textContent = categoryTitles[category] || '';
+    if (desc) {
+      const card = document.querySelector(`.service-category-card[data-category="${category}"]`);
+      const cardDesc = card ? card.querySelector('.sc-desc')?.textContent : '';
+      desc.textContent = cardDesc || '';
     }
-  }
+    
+    if (banner) {
+      const gradients = {
+        hr: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
+        it: 'linear-gradient(135deg, #2E1065, #7C3AED)',
+        facility: 'linear-gradient(135deg, #064E3B, #0D9488)',
+        admin: 'linear-gradient(135deg, #78350F, #F59E0B)',
+        knowledge: 'linear-gradient(135deg, #065F46, #10B981)',
+        comm: 'linear-gradient(135deg, #7F1D1D, #EF4444)'
+      };
+      banner.style.background = gradients[category] || 'var(--primary-gradient)';
+    }
+    
+    // Render the tiles
+    populateSubServices(services[category] || [], highlightServiceId);
+  };
 
-  function populateServices(list) {
-    const container = document.getElementById('serviceRowsContainer');
-    if (!container) return;
-
+  // Populate sub-services grid with styled bento tiles
+  function populateSubServices(list, highlightServiceId = null) {
+    const grid = document.getElementById('subServicesGrid');
+    if (!grid) return;
+    
     if (!list || list.length === 0) {
-      container.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-tertiary)">No services found in this category.</div>';
+      grid.innerHTML = '<div style="grid-column: 1/-1; padding:40px; text-align:center; color:var(--text-tertiary)">No services found.</div>';
       return;
     }
-
-    // Filter list by selected company
+    
     const filteredList = list.filter(item => isServiceApplicable(item, selectedCompany));
-
+    
     if (filteredList.length === 0) {
-      container.innerHTML = `
-        <div style="padding:40px; text-align:center; color:var(--text-tertiary)">
+      grid.innerHTML = `
+        <div style="grid-column: 1/-1; padding:40px; text-align:center; color:var(--text-tertiary)">
           🏢 No services available for <b>${selectedCompany}</b> in this category.
         </div>`;
       return;
     }
-
-    container.innerHTML = filteredList.map(item => `
-      <div class="service-row" id="row-${item.id}">
-        <div class="service-row-info">
-          <div class="service-row-name">
-            ${item.name}
-            <span class="sla-badge ${item.slaClass}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              SLA: ${item.sla}
-            </span>
+    
+    grid.innerHTML = filteredList.map(item => {
+      const theme = subServiceThemes[item.id] || { icon: '🔧', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' };
+      const isHighlighted = item.id === highlightServiceId ? 'pulse-highlight' : '';
+      
+      return `
+        <a href="${item.formUrl}" class="sub-service-card ${isHighlighted}" id="sub-service-${item.id}" 
+           style="--sub-hover-border: ${theme.border}; --sub-icon-bg: ${theme.iconBg}; --sub-icon-color: ${theme.iconColor}">
+          <div>
+            <div class="sub-service-icon-wrap">
+              ${theme.icon}
+            </div>
+            <div style="margin-top: 14px">
+              <h4 class="sc-title" style="margin-bottom: 4px">${item.name}</h4>
+              <p class="sc-desc" style="line-height: 1.4">${item.desc}</p>
+            </div>
           </div>
-          <div class="service-row-desc">${item.desc}</div>
-        </div>
-        <div class="service-row-actions">
-          <button class="fav-btn ${isFavourite(item.id) ? 'active' : ''}" onclick="toggleServiceFav('${item.id}', this)" title="Add to Favourites">★</button>
-          <a href="${item.formUrl}" class="btn btn-primary btn-sm">Request Service</a>
-        </div>
-      </div>
-    `).join('');
+          <div class="sub-service-sla">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            SLA: ${item.sla}
+          </div>
+        </a>
+      `;
+    }).join('');
+    
+    if (highlightServiceId) {
+      setTimeout(() => {
+        const el = document.getElementById(`sub-service-${highlightServiceId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+    }
   }
 
-  function scrollToService(event, category, serviceId, directUrl) {
-    if (event) event.stopPropagation(); // Prevent card selectCategory from double-triggering
-    
-    if (directUrl) {
-      window.location.href = directUrl;
+  // Helper to find category hosting a specific service
+  function findCategoryByServiceId(serviceId) {
+    for (const [cat, list] of Object.entries(services)) {
+      if (list.some(s => s.id === serviceId)) {
+        return cat;
+      }
+    }
+    return null;
+  }
+
+  // Main hash deep linking router
+  function handleHashRouting() {
+    const hash = window.location.hash.substring(1);
+    if (!hash) {
+      showCategoriesList();
       return;
     }
     
-    // Select the category
-    const card = document.querySelector(`.service-category-card[data-category="${category}"]`);
-    selectCategory(category, card);
+    // Check if category key
+    if (services[hash]) {
+      showSubServices(hash);
+      return;
+    }
     
-    // Find the row in the details view
-    setTimeout(() => {
-      const targetRow = document.getElementById(`row-${serviceId}`);
-      if (targetRow) {
-        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Brief highlighting animation
-        targetRow.classList.add('highlight-row');
-        setTimeout(() => {
-          targetRow.classList.remove('highlight-row');
-        }, 1500);
-      }
-    }, 150);
+    // Check if it's an index hash mapping
+    if (indexHashMaps[hash]) {
+      const map = indexHashMaps[hash];
+      showSubServices(map.category, map.serviceId);
+      return;
+    }
+    
+    // Check if it's directly a service ID
+    const cat = findCategoryByServiceId(hash);
+    if (cat) {
+      showSubServices(cat, hash);
+    }
   }
 
-  function isFavourite(id) {
-    const favs = JSON.parse(localStorage.getItem('lc-favourites') || '[]');
-    return favs.includes(id);
-  }
-
-  function toggleServiceFav(id, btn) {
-    toggleFavourite(id, btn);
-  }
-
-  function searchCatalog(q) {
+  // Search input processing
+  window.searchCatalog = function(q) {
     q = q.trim().toLowerCase();
     
     if (!q) {
-      document.getElementById('categoriesGrid').style.display = 'grid';
-      filterCatalog(activeCategory, document.querySelector('.catalog-tab.active'));
+      const activeTab = document.querySelector('.catalog-tab.active');
+      const activeTabOnclick = activeTab ? activeTab.getAttribute('onclick') || '' : '';
+      
+      if (activeTabOnclick.includes("'all'") || !activeTab) {
+        showCategoriesList();
+      } else {
+        const match = activeTabOnclick.match(/'([^']+)'/);
+        const cat = match ? match[1] : 'hr';
+        showSubServices(cat);
+      }
       return;
     }
 
-    // Filter services across all categories with query and company filter
+    // Filter services across all categories
     let matchingServices = [];
     Object.keys(services).forEach(cat => {
       services[cat].forEach(s => {
@@ -1177,19 +1249,36 @@
       });
     });
 
-    // Hide categories grid and show custom search results title
+    // Hide categories grid & welcome banner
+    const welcomeBanner = document.getElementById('catalogWelcomeBanner');
+    if (welcomeBanner) welcomeBanner.style.display = 'none';
     document.getElementById('categoriesGrid').style.display = 'none';
-    document.getElementById('currentCategoryTitle').textContent = `Search Results for "${q}" (${matchingServices.length})`;
-    populateServices(matchingServices);
+    
+    // Show sub-services grid with search results details
+    const subScreen = document.getElementById('subServicesScreen');
+    if (subScreen) subScreen.style.display = 'block';
 
-    // Show details section for search results
-    const detailsSection = document.getElementById('serviceListSection');
-    if (detailsSection) {
-      detailsSection.style.display = 'block';
+    const banner = document.getElementById('subCategoryBanner');
+    const title = document.getElementById('subCategoryTitle');
+    const desc = document.getElementById('subCategoryDesc');
+    
+    if (title) title.textContent = `Search Results`;
+    if (desc) desc.textContent = `Showing ${matchingServices.length} matching services for "${q}"`;
+    if (banner) {
+      banner.style.background = 'var(--primary-gradient)';
     }
-  }
 
-  // Initial load
+    // Deactivate tabs since we are search filtering globally
+    document.querySelectorAll('.catalog-tab').forEach(btn => btn.classList.remove('active'));
+
+    // Hide catalog tabs in search mode
+    const catalogTabs = document.getElementById('catalogTabs');
+    if (catalogTabs) catalogTabs.style.display = 'none';
+
+    populateSubServices(matchingServices);
+  };
+
+  // Initial load hook
   document.addEventListener('DOMContentLoaded', () => {
     // ---- Set Time-based Greeting ----
     (function() {
@@ -1206,25 +1295,12 @@
     initCompanyFilter();
     updateCategoryCardCounts();
 
-    // Auto-select All Services tab initially
-    const allTab = document.querySelector('.catalog-tab[onclick*="\'all\'"]');
-    if (allTab) {
-      filterCatalog('all', allTab);
-    } else {
-      const firstCard = document.querySelector('.service-category-card[data-category="hr"]');
-      selectCategory('hr', firstCard);
-    }
-
-    // Support deep-linking to category via hash e.g. service-catalog.html#it
-    const hash = window.location.hash.substring(1);
-    if (hash && services[hash]) {
-      const card = document.querySelector(`.service-category-card[data-category="${hash}"]`);
-      if (card) {
-        card.scrollIntoView({ behavior: 'smooth' });
-        selectCategory(hash, card);
-      }
-    }
+    // Route hash or default list
+    handleHashRouting();
   });
+
+  // Listen for hash changes to navigate smoothly
+  window.addEventListener('hashchange', handleHashRouting);
 </script>
 </body>
 </html>
