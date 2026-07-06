@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lyceum Connect — System Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary:#3B7BF8;--primary-dark:#2563EB;--primary-light:#6B9FFA;
+  --primary-50:#EEF3FF;--primary-100:#DBEAFE;--primary-200:#BFDBFE;
+  --primary-gradient:linear-gradient(135deg,#3B7BF8 0%,#2563EB 100%);
+  --gray-50:#F8FAFC;--gray-100:#F1F5F9;--gray-200:#E2E8F0;--gray-300:#CBD5E1;
+  --gray-400:#94A3B8;--gray-500:#64748B;--gray-600:#475569;--gray-700:#334155;
+  --gray-800:#1E293B;--gray-900:#0F172A;
+  --success:#22C55E;--success-light:#DCFCE7;--success-dark:#15803D;
+  --warning:#EAB308;--warning-light:#FEF9C3;--warning-dark:#A16207;
+  --error:#EF4444;--error-light:#FEE2E2;--error-dark:#B91C1C;
+  --bg-page:#F3F5F9;--surface:rgba(255,255,255,0.55);--surface-raised:rgba(255,255,255,0.85);
+  --glass-blur:blur(20px);--glass-border:rgba(255,255,255,0.4);
+  --text-primary:#1E2538;--text-secondary:#5C6A85;--text-tertiary:#92A1BA;--text-inverse:#fff;
+  --border:rgba(59,123,248,0.12);--border-strong:rgba(59,123,248,0.22);
+  --shadow-card:0 8px 30px rgba(30,40,80,0.035),0 1px 3px rgba(30,40,80,0.015);
+  --shadow-lg:0 12px 32px rgba(30,40,80,0.05);
+  --shadow-xl:0 20px 48px rgba(30,40,80,0.07);
+  --radius-sm:8px;--radius-md:12px;--radius-lg:18px;--radius-xl:24px;--radius-2xl:32px;--radius-full:9999px;
+  --font-sans:'Inter',system-ui,sans-serif;--font-display:'Plus Jakarta Sans','Inter',system-ui,sans-serif;
+  --transition-base:250ms cubic-bezier(0.4,0,0.2,1);--transition-spring:300ms cubic-bezier(0.34,1.56,0.64,1);
+
+  /* Zone colours */
+  --zone-portal:rgba(59,123,248,0.07);--zone-portal-border:#3B7BF8;
+  --zone-api:rgba(34,197,94,0.07);--zone-api-border:#22C55E;
+  --zone-lgh:rgba(234,179,8,0.09);--zone-lgh-border:#EAB308;
+  --zone-zte:rgba(168,85,247,0.07);--zone-zte-border:#A855F7;
+  --zone-companies:rgba(6,182,212,0.07);--zone-companies-border:#06B6D4;
+  --zone-slack:rgba(74,21,75,0.07);--zone-slack-border:#4A154B;
+  --zone-ms365:rgba(0,120,212,0.07);--zone-ms365-border:#0078D4;
+  --zone-ext:rgba(249,115,22,0.07);--zone-ext-border:#F97316;
+  --zone-data:rgba(239,68,68,0.06);--zone-data-border:#EF4444;
+  --zone-infra:rgba(148,163,184,0.08);--zone-infra-border:#64748B;
+  --zone-nvidia:rgba(118,185,0,0.08);--zone-nvidia-border:#76B900;
+  --zone-google:rgba(66,133,244,0.07);--zone-google-border:#4285F4;
+}
+[data-theme="dark"] {
+  --bg-page:#0A0D14;--surface:rgba(17,22,34,0.55);--surface-raised:rgba(23,30,46,0.8);
+  --text-primary:#E4E9F2;--text-secondary:#8E9DB8;--text-tertiary:#5D6E8B;
+  --border:rgba(255,255,255,0.09);--border-strong:rgba(255,255,255,0.18);
+  --glass-border:rgba(255,255,255,0.08);--shadow-card:0 8px 30px rgba(0,0,0,0.35);
+  --primary-50:rgba(59,123,248,0.12);--primary-100:rgba(59,123,248,0.18);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{
+  font-family:var(--font-sans);
+  background:radial-gradient(circle at 10% 20%,rgba(59,123,248,0.05) 0%,transparent 45%),
+    radial-gradient(circle at 90% 80%,rgba(236,72,153,0.04) 0%,transparent 45%),
+    radial-gradient(circle at 50% 50%,rgba(6,182,212,0.03) 0%,transparent 55%),
+    var(--bg-page);
+  background-attachment:fixed;
+  color:var(--text-primary);
+  min-height:100vh;
+}
+[data-theme="dark"] body{
+  background:radial-gradient(circle at 10% 20%,rgba(59,123,248,0.12) 0%,transparent 45%),
+    radial-gradient(circle at 90% 80%,rgba(236,72,153,0.08) 0%,transparent 45%),
+    radial-gradient(circle at 50% 50%,rgba(6,182,212,0.06) 0%,transparent 55%),
+    var(--bg-page);
+  background-attachment:fixed;
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;top:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;height:60px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+}
+.topbar-brand{display:flex;align-items:center;gap:12px}
+.topbar-logo{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--primary-gradient);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:800;font-size:18px;flex-shrink:0;
+}
+.topbar-title{font-family:var(--font-display);font-weight:800;font-size:16px;letter-spacing:-0.3px}
+.topbar-sub{font-size:11px;color:var(--text-tertiary);font-weight:500;letter-spacing:0.5px;text-transform:uppercase;margin-top:1px}
+.topbar-controls{display:flex;align-items:center;gap:8px}
+.ctrl-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--radius-full);
+  font-size:12px;font-weight:600;
+  border:1px solid var(--border);
+  background:var(--surface);color:var(--text-secondary);
+  transition:all var(--transition-base);cursor:pointer;
+}
+.ctrl-btn:hover{background:var(--primary-50);color:var(--primary);border-color:var(--primary)}
+.ctrl-btn.active{background:var(--primary-gradient);color:#fff;border-color:transparent;box-shadow:0 4px 12px rgba(59,123,248,0.3)}
+.dark-toggle{
+  width:36px;height:36px;border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-secondary);border:1px solid var(--border);
+  background:var(--surface);transition:all var(--transition-base);
+}
+.dark-toggle:hover{background:var(--primary-50);color:var(--primary)}
+
+/* ── MAIN CANVAS ── */
+.canvas{padding:24px;max-width:1800px;margin:0 auto}
+
+/* ── PAGE HEADER ── */
+.page-header{
+  background:var(--primary-gradient);
+  border-radius:var(--radius-xl);
+  padding:28px 36px;margin-bottom:24px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;overflow:hidden;color:#fff;
+}
+.page-header::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:200px;height:200px;background:rgba(255,255,255,0.07);border-radius:50%;
+}
+.page-header::after{
+  content:'';position:absolute;bottom:-60px;right:220px;
+  width:260px;height:260px;background:rgba(255,255,255,0.04);border-radius:50%;
+}
+.header-left{position:relative;z-index:1}
+.header-title{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-0.5px}
+.header-sub{font-size:13px;color:rgba(255,255,255,0.75);margin-top:4px}
+.header-badges{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.hbadge{
+  padding:4px 12px;border-radius:var(--radius-full);
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
+  font-size:11px;font-weight:600;color:#fff;
+}
+.header-stats{
+  display:flex;gap:16px;position:relative;z-index:1;
+  background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);
+  border-radius:var(--radius-lg);padding:16px 24px;backdrop-filter:blur(8px);flex-shrink:0;
+}
+.hstat{text-align:center}
+.hstat-val{font-family:var(--font-display);font-size:24px;font-weight:800;color:#fff;line-height:1}
+.hstat-lbl{font-size:10px;color:rgba(255,255,255,0.65);margin-top:4px;white-space:nowrap}
+
+/* ── LAYER FILTER BAR ── */
+.layer-bar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  margin-bottom:20px;padding:12px 16px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  backdrop-filter:var(--glass-blur);
+}
+.layer-bar-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-tertiary);margin-right:4px}
+.layer-chip{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:var(--radius-full);
+  font-size:11px;font-weight:600;cursor:pointer;
+  border:1px solid transparent;transition:all var(--transition-base);
+}
+.layer-chip .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.layer-chip.on{opacity:1}
+.layer-chip.off{opacity:0.35;filter:grayscale(1)}
+
+/* ── ARCHITECTURE GRID ── */
+.arch-grid{display:flex;flex-direction:column;gap:16px}
+
+/* ── SWIMLANE ZONE ── */
+.zone{
+  border-radius:var(--radius-xl);padding:20px;
+  border:2px solid transparent;
+  transition:all var(--transition-base);
+  position:relative;
+}
+.zone-header{
+  display:flex;align-items:center;gap:10px;margin-bottom:16px;
+}
+.zone-icon{
+  width:32px;height:32px;border-radius:var(--radius-md);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.zone-label{font-family:var(--font-display);font-size:13px;font-weight:700;letter-spacing:0.2px}
+.zone-sublabel{font-size:11px;color:var(--text-secondary);margin-left:auto}
+.zone-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+
+/* ── COMPONENT NODE ── */
+.node{
+  background:var(--surface-raised);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:14px 16px;
+  min-width:140px;max-width:200px;
+  cursor:pointer;
+  transition:all var(--transition-spring);
+  position:relative;
+  backdrop-filter:var(--glass-blur);
+  box-shadow:var(--shadow-card);
+}
+.node:hover{
+  transform:translateY(-3px) scale(1.02);
+  box-shadow:var(--shadow-lg);
+  border-color:var(--border-strong);
+  z-index:10;
+}
+.node.selected{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(59,123,248,0.15),var(--shadow-lg);
+}
+.node-icon{font-size:20px;margin-bottom:8px;display:block}
+.node-name{font-size:12px;font-weight:700;color:var(--text-primary);line-height:1.3}
+.node-tech{font-size:10px;color:var(--text-tertiary);margin-top:4px;font-weight:500}
+.node-badge{
+  position:absolute;top:8px;right:8px;
+  font-size:9px;font-weight:700;padding:2px 6px;
+  border-radius:var(--radius-full);background:var(--primary-100);color:var(--primary-dark);
+}
+.node-new{background:var(--success-light);color:var(--success-dark)}
+.node-client{background:var(--warning-light);color:var(--warning-dark)}
+
+/* connector lines between zones */
+.connector{
+  display:flex;align-items:center;justify-content:center;
+  height:28px;position:relative;
+  margin:-4px 0;
+}
+.connector-line{
+  width:2px;height:100%;
+  background:linear-gradient(to bottom,var(--border-strong),transparent);
+  position:absolute;left:50%;transform:translateX(-50%);
+}
+.connector-arrow{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--surface-raised);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:var(--text-tertiary);
+  box-shadow:var(--shadow-card);z-index:1;position:relative;
+}
+.connector-label{
+  position:absolute;left:calc(50% + 20px);
+  font-size:10px;font-weight:600;color:var(--text-tertiary);white-space:nowrap;
+}
+
+/* ── FLOW ARROWS (horizontal between nodes) ── */
+.zone-with-arrow{display:flex;align-items:stretch;gap:0}
+.arrow-h{
+  display:flex;align-items:center;padding:0 4px;color:var(--text-tertiary);font-size:14px;
+}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.four-col{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+/* ── TOOLTIP PANEL ── */
+.tooltip-overlay{
+  position:fixed;inset:0;z-index:400;pointer-events:none;
+  display:flex;align-items:flex-end;justify-content:flex-end;padding:24px;
+}
+.tooltip-panel{
+  pointer-events:all;
+  width:340px;
+  background:var(--surface-raised);border:1px solid var(--border-strong);
+  border-radius:var(--radius-xl);box-shadow:var(--shadow-xl);
+  padding:20px;
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  transform:translateX(400px);
+  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  opacity:0;
+}
+.tooltip-panel.open{transform:translateX(0);opacity:1}
+.tp-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.tp-icon{font-size:28px}
+.tp-title{font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text-primary)}
+.tp-tech{font-size:11px;color:var(--primary);font-weight:600;margin-top:2px}
+.tp-close{
+  width:28px;height:28px;border-radius:50%;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-tertiary);cursor:pointer;flex-shrink:0;
+  transition:all var(--transition-base);
+}
+.tp-close:hover{background:var(--error-light);color:var(--error)}
+.tp-body{display:flex;flex-direction:column;gap:12px}
+.tp-row{display:flex;flex-direction:column;gap:4px}
+.tp-row-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-tertiary)}
+.tp-row-val{font-size:13px;color:var(--text-primary);line-height:1.5}
+.tp-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tp-tag{
+  padding:3px 10px;border-radius:var(--radius-full);
+  font-size:10px;font-weight:600;
+  background:var(--primary-50);color:var(--primary-dark);
+  border:1px solid var(--primary-100);
+}
+
+/* ── LEGEND ── */
+.legend{
+  margin-top:20px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);
+  padding:20px;backdrop-filter:var(--glass-blur);
+}
+.legend-title{font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.legend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-secondary);font-weight:500}
+.legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.legend-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+.legend-line-row{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-secondary);margin-bottom:8px}
+.legend-line{width:40px;height:2px;flex-shrink:0}
+.legend-line.sync{background:var(--primary);border-radius:2px}
+.legend-line.async{background:var(--warning);border-radius:2px;border-top:2px dashed var(--warning);height:0}
+.legend-line.webhook{background:var(--zone-slack-border);border-radius:2px}
+.legend-line.client-only{background:transparent;border:2px dashed var(--warning-dark);border-radius:2px;height:0}
+
+/* ── CLIENT-ONLY ZONE ── */
+.zone-client-only{
+  border-style:dashed !important;
+  border-color:var(--warning-dark) !important;
+}
+.client-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:3px 10px;border-radius:var(--radius-full);
+  background:var(--warning-light);color:var(--warning-dark);
+  font-size:10px;font-weight:700;margin-left:8px;
+  border:1px solid var(--warning);
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){
+  .two-col,.three-col,.four-col{grid-template-columns:1fr 1fr}
+  .header-stats{display:none}
+}
+@media(max-width:700px){
+  .two-col,.three-col,.four-col{grid-template-columns:1fr}
+  .canvas{padding:12px}
+  .zone-row{gap:8px}
+  .node{min-width:120px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">L</div>
+    <div>
+      <div class="topbar-title">Lyceum Connect</div>
+      <div class="topbar-sub">System Architecture v1.0</div>
+    </div>
+  </div>
+  <div class="topbar-controls">
+    <span style="font-size:11px;color:var(--text-tertiary);font-weight:600;margin-right:4px">TOGGLE LAYERS:</span>
+    <button class="layer-chip on" style="background:rgba(59,123,248,0.1);color:#2563EB;border-color:#BFDBFE" onclick="toggleZone('portal',this)"><span class="dot" style="background:#3B7BF8"></span>Frontend</button>
+    <button class="layer-chip on" style="background:rgba(34,197,94,0.1);color:#15803D;border-color:#BBF7D0" onclick="toggleZone('api',this)"><span class="dot" style="background:#22C55E"></span>API / Go</button>
+    <button class="layer-chip on" style="background:rgba(74,21,75,0.1);color:#4A154B;border-color:rgba(74,21,75,0.3)" onclick="toggleZone('slack',this)"><span class="dot" style="background:#4A154B"></span>Slack Hub</button>
+    <button class="layer-chip on" style="background:rgba(118,185,0,0.1);color:#4A6500;border-color:rgba(118,185,0,0.3)" onclick="toggleZone('nvidia',this)"><span class="dot" style="background:#76B900"></span>NVIDIA AI</button>
+    <button class="layer-chip on" style="background:rgba(239,68,68,0.1);color:#B91C1C;border-color:#FECACA" onclick="toggleZone('data',this)"><span class="dot" style="background:#EF4444"></span>Data</button>
+    <button class="layer-chip on" style="background:rgba(148,163,184,0.15);color:#334155;border-color:#CBD5E1" onclick="toggleZone('infra',this)"><span class="dot" style="background:#64748B"></span>Infra</button>
+    <button class="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+  </div>
+</div>
+
+<!-- CANVAS -->
+<div class="canvas">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <div class="header-title">Lyceum Connect — System Architecture</div>
+      <div class="header-sub">Lyceum Global Holdings · ~50 Subsidiary Companies · Employee Intranet Portal</div>
+      <div class="header-badges">
+        <span class="hbadge">🏢 LGH Group IT</span>
+        <span class="hbadge">⚡ Zuse Technologies (ZTE)</span>
+        <span class="hbadge">🤖 NVIDIA NIM</span>
+        <span class="hbadge">🌐 Google Cloud APIs</span>
+        <span class="hbadge">💬 Slack Integration Hub</span>
+        <span class="hbadge">☁️ Microsoft 365</span>
+        <span class="hbadge">🔐 API Gateway</span>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="hstat"><div class="hstat-val">12</div><div class="hstat-lbl">Architecture Zones</div></div>
+      <div class="hstat" style="border-left:1px solid rgba(255,255,255,0.2);padding-left:16px"><div class="hstat-val">~50</div><div class="hstat-lbl">Group Companies</div></div>
+      <div class="hstat" style="border-left:1px solid rgba(255,255,255,0.2);padding-left:16px"><div class="hstat-val">8</div><div class="hstat-lbl">AI Models</div></div>
+      <div class="hstat" style="border-left:1px solid rgba(255,255,255,0.2);padding-left:16px"><div class="hstat-val">6+</div><div class="hstat-lbl">Ext. Systems</div></div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE GRID -->
+  <div class="arch-grid" id="archGrid">
+
+    <!-- ① FRONTEND -->
+    <div class="zone" id="zone-portal" style="background:var(--zone-portal);border-color:var(--zone-portal-border)">
+      <div class="zone-header">
+        <div class="zone-icon" style="background:rgba(59,123,248,0.12);color:#3B7BF8">🖥️</div>
+        <span class="zone-label" style="color:#2563EB">① Frontend Layer — Lyceum Connect Portal</span>
+        <span class="zone-sublabel">Static HTML/CSS → Framework (Next.js / SvelteKit)</span>
+      </div>
+      <div class="zone-row">
+        <div class="node" onclick="showTooltip('login')">
+          <span class="node-icon">🔑</span>
+          <div class="node-name">Login / SSO</div>
+          <div class="node-tech">Microsoft Entra ID</div>
+        </div>
+        <div class="node" onclick="showTooltip('dashboard')">
+          <span class="node-icon">🏠</span>
+          <div class="node-name">Dashboard</div>
+          <div class="node-tech">index.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('servicecatalog')">
+          <span class="node-icon">📦</span>
+          <div class="node-name">Service Catalog</div>
+          <div class="node-tech">service-catalog.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('requestform')">
+          <span class="node-icon">📝</span>
+          <div class="node-name">Request Form</div>
+          <div class="node-tech">request-form.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('requesttrack')">
+          <span class="node-icon">📊</span>
+          <div class="node-name">My Requests</div>
+          <div class="node-tech">request-tracking.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('knowledge')">
+          <span class="node-icon">📚</span>
+          <div class="node-name">Knowledge Center</div>
+          <div class="node-tech">knowledge-center.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('announce')">
+          <span class="node-icon">📢</span>
+          <div class="node-name">Announcements</div>
+          <div class="node-tech">announcements.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('directory')">
+          <span class="node-icon">👥</span>
+          <div class="node-name">Employee Directory</div>
+          <div class="node-tech">employee-directory.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('meeting')">
+          <span class="node-icon">🎙️</span>
+          <div class="node-name">Meeting Transcriber</div>
+          <div class="node-tech">meeting-transcription.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('tasks')">
+          <span class="node-icon">✅</span>
+          <div class="node-name">Tasks Manager</div>
+          <div class="node-tech">tasks.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('sectors')">
+          <span class="node-icon">🏢</span>
+          <div class="node-name">Company Hierarchy</div>
+          <div class="node-tech">sectors.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('profile')">
+          <span class="node-icon">👤</span>
+          <div class="node-name">Profile</div>
+          <div class="node-tech">profile.html</div>
+        </div>
+        <div class="node" onclick="showTooltip('dashreport')">
+          <span class="node-icon">📈</span>
+          <div class="node-name">Dashboards & Reports</div>
+          <div class="node-tech">Recharts + NVIDIA Insights</div>
+          <span class="node-badge node-new">NEW</span>
+        </div>
+        <div class="node" onclick="showTooltip('bot')">
+          <span class="node-icon">🤖</span>
+          <div class="node-name">Portal Bot Widget</div>
+          <div class="node-tech">GLM-5.1 via NVIDIA NIM</div>
+          <span class="node-badge node-new">NEW</span>
+        </div>
+        <div class="node" onclick="showTooltip('docprep')">
+          <span class="node-icon">📄</span>
+          <div class="node-name">Doc Preparation</div>
+          <div class="node-tech">SOP / Memo Editor</div>
+          <span class="node-badge node-new">NEW</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENT-ONLY ZONE -->
+    <div class="zone zone-client-only" id="zone-client" style="background:rgba(234,179,8,0.05)">
+      <div class="zone-header">
+        <div class="zone-icon" style="background:var(--warning-light);color:var(--warning-dark)">🔒</div>
+        <span class="zone-label" style="color:var(--warning-dark)">⑫ Client-Only Zone</span>
+        <span class="client-badge">⚠️ NO BACKEND — Browser Memory / Cache Only</span>
+        <span class="zone-sublabel" style="margin-left:8px">No file touches server. Files persist only in browser tab.</span>
+      </div>
+      <div class="zone-row">
+        <div class="node" onclick="showTooltip('docconvert')">
+          <span class="node-icon">🔄</span>
+          <div class="node-name">Document Converter</div>
+          <div class="node-tech">pdf-lib / pdf.js (WASM)</div>
+          <span class="node-badge node-client">Client-Only</span>
+        </div>
+        <div class="node" onclick="showTooltip('cachestore')">
+          <span class="node-icon">💾</span>
+          <div class="node-name">Browser Cache / Memory</div>
+          <div class="node-tech">In-memory. No IndexedDB persistence.</div>
+          <span class="node-badge node-client">Ephemeral</span>
+        </div>
+        <div style="display:flex;align-items:center;padding:14px 16px;font-size:12px;color:var(--warning-dark);font-weight:600;gap:8px;background:var(--warning-light);border-radius:var(--radius-lg);border:1px solid var(--warning)">
+          <span>📌</span>
+          On explicit "Save to Portal" → file routes through API Gateway → PII Masking → Knowledge Center / OneDrive
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR -->
+    <div class="connector"><div class="connector-line"></div><div class="connector-arrow">🔐</div><span class="connector-label">All calls routed via API Gateway</span></div>
+
+    <!-- ② API GATEWAY -->
+    <div class="zone" id="zone-api" style="background:var(--zone-api);border-color:var(--zone-api-border)">
+      <div class="zone-header">
+        <div class="zone-icon" style="background:rgba(34,197,94,0.12);color:#15803D">🛡️</div>
+        <span class="zone-label" style="color:#15803D">② API Gateway & Go Backend</span>
+        <span class="zone-sublabel">Security · Auth · Rate Limiting · Secret Vaulting · API Masking</span>
+      </div>
+      <div class="two-col">
+        <div class="zone-row">
+          <div class="node" onclick="showTooltip('apigateway')">
+            <span class="node-icon">🔐</span>
+            <div class="node-name">API Gateway</div>
+            <div class="node-tech">Kong / AWS API GW</div>
+            <span class="node-badge node-new">NEW</span>
+          </div>
+          <div class="node" onclick="showTooltip('secretvault')">
+            <span class="node-icon">🔑</span>
+            <div class="node-name">Secret Vault</div>
+            <div class="node-tech">AWS Secrets Manager</div>
+          </div>
+          <div class="node" onclick="showTooltip('jwtauth')">
+            <span class="node-icon">🎫</span>
+            <div class="node-name">JWT Auth / RBAC</div>
+            <div class="node-tech">Go middleware</div>
+          </div>
+        </div>
+        <div class="zone-row">
+          <div class="node" onclick="showTooltip('goapi')">
+            <span class="node-icon">⚡</span>
+            <div class="node-name">Go Backend API</div>
+            <div class="node-tech">Golang · Gin / Echo</div>
+          </div>
+          <div class="node" onclick="showTooltip('routingengine')">
+            <span class="node-icon">🔀</span>
+            <div class="node-name">Routing Engine</div>
+            <div class="node-tech">LGH IT ↔ ZTE · Go service</div>
+          </div>
+          <div class="node" onclick="showTooltip('notifengine')">
+            <span class="node-icon">🔔</span>
+            <div class="node-name">Notification Engine</div>
+            <div class="node-tech">Email + Slack + In-portal</div>
+          </div>
+          <div class="node" onclick="showTooltip('websocket')">
+            <span class="node-icon">⚡</span>
+            <div class="node-name">WebSocket / SSE</div>
+            <div class="node-tech">Real-time updates</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR -->
+    <div class="connector"><div class="connector-line"></div><div class="connector-arrow">↕️</div><span class="connector-label">Routed & RBAC-checked per company</span></div>
+
+    <!-- ③ LGH + ZTE + COMPANIES ROW -->
+    <div class="three-col">
+
+      <!-- LGH GROUP IT -->
+      <div class="zone" style="background:var(--zone-lgh);border-color:var(--zone-lgh-border)">
+        <div class="zone-header">
+          <div class="zone-icon" style="background:rgba(234,179,8,0.15);color:var(--warning-dark)">🏛️</div>
+          <span class="zone-label" style="color:var(--warning-dark)">③ LGH Group IT</span>
+          <span class="zone-sublabel">First-level gate · 5 service categories</span>
+        </div>
+
+        <!-- Queue management nodes -->
+        <div class="zone-row" style="flex-direction:column;margin-bottom:14px">
+          <div class="node" onclick="showTooltip('lghreview')">
+            <span class="node-icon">🔍</span>
+            <div class="node-name">IT Review Queue</div>
+            <div class="node-tech">First-level gate · RBAC: IT Reviewer</div>
+          </div>
+          <div class="node" onclick="showTooltip('lghapproval')">
+            <span class="node-icon">✅</span>
+            <div class="node-name">Approve / Forward</div>
+            <div class="node-tech">Routes approved tickets to ZTE</div>
+          </div>
+          <div class="node" onclick="showTooltip('lghpolicy')">
+            <span class="node-icon">📋</span>
+            <div class="node-name">Policy Enforcement</div>
+            <div class="node-tech">PDPA · RBAC rules · Flag config</div>
+          </div>
+        </div>
+
+        <!-- Service categories divider -->
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--warning-dark);margin-bottom:8px;display:flex;align-items:center;gap:8px">
+          <span>Services requiring LGH IT review</span>
+          <div style="flex:1;height:1px;background:rgba(234,179,8,0.3)"></div>
+        </div>
+
+        <!-- Service category nodes — LGH IT Review Required -->
+        <div class="zone-row" style="flex-direction:column;gap:8px">
+
+          <div class="node" onclick="showTooltip('svc_itsupport')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">🛠️</span>
+            <div class="node-name">IT Support</div>
+            <div class="node-tech">General IT helpdesk · Device faults · Access issues · Onboarding support</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_itservices')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">🖧</span>
+            <div class="node-name">IT Services</div>
+            <div class="node-tech">Server & Infrastructure · Network & Connectivity · Software & Licensing</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_devreq')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">💻</span>
+            <div class="node-name">Websites & Applications Development</div>
+            <div class="node-tech">New builds · Enhancements · Decommissions</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_webchanges')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">🔧</span>
+            <div class="node-name">Websites & Applications Changes</div>
+            <div class="node-tech">Content updates · Bug fixes · UI/UX changes · Feature modifications</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_incident')" style="border-left:3px solid #EF4444">
+            <span class="node-icon">🚨</span>
+            <div class="node-name">Incidents & Breach Reports</div>
+            <div class="node-tech">Security incidents · Data breaches · PDPA 72hr reporting</div>
+            <span class="node-badge" style="background:var(--error-light);color:var(--error-dark)">CRITICAL</span>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_sim')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">📱</span>
+            <div class="node-name">SIM Card & eSIM Requests</div>
+            <div class="node-tech">New SIM · Replacement · eSIM provisioning</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_travel')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">✈️</span>
+            <div class="node-name">Foreign Travel — Data & Visa</div>
+            <div class="node-tech">Data roaming activation · Visa application support</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_social')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">📲</span>
+            <div class="node-name">Social Media Accounts</div>
+            <div class="node-tech">Account creation · Access requests · Admin rights</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_cctv')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">📷</span>
+            <div class="node-name">CCTV</div>
+            <div class="node-tech">New installation · Footage access · Maintenance · Expansion</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_email')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">📧</span>
+            <div class="node-name">Email Accounts</div>
+            <div class="node-tech">Creation · Alias changes · Mailbox config · Deactivation</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_assets')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">🗄️</span>
+            <div class="node-name">Assets Management</div>
+            <div class="node-tech">Hardware allocation · Asset tracking · Disposal · Transfer requests</div>
+          </div>
+
+          <div class="node" onclick="showTooltip('svc_internet')" style="border-left:3px solid #EAB308">
+            <span class="node-icon">🌐</span>
+            <div class="node-name">Internet Packages</div>
+            <div class="node-tech">New connection · Speed upgrade · Package changes · ISP coordination</div>
+          </div>
+
+        </div>
+
+        <div style="margin-top:12px;padding:8px 12px;background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.3);border-radius:var(--radius-md);font-size:11px;color:var(--warning-dark);font-weight:600">
+          ⚠️ All 12 service categories above are flagged <code style="background:rgba(234,179,8,0.15);padding:1px 5px;border-radius:4px;font-size:10px">LGH_IT_REVIEW_REQUIRED</code> — all requests land here first before routing to ZTE. ZTE is a third-party company; LGH Group IT gates every category.
+        </div>
+      </div>
+
+      <!-- ZTE -->
+      <div class="zone" style="background:var(--zone-zte);border-color:var(--zone-zte-border)">
+        <div class="zone-header">
+          <div class="zone-icon" style="background:rgba(168,85,247,0.12);color:#7C3AED">⚙️</div>
+          <span class="zone-label" style="color:#7C3AED">④ Zuse Technologies (ZTE)</span>
+        </div>
+        <div class="zone-row" style="flex-direction:column">
+          <div class="node" onclick="showTooltip('ztejobs')">
+            <span class="node-icon">🛠️</span>
+            <div class="node-name">IT Job Execution</div>
+            <div class="node-tech">ZTE Technician queue</div>
+          </div>
+          <div class="node" onclick="showTooltip('zteasset')">
+            <span class="node-icon">💻</span>
+            <div class="node-name">Asset Management</div>
+            <div class="node-tech">System A integration</div>
+          </div>
+          <div class="node" onclick="showTooltip('ztecomms')">
+            <span class="node-icon">📡</span>
+            <div class="node-name">Status Updates</div>
+            <div class="node-tech">Notifies requester</div>
+          </div>
+        </div>
+        <div style="margin-top:12px;padding:8px 12px;background:rgba(168,85,247,0.08);border:1px solid rgba(168,85,247,0.2);border-radius:var(--radius-md);font-size:11px;color:#7C3AED;font-weight:600">
+          ↙️ Receives forwarded tickets from LGH Group IT only
+        </div>
+      </div>
+
+      <!-- OTHER COMPANIES -->
+      <div class="zone" style="background:var(--zone-companies);border-color:var(--zone-companies-border)">
+        <div class="zone-header">
+          <div class="zone-icon" style="background:rgba(6,182,212,0.12);color:#0E7490">🏭</div>
+          <span class="zone-label" style="color:#0E7490">⑤ Group Companies / Departments</span>
+        </div>
+        <div class="zone-row" style="flex-direction:column">
+          <div class="node" onclick="showTooltip('hrqueue')">
+            <span class="node-icon">👥</span>
+            <div class="node-name">HR Department</div>
+            <div class="node-tech">Leave, payroll, onboarding</div>
+          </div>
+          <div class="node" onclick="showTooltip('facilityqueue')">
+            <span class="node-icon">🏢</span>
+            <div class="node-name">Facility Management</div>
+            <div class="node-tech">System B integration</div>
+          </div>
+          <div class="node" onclick="showTooltip('otherco')">
+            <span class="node-icon">🏗️</span>
+            <div class="node-name">~50 Subsidiaries</div>
+            <div class="node-tech">NCG Express · NCG Automotives · Dynamic Labs · Company A … N</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR -->
+    <div class="connector"><div class="connector-line"></div><div class="connector-arrow">🤖</div><span class="connector-label">AI processing pipeline</span></div>
+
+    <!-- ④ NVIDIA AI ZONE -->
+    <div class="zone" id="zone-nvidia" style="background:var(--zone-nvidia);border-color:var(--zone-nvidia-border)">
+      <div class="zone-header">
+        <div class="zone-icon" style="background:rgba(118,185,0,0.15);color:#4A6500">🟢</div>
+        <span class="zone-label" style="color:#4A6500">⑥ NVIDIA NIM — AI Model Layer</span>
+        <span class="zone-sublabel">Hosted via NVIDIA NIM API · Routed through API Gateway</span>
+      </div>
+      <div class="four-col">
+        <div class="node" onclick="showTooltip('glm51')">
+          <span class="node-icon">💬</span>
+          <div class="node-name">GLM-5.1</div>
+          <div class="node-tech">Portal Bot · Dashboard Insights · Agentic reasoning</div>
+          <span class="node-badge node-new">PRIMARY</span>
+        </div>
+        <div class="node" onclick="showTooltip('nemotronocr')">
+          <span class="node-icon">📸</span>
+          <div class="node-name">Nemotron OCR v2</div>
+          <div class="node-tech">Scanned English documents · 20 pg/s</div>
+        </div>
+        <div class="node" onclick="showTooltip('nemotronreason')">
+          <span class="node-icon">🧠</span>
+          <div class="node-name">Nemotron Reasoning</div>
+          <div class="node-tech">Task extraction from transcripts</div>
+        </div>
+        <div class="node" onclick="showTooltip('safetypii')">
+          <span class="node-icon">🛡️</span>
+          <div class="node-name">Safety Guard + GLiNER-PII</div>
+          <div class="node-tech">PII detection & masking · PDPA compliance</div>
+          <span class="node-badge node-new">PDPA</span>
+        </div>
+        <div class="node" onclick="showTooltip('nemoretriever')">
+          <span class="node-icon">🔍</span>
+          <div class="node-name">NeMo Retriever</div>
+          <div class="node-tech">RAG Embedding + Reranking · Knowledge Center</div>
+        </div>
+        <div class="node" onclick="showTooltip('nemoguardrails')">
+          <span class="node-icon">🚧</span>
+          <div class="node-name">NeMo Guardrails</div>
+          <div class="node-tech">Bot grounding · Topic control · Jailbreak guard</div>
+        </div>
+        <div class="node" onclick="showTooltip('contentsafety')">
+          <span class="node-icon">⚠️</span>
+          <div class="node-name">Content Safety</div>
+          <div class="node-tech">20+ languages · CSAT / free-text moderation</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOOGLE APIS -->
+    <div class="zone" style="background:var(--zone-google);border-color:var(--zone-google-border)">
+      <div class="zone-header">
+        <div class="zone-icon" style="background:rgba(66,133,244,0.12);color:#1A73E8">🌐</div>
+        <span class="zone-label" style="color:#1A73E8">⑦ Google Cloud APIs — Sinhala Language</span>
+        <span class="zone-sublabel">Mandatory for all Sinhala (si-LK) processing — not covered by NVIDIA</span>
+      </div>
+      <div class="zone-row">
+        <div class="node" onclick="showTooltip('googlestt')">
+          <span class="node-icon">🎙️</span>
+          <div class="node-name">Speech-to-Text</div>
+          <div class="node-tech">si-LK · Cloud STT API</div>
+        </div>
+        <div class="node" onclick="showTooltip('googletranslate')">
+          <span class="node-icon">🔤</span>
+          <div class="node-name">Cloud Translation</div>
+          <div class="node-tech">Sinhala ↔ English · Bot queries</div>
+        </div>
+        <div class="node" onclick="showTooltip('googleocr')">
+          <span class="node-icon">📄</span>
+          <div class="node-name">Document AI / Vision</div>
+          <div class="node-tech">Sinhala-language scanned docs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR -->
+    <div class="connector"><div class="connector-line"></div><div class="connector-arrow">💬</div><span class="connector-label">Events published to Slack Hub</span></div>
+
+    <!-- ⑤ SLACK INTEGRATION HUB -->
+    <div class="zone" id="zone-slack" style="background:var(--zone-slack);border-color:var(--zone-slack-border)">
+      <div class="zone-header">
+        <div class="zone-icon" style="background:rgba(74,21,75,0.12);color:#4A154B">💬</div>
+        <span class="zone-label" style="color:#4A154B">⑧ Slack Integration Hub</span>
+        <span class="zone-sublabel">Event-bus pattern · Webhook routing · Bidirectional for approvals</span>
+      </div>
+      <div class="two-col">
+        <div class="zone-row">
+          <div class="node" onclick="showTooltip('slackgateway')">
+            <span class="node-icon">🔀</span>
+            <div class="node-name">Event Router</div>
+            <div class="node-tech">Webhook / Event Bus</div>
+          </div>
+          <div class="node" onclick="showTooltip('slackapproval')">
+            <span class="node-icon">✅</span>
+            <div class="node-name">Interactive Approvals</div>
+            <div class="node-tech">Slack buttons → portal action</div>
+          </div>
+          <div class="node" onclick="showTooltip('slacknotif')">
+            <span class="node-icon">🔔</span>
+            <div class="node-name">Notification Dispatch</div>
+            <div class="node-tech">#it-requests · #approvals · #hr</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:11px;font-weight:700;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.5px">Dedicated Channels</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <span style="padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(74,21,75,0.1);color:#4A154B;border:1px solid rgba(74,21,75,0.2)">#it-requests</span>
+            <span style="padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(74,21,75,0.1);color:#4A154B;border:1px solid rgba(74,21,75,0.2)">#hr-requests</span>
+            <span style="padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(74,21,75,0.1);color:#4A154B;border:1px solid rgba(74,21,75,0.2)">#approvals</span>
+            <span style="padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(74,21,75,0.1);color:#4A154B;border:1px solid rgba(74,21,75,0.2)">#announcements</span>
+            <span style="padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(74,21,75,0.1);color:#4A154B;border:1px solid rgba(74,21,75,0.2)">#facilities</span>
+            <span style="padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(74,21,75,0.1);color:#4A154B;border:1px solid rgba(74,21,75,0.2)">#assets</span>
+            <span style="padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(74,21,75,0.1);color:#4A154B;border:1px solid rgba(74,21,75,0.2)">#kitchen</span>
+            <span style="padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;background:rgba(74,21,75,0.1);color:#4A154B;border:1px solid rgba(74,21,75,0.2)">#system-alerts</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;padding:8px 12px;background:rgba(74,21,75,0.06);border-radius:var(--radius-md);border:1px solid rgba(74,21,75,0.15)">
+            🔌 <strong>Extensible:</strong> Systems D, E, F plug in via new webhook config — no core re-architecture needed
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑥ MICROSOFT 365 + EXTERNAL SYSTEMS -->
+    <div class="two-col">
+
+      <!-- MS365 -->
+      <div class="zone" style="background:var(--zone-ms365);border-color:var(--zone-ms365-border)">
+        <div class="zone-header">
+          <div class="zone-icon" style="background:rgba(0,120,212,0.12);color:#0078D4">☁️</div>
+          <span class="zone-label" style="color:#0078D4">⑨ Microsoft 365</span>
+        </div>
+        <div class="zone-row">
+          <div class="node" onclick="showTooltip('onedrive')">
+            <span class="node-icon">📁</span>
+            <div class="node-name">OneDrive / SharePoint</div>
+            <div class="node-tech">SOP · Memos · Policy docs</div>
+          </div>
+          <div class="node" onclick="showTooltip('azuread')">
+            <span class="node-icon">🔐</span>
+            <div class="node-name">Azure AD / Entra ID</div>
+            <div class="node-tech">SSO · RBAC source</div>
+          </div>
+          <div class="node" onclick="showTooltip('msemail')">
+            <span class="node-icon">📧</span>
+            <div class="node-name">Exchange / Email</div>
+            <div class="node-tech">Notification delivery</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXTERNAL SYSTEMS -->
+      <div class="zone" style="background:var(--zone-ext);border-color:var(--zone-ext-border)">
+        <div class="zone-header">
+          <div class="zone-icon" style="background:rgba(249,115,22,0.12);color:#C2410C">🔌</div>
+          <span class="zone-label" style="color:#C2410C">⑩ External Systems</span>
+          <span class="zone-sublabel">All via Slack Hub webhook pattern</span>
+        </div>
+        <div class="zone-row">
+          <div class="node" onclick="showTooltip('sysA')"><span class="node-icon">💻</span><div class="node-name">System A</div><div class="node-tech">Asset Management</div></div>
+          <div class="node" onclick="showTooltip('sysB')"><span class="node-icon">🏢</span><div class="node-name">System B</div><div class="node-tech">Facility Management</div></div>
+          <div class="node" onclick="showTooltip('sysC')"><span class="node-icon">🍽️</span><div class="node-name">System C</div><div class="node-tech">Kitchen / Canteen Mgmt</div></div>
+          <div class="node" onclick="showTooltip('sysD')"><span class="node-icon">📦</span><div class="node-name">System D–F</div><div class="node-tech">Future integrations</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR -->
+    <div class="connector"><div class="connector-line"></div><div class="connector-arrow">💾</div><span class="connector-label">Persistence layer</span></div>
+
+    <!-- ⑦ DATA LAYER -->
+    <div class="zone" id="zone-data" style="background:var(--zone-data);border-color:var(--zone-data-border)">
+      <div class="zone-header">
+        <div class="zone-icon" style="background:rgba(239,68,68,0.1);color:#B91C1C">🗄️</div>
+        <span class="zone-label" style="color:#B91C1C">⑪ Data Layer</span>
+        <span class="zone-sublabel">Multi-tenant row-level isolation (tenant_id on all tables) · PDPA-compliant retention</span>
+      </div>
+      <div class="zone-row">
+        <div class="node" onclick="showTooltip('postgres')">
+          <span class="node-icon">🐘</span>
+          <div class="node-name">PostgreSQL</div>
+          <div class="node-tech">Primary transactional DB</div>
+        </div>
+        <div class="node" onclick="showTooltip('redis')">
+          <span class="node-icon">⚡</span>
+          <div class="node-name">Redis</div>
+          <div class="node-tech">Sessions · Cache · Pub/Sub</div>
+        </div>
+        <div class="node" onclick="showTooltip('vectordb')">
+          <span class="node-icon">🔢</span>
+          <div class="node-name">pgvector / Qdrant</div>
+          <div class="node-tech">RAG embeddings · Knowledge Center</div>
+        </div>
+        <div class="node" onclick="showTooltip('reportdb')">
+          <span class="node-icon">📊</span>
+          <div class="node-name">Read Replica / Analytics</div>
+          <div class="node-tech">Dashboard queries · Materialised views</div>
+        </div>
+        <div class="node" onclick="showTooltip('s3')">
+          <span class="node-icon">📦</span>
+          <div class="node-name">Object Storage</div>
+          <div class="node-tech">AWS S3 · Attachments</div>
+        </div>
+        <div class="node" onclick="showTooltip('auditlog')">
+          <span class="node-icon">📋</span>
+          <div class="node-name">Audit Log Store</div>
+          <div class="node-tech">Immutable · PDPA compliance</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONNECTOR -->
+    <div class="connector"><div class="connector-line"></div><div class="connector-arrow">☁️</div><span class="connector-label">Infrastructure hosting</span></div>
+
+    <!-- ⑧ INFRASTRUCTURE -->
+    <div class="zone" id="zone-infra" style="background:var(--zone-infra);border-color:var(--zone-infra-border)">
+      <div class="zone-header">
+        <div class="zone-icon" style="background:rgba(148,163,184,0.15);color:#334155">🖧</div>
+        <span class="zone-label" style="color:#334155">⑫ Infrastructure Layer</span>
+        <span class="zone-sublabel">AWS ap-south-1 (Mumbai) · Azure Southeast Asia failover · 500→5000 employee scale</span>
+      </div>
+      <div class="zone-row">
+        <div class="node" onclick="showTooltip('awshost')"><span class="node-icon">☁️</span><div class="node-name">AWS / Azure Hosting</div><div class="node-tech">ap-south-1 primary</div></div>
+        <div class="node" onclick="showTooltip('k8s')"><span class="node-icon">🐳</span><div class="node-name">Kubernetes / ECS</div><div class="node-tech">Container orchestration</div></div>
+        <div class="node" onclick="showTooltip('cdn')"><span class="node-icon">🌐</span><div class="node-name">CDN</div><div class="node-tech">CloudFront · Static assets</div></div>
+        <div class="node" onclick="showTooltip('cicd')"><span class="node-icon">🔄</span><div class="node-name">CI/CD Pipeline</div><div class="node-tech">GitHub Actions</div></div>
+        <div class="node" onclick="showTooltip('monitoring')"><span class="node-icon">📡</span><div class="node-name">Monitoring</div><div class="node-tech">Prometheus · Grafana</div></div>
+        <div class="node" onclick="showTooltip('waf')"><span class="node-icon">🛡️</span><div class="node-name">WAF / DDoS Protection</div><div class="node-tech">AWS Shield / Cloudflare</div></div>
+      </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend">
+      <div class="legend-title">📋 Legend</div>
+      <div class="legend-grid">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-portal-border)"></div>① Frontend Portal</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-api-border)"></div>② API Gateway / Go Backend</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-lgh-border)"></div>③ LGH Group IT (Review Gate)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-zte-border)"></div>④ Zuse Technologies (ZTE)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-companies-border)"></div>⑤ Group Companies / Depts</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-nvidia-border)"></div>⑥ NVIDIA NIM AI Models</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-google-border)"></div>⑦ Google Cloud (Sinhala)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-slack-border)"></div>⑧ Slack Integration Hub</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-ms365-border)"></div>⑨ Microsoft 365 / OneDrive</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-ext-border)"></div>⑩ External Systems A–F</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-data-border)"></div>⑪ Data Layer</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--zone-infra-border)"></div>⑫ Infrastructure</div>
+      </div>
+      <div class="legend-section">
+        <div class="legend-line-row"><div class="legend-line sync"></div>Synchronous REST/gRPC call</div>
+        <div class="legend-line-row"><div class="legend-line async"></div>Async / event-driven (queue)</div>
+        <div class="legend-line-row"><div class="legend-line webhook"></div>Slack webhook / event bus</div>
+        <div class="legend-line-row"><div class="legend-line client-only"></div>Client-only zone (no backend)</div>
+      </div>
+      <div style="margin-top:14px;padding:12px 16px;background:var(--primary-50);border:1px solid var(--primary-100);border-radius:var(--radius-md);font-size:12px;color:var(--text-secondary)">
+        💡 <strong>Interaction tip:</strong> Click any component node to see full tech spec, responsibility, and connected systems in the panel →
+      </div>
+    </div>
+
+  </div><!-- /arch-grid -->
+</div><!-- /canvas -->
+
+<!-- TOOLTIP PANEL -->
+<div class="tooltip-overlay" id="tooltipOverlay">
+  <div class="tooltip-panel" id="tooltipPanel">
+    <div class="tp-header">
+      <div>
+        <div class="tp-icon" id="tpIcon">🔧</div>
+        <div class="tp-title" id="tpTitle">Component</div>
+        <div class="tp-tech" id="tpTech">Technology</div>
+      </div>
+      <button class="tp-close" onclick="closeTooltip()">✕</button>
+    </div>
+    <div class="tp-body" id="tpBody"></div>
+  </div>
+</div>
+
+<script>
+// Dark mode
+function toggleDark(){
+  const html=document.documentElement;
+  html.dataset.theme=html.dataset.theme==='dark'?'light':'dark';
+  document.querySelector('.dark-toggle').textContent=html.dataset.theme==='dark'?'☀️':'🌙';
+}
+
+// Layer toggle
+function toggleZone(id,btn){
+  const el=document.getElementById('zone-'+id);
+  if(!el)return;
+  btn.classList.toggle('on');btn.classList.toggle('off');
+  el.style.display=btn.classList.contains('off')?'none':'';
+}
+
+// Component data
+const NODES={
+  login:{icon:'🔑',name:'Login / SSO',tech:'Microsoft Entra ID (Azure AD)',zone:'Frontend',desc:'Single Sign-On entry point for all ~50 company employees. RBAC roles assigned at login based on Entra ID group membership.',connects:['Azure AD','Go API','JWT Auth'],tags:['SSO','RBAC','Multi-tenant']},
+  dashboard:{icon:'🏠',name:'Dashboard',tech:'HTML/CSS + WebSocket',zone:'Frontend',desc:'Main landing page showing: pending requests, task summary, announcements feed, quick actions, and NVIDIA-powered insight snippet.',connects:['Go API','Notification Engine','NVIDIA GLM-5.1'],tags:['Portal','Real-time']},
+  servicecatalog:{icon:'📦',name:'Service Catalog',tech:'Dynamic HTML + Go API',zone:'Frontend',desc:'Employees browse services by company or department. Each service card shows SLA, approvals required, and the responsible team. Selecting a service opens the dynamic Request Form.',connects:['Go API','Routing Engine'],tags:['Core','Multi-company']},
+  requestform:{icon:'📝',name:'Request Form',tech:'Dynamic multi-step form',zone:'Frontend',desc:'Dynamic fields driven by service type configuration. On submit: PII masking runs first, then Job Card is auto-created. Two-tier routing check happens immediately after creation.',connects:['Go API','PII Masking','Routing Engine','Job Card DB'],tags:['Core workflow','PDPA']},
+  requesttrack:{icon:'📊',name:'My Requests',tech:'SSE / WebSocket',zone:'Frontend',desc:'Real-time status tracking for all submitted Job Cards. Employee sees: status timeline, assigned party, SLA countdown, approval status, and CSAT prompt on completion.',connects:['Go API','WebSocket','PostgreSQL'],tags:['Real-time','CSAT']},
+  knowledge:{icon:'📚',name:'Knowledge Center',tech:'RAG + OneDrive Sync',zone:'Frontend',desc:'Surfaces SOPs, policies, memos, and forms from OneDrive. Indexed by NeMo Retriever. Employees can search by category, company, or natural-language query powered by NeMo RAG pipeline.',connects:['Go API','NeMo Retriever','OneDrive','Vector DB'],tags:['RAG','OneDrive','PDPA']},
+  announce:{icon:'📢',name:'Announcements',tech:'Scoped feed engine',zone:'Frontend',desc:'Group-wide or company/department-scoped announcements. Categories: HR Policy, IT Maintenance, Event, Achievement, Emergency. Pushed to: portal feed, email, Slack channel.',connects:['Go API','Slack Hub','Email'],tags:['Notifications','Multi-scope']},
+  directory:{icon:'👥',name:'Employee Directory',tech:'Federated search',zone:'Frontend',desc:'Centralised directory across ~50 companies. Fields: Name, Designation, Department, Company, Email, Phone, Office. Phone/email visibility is role-controlled per PDPA.',connects:['Go API','PostgreSQL','HRIS (future)'],tags:['PDPA','Multi-tenant']},
+  meeting:{icon:'🎙️',name:'Meeting Transcriber',tech:'Google STT + Nemotron',zone:'Frontend',desc:'Real-time speech-to-text. English → Nemotron ASR or NVIDIA STT. Sinhala → Google Cloud STT (si-LK). Post-transcription: GLM-5.1 / Nemotron extracts action items and auto-creates tasks.',connects:['Google STT','Nemotron Reasoning','Tasks API','Google Translate'],tags:['AI','Sinhala','Real-time']},
+  tasks:{icon:'✅',name:'Tasks Manager',tech:'Go API + PostgreSQL',zone:'Frontend',desc:'Task management module. Tasks auto-generated from meeting transcriptions or created manually. Fields: status, due date, priority, assignee, source meeting link.',connects:['Go API','PostgreSQL','Slack Hub','Notification Engine'],tags:['Automation','Meetings']},
+  sectors:{icon:'🏢',name:'Company Hierarchy',tech:'Bento grid SPA',zone:'Frontend',desc:'Interactive bento-grid explorer of LGH group structure. Shows all ~50 subsidiaries, sector groupings, company profiles, and website links.',connects:['Go API','PostgreSQL'],tags:['Read-only','Group structure']},
+  profile:{icon:'👤',name:'Profile',tech:'HTML + Go API',zone:'Frontend',desc:'Employee profile page. Shows: personal info, RBAC role, submitted requests history, task summary, CSAT scores given, and linked company.',connects:['Go API','PostgreSQL','Azure AD'],tags:['RBAC','History']},
+  dashreport:{icon:'📈',name:'Dashboards & Reports',tech:'Recharts + GLM-5.1',zone:'Frontend (NEW)',desc:'Admin/HOD-facing analytics. Charts: request volume, SLA performance, CSAT trends, task completion, doc engagement. NVIDIA GLM-5.1 generates natural-language insight summaries and answers free-text admin queries about data.',connects:['Go API','Read Replica DB','GLM-5.1','NeMo Guardrails'],tags:['Analytics','NVIDIA AI','Admin']},
+  bot:{icon:'🤖',name:'Portal Bot Widget',tech:'GLM-5.1 via NVIDIA NIM',zone:'Frontend (NEW)',desc:'Conversational assistant embedded on every portal page. Answers: ticket status, policy questions, task summaries, queue stats (for admins). Tool-calling pattern: GLM-5.1 calls defined Go backend endpoints — never touches DB directly. NeMo Guardrails ensures grounded, RBAC-respecting answers.',connects:['GLM-5.1','NeMo Guardrails','Go API','Google Translate'],tags:['AI Agent','RBAC','Sinhala']},
+  docprep:{icon:'📄',name:'Doc Preparation',tech:'SOP/Memo editor',zone:'Frontend (NEW)',desc:'Rich-text editor for drafting SOPs, memos, and policies. On explicit "Save to Portal" action, file goes through API Gateway → PII masking → Knowledge Center / OneDrive sync.',connects:['Document Converter','API Gateway (on save)','PII Masking','OneDrive'],tags:['Authoring','PDPA']},
+  docconvert:{icon:'🔄',name:'Document Converter',tech:'pdf-lib / pdf.js (WASM)',zone:'⚠️ Client-Only',desc:'PDF↔Word, image↔PDF, merge/split/compress — runs 100% in-browser via WebAssembly. No file ever touches the server during conversion. Files exist only in browser memory for the tab lifetime. On "Save to Portal" the user explicitly uploads through the normal authenticated flow.',connects:['Browser Cache (only)'],tags:['Client-only','Privacy','WASM']},
+  cachestore:{icon:'💾',name:'Browser Cache / Memory',tech:'In-memory JS objects',zone:'⚠️ Client-Only',desc:'Ephemeral in-browser storage for the conversion utility. No localStorage, no IndexedDB, no server calls. Files are gone when the tab closes. This is intentional by design.',connects:['Document Converter'],tags:['Ephemeral','No persistence']},
+  apigateway:{icon:'🔐',name:'API Gateway',tech:'Kong / AWS API Gateway',zone:'API / Go',desc:'All frontend calls route through here. Responsibilities: API key/secret injection (frontend never holds keys), JWT validation, rate limiting per user/role, request/response logging, internal URL masking. Backend services never exposed directly to browser.',connects:['All backend services','Secret Vault','Audit Log'],tags:['Security','API Masking','Rate Limiting']},
+  secretvault:{icon:'🔑',name:'Secret Vault',tech:'AWS Secrets Manager',zone:'API / Go',desc:'Centralised secret management. Holds: NVIDIA NIM API keys, Google Cloud credentials, Slack tokens, OneDrive client secrets, DB connection strings. Rotated automatically. The API Gateway fetches secrets at runtime — never baked into code or env vars.',connects:['API Gateway','All external integrations'],tags:['Security','Secret rotation']},
+  jwtauth:{icon:'🎫',name:'JWT Auth / RBAC',tech:'Go middleware',zone:'API / Go',desc:'JWT validation middleware applied to every request. RBAC matrix enforced per endpoint: Employee, Dept Staff, LGH IT Reviewer, ZTE Technician, HOD/Manager, Company Admin, Group Super Admin.',connects:['Azure AD','Go API','PostgreSQL'],tags:['Auth','RBAC','Multi-tenant']},
+  goapi:{icon:'⚡',name:'Go Backend API',tech:'Golang · Gin / Echo',zone:'API / Go',desc:'Core backend. Handles: Job Card CRUD, Service Catalog management, User/RBAC, Knowledge Center indexing, Task management, CSAT, Announcements, Employee Directory, Bot tool-call endpoints. Concurrency model handles notification fan-out efficiently.',connects:['PostgreSQL','Redis','Routing Engine','Notification Engine','NVIDIA NIM','Google APIs'],tags:['Core','Golang','REST']},
+  routingengine:{icon:'🔀',name:'Routing Engine',tech:'Go service · Named component',zone:'API / Go',desc:'Critical named component. Decision logic: if service.flag == LGH_IT_REVIEW_REQUIRED → route to LGH Group IT queue. Otherwise → route directly to relevant company/department queue. Configurable per service via admin panel.',connects:['PostgreSQL','LGH IT Queue','Company Queues','Notification Engine'],tags:['Two-tier routing','Core logic']},
+  notifengine:{icon:'🔔',name:'Notification Engine',tech:'Go concurrency · goroutines',zone:'API / Go',desc:'Fan-out notification system. Every Job Card event triggers: in-portal push (WebSocket), email (Exchange), and Slack message — concurrently via goroutines. Templated messages per event type (Acknowledge, In Progress, Approval Request, Complete, CSAT).',connects:['WebSocket server','Exchange/Email','Slack Hub','Redis'],tags:['Fan-out','Async','Real-time']},
+  websocket:{icon:'⚡',name:'WebSocket / SSE',tech:'Go WebSocket server',zone:'API / Go',desc:'Real-time bidirectional channel for: live Job Card status updates on request-tracking.html, in-portal notification badge updates, live transcription feed on meeting-transcription.html.',connects:['Go API','Frontend pages','Redis pub/sub'],tags:['Real-time','WebSocket']},
+  svc_itsupport:{icon:'🛠️',name:'IT Support',tech:'LGH IT Review → ZTE Execution',zone:'LGH Group IT — Service Category',desc:'General IT helpdesk requests that go through LGH Group IT review before ZTE executes — because ZTE is a third-party company, all requests must be vetted first regardless of complexity. Covers: device faults (laptop, desktop, peripherals), software not working, slow device performance, screen/display issues, audio-video equipment faults, printer/scanner issues, IT onboarding support for new employees, equipment relocation, and MFA/password resets. LGH Group IT triages the request, confirms scope, then forwards to ZTE with instructions.',connects:['LGH IT Review Queue','ZTE Job Queue','Routing Engine','Notification Engine'],tags:['Helpdesk','LGH IT gated','ZTE third-party']},
+  svc_itservices:{icon:'🖧',name:'IT Services',tech:'LGH IT Review → ZTE Execution',zone:'LGH Group IT — Service Category',desc:'Covers three sub-categories requiring LGH Group IT review before ZTE execution: (1) Server & Infrastructure — server provisioning/decommission, cloud resource provisioning (VM/storage/DB on AWS/Azure), backup configuration, storage capacity increases, SSL certificate request/renewal, domain/DNS record management; (2) Network & Connectivity — network point/LAN installation, Wi-Fi access (new area or guest), VPN access setup, firewall/port opening requests, static IP assignment; (3) Software & Licensing — software installation, license purchase/renewal, license reallocation, software removal. LGH IT reviews security and infrastructure impact before ZTE proceeds.',connects:['LGH IT Review Queue','ZTE Job Queue','Routing Engine','AWS/Azure (cloud provisioning)'],tags:['Infrastructure','Networking','Licensing','LGH IT gated']},
+  svc_devreq:{icon:'💻',name:'Websites & Applications Development',tech:'LGH IT Review → ZTE Execution',zone:'LGH Group IT — Service Category',desc:'Covers all requests to develop new or decommission existing digital systems across the group. Includes: new websites, web/mobile applications, internal tools, third-party integrations, API development, and full system decommissions. LGH Group IT reviews scope, security architecture requirements, and vendor/resource allocation before forwarding to ZTE for execution. Requires HOD approval for projects above a defined budget threshold. Distinct from "Websites & Applications Changes" which handles modifications to existing systems.',connects:['LGH IT Review Queue','ZTE Job Queue','Routing Engine','Approval Workflow'],tags:['Development','ZTE-executed','HOD approval']},
+  svc_webchanges:{icon:'🔧',name:'Websites & Applications Changes',tech:'LGH IT Review → ZTE Execution',zone:'LGH Group IT — Service Category',desc:'Covers modification requests to existing live websites and applications across the group. Includes: content updates, bug fixes, UI/UX changes, feature modifications, performance improvements, and configuration changes. Distinct from new development — these are changes to already-deployed systems. LGH Group IT reviews for security implications (e.g. database schema changes, authentication modifications) before forwarding to ZTE. Minor content-only changes may be fast-tracked by LGH IT Reviewer.',connects:['LGH IT Review Queue','ZTE Job Queue','Routing Engine'],tags:['Change management','Existing systems','ZTE-executed']},
+  svc_cctv:{icon:'📷',name:'CCTV',tech:'LGH IT Review → ZTE / Facility team',zone:'LGH Group IT — Service Category',desc:'Covers all CCTV-related requests across group company premises. Sub-types: new camera installation (requires site survey and LGH IT security approval), footage access requests (controlled access — requestor must provide justification and authorized by HOD/security officer), system maintenance (camera fault, NVR issues), and system expansion (adding cameras to existing infrastructure). LGH Group IT reviews access requests carefully — CCTV footage containing individuals is subject to PDPA data protection obligations. Footage access is logged in the audit trail.',connects:['LGH IT Review Queue','ZTE Job Queue','Facility Management (System B)','Audit Log'],tags:['Physical security','PDPA sensitive','Access controlled']},
+  svc_email:{icon:'📧',name:'Email Accounts',tech:'LGH IT Review → ZTE Execution',zone:'LGH Group IT — Service Category',desc:'Covers all corporate email account management requests. Sub-types: new email account creation (triggered on new employee onboarding — linked to Azure AD provisioning), email alias or display name changes, mailbox configuration changes (auto-reply, forwarding rules, shared mailbox setup), email distribution group creation or update, calendar sharing/delegation setup, mailbox storage increase requests, and account deactivation on employee exit. LGH Group IT reviews to ensure naming convention compliance and Azure AD/Entra ID consistency before ZTE executes.',connects:['LGH IT Review Queue','ZTE Job Queue','Azure AD / Entra ID','Exchange Online','Routing Engine'],tags:['Email','Azure AD','Onboarding/offboarding']},
+  svc_assets:{icon:'🗄️',name:'Assets Management',tech:'LGH IT Review → ZTE / System A',zone:'LGH Group IT — Service Category',desc:'Covers all IT asset lifecycle requests across the ~50 group companies. Sub-types: new hardware allocation (laptop, desktop, phone, tablet, printer, peripheral), asset transfer between employees or departments, asset return on employee exit (offboarding trigger), asset disposal/decommission requests (following secure data wipe procedure), and asset replacement requests for faulty equipment. LGH Group IT reviews to validate budget approval, asset availability in System A inventory, and compliance with the group asset policy. Integrates with System A (Asset Management System) via Slack Hub — real-time inventory updates flow back on allocation/return.',connects:['LGH IT Review Queue','ZTE Job Queue','System A (Slack Hub)','Routing Engine','HR offboarding trigger'],tags:['Hardware','Asset lifecycle','System A','Offboarding']},
+  svc_internet:{icon:'🌐',name:'Internet Packages',tech:'LGH IT Review → ZTE / ISP coordination',zone:'LGH Group IT — Service Category',desc:'Covers all corporate internet connectivity requests across group company premises. Sub-types: new internet connection for a new office or branch, speed/bandwidth upgrade requests, package change (plan tier or data cap), additional static IP allocation, backup/failover link requests, and ISP-related fault escalations (distinct from general IT support — these involve carrier-level coordination). LGH Group IT reviews for: budget approval, ISP contract alignment, network architecture impact (e.g. routing changes required), and security implications of new external-facing connections. ZTE coordinates with the ISP and handles on-site provisioning.',connects:['LGH IT Review Queue','ZTE Job Queue','ISP / Carrier','Network & Connectivity sub-category','Routing Engine'],tags:['Connectivity','ISP','Network','Budget approval']},
+  svc_incident:{icon:'🚨',name:'Incidents & Breach Reports',tech:'CRITICAL · Priority routing · PDPA notifiable',zone:'LGH Group IT — Service Category',desc:'Handles security incidents, data breaches, system outages, and malware events across all ~50 group companies. CRITICAL priority — bypasses normal SLA; LGH IT Reviewer is notified immediately via Slack #it-requests with urgent flag. For data breaches involving personal data: PDPA No. 9 of 2022 requires notification to the Data Protection Authority within 72 hours — LGH Group IT coordinates this process. Job Card auto-creates an Incident Report sub-type with mandatory fields: affected systems, data categories exposed, estimated number of data subjects, containment steps taken.',connects:['LGH IT Review Queue','ZTE Queue','PDPA Compliance','Audit Log','Slack #system-alerts'],tags:['CRITICAL','PDPA notifiable','Security','72-hour rule']},
+  svc_sim:{icon:'📱',name:'SIM Card & eSIM Requests',tech:'LGH IT Review → ZTE/Carrier',zone:'LGH Group IT — Service Category',desc:'Covers requests for: new corporate SIM cards, SIM replacements, eSIM provisioning for mobile devices, and SIM deactivations on employee exit. LGH Group IT verifies: employment status, approval from line manager, and corporate plan eligibility. Forwarded to ZTE for carrier coordination. On employee offboarding, SIM deactivation requests are automatically triggered from HR offboarding workflow.',connects:['LGH IT Review Queue','ZTE Execution','HR System (offboarding trigger)','Routing Engine'],tags:['Telecom','ZTE-coordinated','Offboarding']},
+  svc_travel:{icon:'✈️',name:'Foreign Travel — Data Roaming & Visa Support',tech:'LGH IT Review → ZTE / Admin team',zone:'LGH Group IT — Service Category',desc:'Two sub-types: (1) Data Roaming Activation — employee requests international data pack on corporate SIM for travel dates; LGH IT reviews and coordinates with ZTE/carrier to activate roaming for specified countries and date range, then deactivates on return. (2) Visa Request Support — employee submits travel details; LGH Group IT (or linked admin team) coordinates visa application documentation, invitation letters, and IT equipment clearance letters for border control. Requires line manager approval. Travel dates, destination countries, and device details captured in the Job Card.',connects:['LGH IT Review Queue','ZTE / Carrier','Admin / HR Team','Approval Workflow','Routing Engine'],tags:['Travel','Roaming','Visa','Manager approval']},
+  svc_social:{icon:'📲',name:'Social Media Accounts — Creation & Access',tech:'LGH IT Review → Brand/Comms team',zone:'LGH Group IT — Service Category',desc:'Covers: creation of new official social media accounts (Facebook, Instagram, LinkedIn, X/Twitter, YouTube, TikTok) for group companies or departments, access requests to existing accounts (admin or editor roles), and removal of access on employee exit. LGH Group IT acts as gatekeeper to ensure: brand consistency (aligned with group brand guidelines), security (2FA enforced, credentials in vault), and PDPA compliance (official accounts not used to collect personal data without consent notices). Forwarded to the Brand/Comms team for account creation; ZTE handles credential vaulting and 2FA setup.',connects:['LGH IT Review Queue','Brand / Comms Team','ZTE (credential vaulting)','Routing Engine'],tags:['Social Media','Brand','Access control','Offboarding']},
+  lghreview:{icon:'🔍',name:'IT Review Queue',tech:'Portal queue view',zone:'LGH Group IT',desc:'First-level review queue visible only to LGH IT Reviewer role. Incoming IT requests flagged as LGH_IT_REVIEW_REQUIRED land here — covering all 5 defined service categories plus any ad-hoc services flagged by Group Super Admin. Reviewers can: approve + forward to ZTE, reject with reason, or annotate and hold.',connects:['Routing Engine','ZTE Queue','Notification Engine','All 5 LGH IT service categories'],tags:['Two-tier gate','LGH IT']},
+  lghapproval:{icon:'✅',name:'Approve / Forward',tech:'Workflow action',zone:'LGH Group IT',desc:'On approval: Job Card status updates to "Forwarded to ZTE", ZTE queue is populated, requester notified. On rejection: requester notified with reason, Job Card closed.',connects:['Routing Engine','ZTE Job Queue','Notification Engine'],tags:['Workflow','Approval']},
+  lghpolicy:{icon:'📋',name:'Policy Enforcement',tech:'RBAC + PDPA config',zone:'LGH Group IT',desc:'Governs which service types require LGH IT review. Configurable list managed by Group Super Admin. Also enforces PDPA data minimisation rules on what data ZTE can see in forwarded tickets.',connects:['Go API','RBAC','PostgreSQL'],tags:['PDPA','Policy']},
+  ztejobs:{icon:'🛠️',name:'IT Job Execution',tech:'ZTE Technician queue',zone:'ZTE',desc:'ZTE technicians pick up jobs forwarded from LGH Group IT. Status lifecycle: Acknowledged → In Progress → Completed. Each status change triggers Notification Engine.',connects:['Notification Engine','PostgreSQL','System A'],tags:['Execution','ZTE']},
+  zteasset:{icon:'💻',name:'Asset Management',tech:'System A integration',zone:'ZTE',desc:'ZTE manages IT asset allocation. Integrates with System A (Asset Management System) via Slack Hub webhook. Asset requests, allocation alerts, and hardware job cards flow through this integration.',connects:['System A (Slack Hub)','Job Card system'],tags:['Assets','Integration']},
+  ztecomms:{icon:'📡',name:'Status Updates',tech:'Notification Engine',zone:'ZTE',desc:'ZTE technicians update Job Card status through their queue view. Each update triggers the Notification Engine fan-out.',connects:['Notification Engine','Slack #it-requests','Email','In-portal push'],tags:['Notifications','ZTE']},
+  hrqueue:{icon:'👥',name:'HR Department',tech:'Department queue',zone:'Companies / Depts',desc:'HR requests (leave, payroll, onboarding, certificates) route directly to HR queue — no LGH IT gate. HR staff manage their own queue and trigger the standard notification lifecycle.',connects:['Routing Engine','Notification Engine','Slack #hr-requests'],tags:['HR','Direct routing']},
+  facilityqueue:{icon:'🏢',name:'Facility Management',tech:'System B integration',zone:'Companies / Depts',desc:'Facility bookings, maintenance requests. Integrates with System B (Facility Management System) via Slack Hub. Slack channel: #facilities.',connects:['System B (Slack Hub)','Routing Engine'],tags:['Facilities','Integration']},
+  ncgexpress:{icon:'🚌',name:'NCG Express',tech:'Bus hire service',zone:'Companies / Depts',desc:'Employees browse NCG Express services from the Service Catalog, select a vehicle type and date, and submit a hire request. NCG Express staff manage from their company queue.',connects:['Service Catalog','Routing Engine','Notification Engine'],tags:['NCG','Transport']},
+  otherco:{icon:'🏗️',name:'~50 Subsidiaries',tech:'Per-company queues · tenant_id isolation',zone:'Companies / Depts',desc:'All ~50 group subsidiaries — including NCG Express (luxury bus hire), NCG Automotives, Dynamic Labs, and all others — have their own service queues inside the portal. No subsidiary is modelled separately in the architecture; all are equal tenants. Each company is isolated by tenant_id at the DB level. Company Admins manage their own service catalog entries, announcements, and queue. Employees select their company from the Service Catalog to reach the correct queue.',connects:['Routing Engine','Notification Engine','PostgreSQL','Service Catalog'],tags:['Multi-tenant','50 companies','Equal tenants']},
+  glm51:{icon:'💬',name:'GLM-5.1',tech:'NVIDIA NIM · Z.ai provider',zone:'NVIDIA AI',desc:'Flagship model for: (1) Portal Bot — agentic tool-calling to answer employee queries about their tickets/tasks/policies; (2) Dashboard Insights — generates natural-language analysis of portal data; (3) Free-text admin queries on dashboards. 28M API calls/month volume confirms production readiness.',connects:['Portal Bot Widget','Dashboard & Reports','NeMo Guardrails','Go Bot Tool Endpoints'],tags:['Agentic','Tool-calling','LLM']},
+  nemotronocr:{icon:'📸',name:'Nemotron OCR v2',tech:'NVIDIA NIM · 20 pg/s',zone:'NVIDIA AI',desc:'Scanned English-language document OCR. 83.9M parameter hybrid detector-recognizer. 20 pages/second throughput. Used for: scanned paper SOPs, printed policy documents, photographed forms. ⚠️ Does NOT cover Sinhala — those route to Google Cloud Document AI.',connects:['Knowledge Center','Go API','Vector DB'],tags:['OCR','English-only','RAG ingestion']},
+  nemotronreason:{icon:'🧠',name:'Nemotron Reasoning',tech:'Mid-size reasoning model',zone:'NVIDIA AI',desc:'Operates on already-transcribed English text from the STT pipeline. Extracts: action items, meeting summary, task assignees, due dates. Output feeds the Task creation API.',connects:['Meeting Transcriber','Tasks API','Google Translate (Sinhala segments)'],tags:['Task extraction','Meeting AI']},
+  safetypii:{icon:'🛡️',name:'Safety Guard + GLiNER-PII',tech:'llama-3.1-nemotron-safety-guard-8b-v3',zone:'NVIDIA AI',desc:'PII detection and masking pre-processing layer. Applied before: (1) storing request form free-text, (2) indexing meeting transcripts into Knowledge Center, (3) surfacing CSAT comments in dashboards. Masks: names, emails, phone numbers, NIC numbers, addresses. Replaces detected PII with [LABEL] placeholders. PDPA No. 9 of 2022 compliance.',connects:['Request Form','Meeting Transcriber','CSAT Module','Audit Log'],tags:['PDPA','PII masking','Security']},
+  nemoretriever:{icon:'🔍',name:'NeMo Retriever',tech:'Embedding + Reranking NIMs',zone:'NVIDIA AI',desc:'Two-stage RAG pipeline for Knowledge Center: (1) Embedding model vectorises documents on ingest from OneDrive; (2) Reranking model reorders retrieved chunks by relevance before passing to GLM-5.1 for answer generation.',connects:['Knowledge Center','OneDrive Sync','Vector DB','GLM-5.1'],tags:['RAG','Embeddings','Knowledge Center']},
+  nemoguardrails:{icon:'🚧',name:'NeMo Guardrails',tech:'Open library · Colang flows',zone:'NVIDIA AI',desc:'Wraps the Portal Bot (GLM-5.1). Enforces: (1) grounding — bot answers must come from API calls, not LLM general knowledge; (2) topic control — bot stays on portal topics; (3) RBAC — bot only surfaces data the requesting user is authorised to see.',connects:['GLM-5.1 Bot','Go Bot Endpoints','RBAC'],tags:['Grounding','Safety','Bot']},
+  contentsafety:{icon:'⚠️',name:'Content Safety',tech:'Nemotron Content Safety · 20+ languages',zone:'NVIDIA AI',desc:'Screens free-text inputs (CSAT comments, request descriptions, announcement text) for harmful content before storage or display. 23 safety categories including PII/Privacy category.',connects:['CSAT Module','Request Form','Announcement Admin'],tags:['Safety','Moderation']},
+  googlestt:{icon:'🎙️',name:'Google Speech-to-Text',tech:'Cloud STT API · si-LK locale',zone:'Google Cloud',desc:'Handles all Sinhala-language (si-LK) speech transcription in the Meeting Transcriber. English speech segments stay on the NVIDIA/local STT engine. Google STT selected because NVIDIA NIM does not support Sinhala.',connects:['Meeting Transcriber','Google Translate','Nemotron Reasoning'],tags:['Sinhala','STT','si-LK']},
+  googletranslate:{icon:'🔤',name:'Cloud Translation API',tech:'Google Translate · si-LK ↔ en',zone:'Google Cloud',desc:'Two use cases: (1) Translates Sinhala meeting transcript segments to English before Nemotron task extraction; (2) Translates Sinhala Portal Bot queries to English before GLM-5.1 processes them, and translates English answers back to Sinhala for the user.',connects:['Google STT','Nemotron Reasoning','GLM-5.1 Bot'],tags:['Sinhala','Translation','Bot']},
+  googleocr:{icon:'📄',name:'Document AI / Vision',tech:'Google Cloud Vision',zone:'Google Cloud',desc:'OCR for Sinhala-language scanned documents (printed SOPs, letters, forms in Sinhala). Routes parallel to Nemotron OCR v2 which handles English-language scans. Language detected at upload; routing is automatic.',connects:['Knowledge Center','Go API','Vector DB'],tags:['OCR','Sinhala','Documents']},
+  slackgateway:{icon:'🔀',name:'Event Router',tech:'Webhook event bus · Go microservice',zone:'Slack Hub',desc:'Central routing logic for all Slack integrations. Receives events from: Lyceum Connect portal, Microsoft 365, and external Systems A–F. Routes each event to the correct Slack channel based on event type and company. New systems plug in via webhook config — no core code change.',connects:['Go API','Systems A–F','MS365','Slack channels'],tags:['Extensible','Event-driven']},
+  slackapproval:{icon:'✅',name:'Interactive Approvals',tech:'Slack Block Kit buttons',zone:'Slack Hub',desc:'Approval requests appear in #approvals with interactive Approve / Reject buttons. Button clicks post back to the Go API via Slack webhook → API Gateway → RBAC check → Job Card status update → requester notified.',connects:['Go API','Job Card system','Notification Engine','#approvals channel'],tags:['Bidirectional','Approvals']},
+  slacknotif:{icon:'🔔',name:'Notification Dispatch',tech:'Slack Web API',zone:'Slack Hub',desc:'Publishes formatted messages to dedicated channels: #it-requests (new/updated IT tickets), #hr-requests (HR queue events), #approvals (approval requests), #announcements, #facilities, #assets, #kitchen, #system-alerts.',connects:['Notification Engine','All Slack channels'],tags:['Notifications','Channels']},
+  onedrive:{icon:'📁',name:'OneDrive / SharePoint',tech:'Microsoft Graph API',zone:'Microsoft 365',desc:'Source of truth for all group documents (SOPs, policies, memos, forms). Lyceum Connect syncs document metadata on schedule and on-demand. NeMo Retriever embeds documents on sync for Knowledge Center RAG. Document changes in OneDrive auto-trigger re-embedding.',connects:['Knowledge Center','NeMo Retriever','Go API','Slack Hub'],tags:['Documents','RAG source','MS365']},
+  azuread:{icon:'🔐',name:'Azure AD / Entra ID',tech:'Microsoft Entra ID',zone:'Microsoft 365',desc:'SSO identity provider for all Lyceum Connect users. Group membership in Entra ID maps to RBAC roles in the portal. Chosen because Microsoft 365 is already in use across the LGH group.',connects:['Login page','JWT Auth','RBAC','Go API'],tags:['SSO','Identity','RBAC']},
+  msemail:{icon:'📧',name:'Exchange / Email',tech:'Exchange Online / SMTP',zone:'Microsoft 365',desc:'Handles all portal email notifications: acknowledgement emails, status update emails, approval request emails, completion emails, CSAT invitations, and announcement digests.',connects:['Notification Engine','Go API'],tags:['Email','Notifications']},
+  sysA:{icon:'💻',name:'System A',tech:'Asset Management · Webhook',zone:'External Systems',desc:'Asset Management System used by ZTE. Receives asset request events and pushes allocation status updates via Slack Hub webhook pattern. Slack channel: #assets.',connects:['Slack Hub Event Router','ZTE queue'],tags:['Assets','ZTE','Webhook']},
+  sysB:{icon:'🏢',name:'System B',tech:'Facility Management · Webhook',zone:'External Systems',desc:'Facility Management System. Receives facility booking requests and maintenance job assignments from the portal. Publishes status to #facilities Slack channel.',connects:['Slack Hub Event Router','Facility queue'],tags:['Facilities','Webhook']},
+  sysC:{icon:'🍽️',name:'System C',tech:'Kitchen / Canteen · Webhook',zone:'External Systems',desc:'Kitchen / Canteen Management System. Meal orders and canteen announcements flow through Slack Hub to #kitchen channel.',connects:['Slack Hub Event Router','#kitchen'],tags:['Kitchen','Webhook']},
+  sysD:{icon:'📦',name:'Systems D–F',tech:'Placeholder · Webhook pattern',zone:'External Systems',desc:'Future integrations. The Slack Hub event-bus architecture allows any new system to be added by registering a new webhook endpoint + channel routing rule — no core code change required.',connects:['Slack Hub Event Router'],tags:['Future','Extensible']},
+  postgres:{icon:'🐘',name:'PostgreSQL',tech:'AWS RDS PostgreSQL 16',zone:'Data Layer',desc:'Primary transactional database. Multi-tenant row-level isolation via tenant_id on all tables. Key entities: User, Company, Department, Service, JobCard, JobCardStatusLog, Notification, ApprovalRequest, Task, Meeting, Announcement, CsatResponse, BotConversationLog, AuditLog. PDPA-compliant retention policies per entity.',connects:['Go API','Read Replica','Redis'],tags:['Primary DB','Multi-tenant','PDPA']},
+  redis:{icon:'⚡',name:'Redis',tech:'AWS ElastiCache Redis 7',zone:'Data Layer',desc:'Three roles: (1) Session store for JWT tokens; (2) Response cache for Service Catalog and Employee Directory reads; (3) Pub/Sub broker for WebSocket notification fan-out.',connects:['Go API','WebSocket server','Session management'],tags:['Cache','Pub/Sub','Sessions']},
+  vectordb:{icon:'🔢',name:'pgvector / Qdrant',tech:'pgvector extension or Qdrant',zone:'Data Layer',desc:'Stores document embeddings generated by NeMo Retriever for Knowledge Center RAG. Documents from OneDrive are embedded on sync and stored here. Similarity search returns top-K chunks for GLM-5.1 to answer policy questions.',connects:['NeMo Retriever','Knowledge Center','GLM-5.1'],tags:['Vectors','RAG','Knowledge Center']},
+  reportdb:{icon:'📊',name:'Read Replica / Analytics',tech:'PostgreSQL read replica + Materialized views',zone:'Data Layer',desc:'Separate read path for Dashboard & Reports module. Materialized views pre-aggregate: request volumes, SLA performance, CSAT scores, task completion rates. Dashboard queries hit this replica — not the transactional primary — to avoid performance impact.',connects:['Dashboard & Reports','Go API (read-only)'],tags:['Analytics','Dashboard','Performance']},
+  s3:{icon:'📦',name:'Object Storage',tech:'AWS S3',zone:'Data Layer',desc:'Stores: job card attachments, profile photos, meeting audio recordings (pre-transcription), and any files saved from the Document Preparation module. PDPA: attachments containing PII are scanned by GLiNER-PII before storage.',connects:['Go API','PII Masking','Meeting Transcriber'],tags:['Files','Attachments','S3']},
+  auditlog:{icon:'📋',name:'Audit Log Store',tech:'Immutable append-only table',zone:'Data Layer',desc:'Logs every: Job Card status change, approval decision, notification sent, login event, and data access. Immutable — no delete or update permitted. Mandatory for PDPA No. 9 of 2022 compliance (right to access, breach notification traceability). Retention: 7 years.',connects:['Go API','API Gateway','All workflow events'],tags:['PDPA','Compliance','Immutable']},
+  awshost:{icon:'☁️',name:'AWS / Azure Hosting',tech:'AWS ap-south-1 (primary)',zone:'Infrastructure',desc:'Primary: AWS ap-south-1 (Mumbai) for lowest latency to Sri Lanka. Azure Southeast Asia as DR/failover. Go containers on ECS/Fargate. Database on RDS Multi-AZ. Designed for 500→5,000 employee scale without re-platforming.',connects:['All services'],tags:['Sri Lanka region','Multi-AZ','Scalable']},
+  k8s:{icon:'🐳',name:'Kubernetes / ECS',tech:'AWS ECS Fargate',zone:'Infrastructure',desc:'Container orchestration for Go backend services, API Gateway sidecar, and AI proxy services. Autoscaling based on request queue depth. Go services are stateless — scale horizontally.',connects:['Go API','API Gateway','Notification Engine'],tags:['Containers','Scaling']},
+  cdn:{icon:'🌐',name:'CDN',tech:'AWS CloudFront',zone:'Infrastructure',desc:'Serves Lyceum Connect static assets (HTML, CSS, JS, images) with edge caching. Reduces load on origin for the 500–5,000 employee user base.',connects:['Frontend','S3'],tags:['Performance','CDN']},
+  cicd:{icon:'🔄',name:'CI/CD Pipeline',tech:'GitHub Actions',zone:'Infrastructure',desc:'Automated: test → build → dockerize → deploy pipeline. Separate staging and production environments. Go tests run in CI. Docker images pushed to ECR.',connects:['GitHub','ECR','ECS'],tags:['DevOps','Automation']},
+  monitoring:{icon:'📡',name:'Monitoring',tech:'Prometheus + Grafana',zone:'Infrastructure',desc:'Metrics: API latency, error rates, DB query times, AI model response times, WebSocket connection counts, notification delivery rates. Alerts to Slack #system-alerts.',connects:['All services','#system-alerts'],tags:['Observability','Alerts']},
+  waf:{icon:'🛡️',name:'WAF / DDoS Protection',tech:'AWS Shield + WAF',zone:'Infrastructure',desc:'Web Application Firewall protecting the API Gateway. Rules: SQL injection, XSS, rate limiting per IP. DDoS protection via AWS Shield Standard.',connects:['API Gateway','CDN'],tags:['Security','WAF']}
+};
+
+function showTooltip(id){
+  const d=NODES[id];if(!d)return;
+  document.getElementById('tpIcon').textContent=d.icon;
+  document.getElementById('tpTitle').textContent=d.name;
+  document.getElementById('tpTech').textContent=d.tech;
+  const body=document.getElementById('tpBody');
+  body.innerHTML=`
+    <div class="tp-row"><div class="tp-row-label">Zone</div><div class="tp-row-val">${d.zone}</div></div>
+    <div class="tp-row"><div class="tp-row-label">Description</div><div class="tp-row-val">${d.desc}</div></div>
+    <div class="tp-row"><div class="tp-row-label">Connects To</div><div class="tp-row-val">${d.connects.join(' · ')}</div></div>
+    <div class="tp-row"><div class="tp-row-label">Tags</div><div class="tp-tags">${d.tags.map(t=>`<span class="tp-tag">${t}</span>`).join('')}</div></div>
+  `;
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('tooltipPanel').classList.add('open');
+}
+function closeTooltip(){
+  document.getElementById('tooltipPanel').classList.remove('open');
+  document.querySelectorAll('.node').forEach(n=>n.classList.remove('selected'));
+}
+document.getElementById('tooltipOverlay').addEventListener('click',function(e){
+  if(e.target===this)closeTooltip();
+});
+</script>
+</body>
+</html>
