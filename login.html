@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lyceum Connect Employee Portal Login Page.">
   <title>Sign In — Lyceum Connect</title>
@@ -386,6 +387,19 @@
           <input type="password" class="form-control" id="loginPassword" placeholder="••••••••••••" required>
         </div>
 
+        <div class="form-group" style="margin-top: var(--space-4)">
+          <label class="form-label" for="loginRole">Sign in as (demo role)</label>
+          <select class="form-control" id="loginRole">
+            <option value="employee">Employee</option>
+            <option value="lgh_it_reviewer">LGH IT Reviewer</option>
+            <option value="zte_technician">ZTE Technician</option>
+            <option value="hod_manager">HOD / Manager</option>
+            <option value="dept_staff">Department Staff</option>
+            <option value="company_admin">Company Admin</option>
+            <option value="group_super_admin">Group Super Admin</option>
+          </select>
+        </div>
+
         <div class="form-group-checkbox">
           <label class="checkbox-wrap">
             <input type="checkbox" id="rememberMe" checked>
@@ -454,29 +468,39 @@
       return;
     }
 
-    // Disable button & show simulated loading status
+    // Disable button & show loading status
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span><span>Verifying Credentials...</span>`;
 
-    setTimeout(() => {
-      // Credentials check
+    const role = (document.getElementById('loginRole') || {}).value || 'employee';
+    const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+    (async () => {
+      const online = await LC.health();
+      if (online) {
+        // Real authentication against the backend (dev-login until Entra ID SSO).
+        try {
+          await LC.devLogin(email, role, name);
+          showToast('Login Successful', `Signed in as ${role.replace(/_/g, ' ')}. Redirecting…`, 'success');
+          setTimeout(() => { window.location.href = 'index.html'; }, 900);
+        } catch (err) {
+          btn.disabled = false;
+          btn.innerHTML = `<span class="btn-label">Sign In</span>`;
+          showToast('Sign-in failed', err.message || 'Could not sign in.', 'error');
+        }
+        return;
+      }
+      // Offline fallback: the original static demo gate.
       if (email.toLowerCase() === 'sudaraka.perera@lyceum.edu' && password === 'password123') {
-        showToast('Login Successful', 'Welcome back, LGH IT! Redirecting you to the portal...', 'success');
-        
-        // Save auth status
         localStorage.setItem('lc-auth-session', 'true');
-        
-        // Redirect to dashboard index page after brief success alert delay
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 1200);
+        showToast('Login Successful (offline demo)', 'Backend not reachable — using demo mode.', 'success');
+        setTimeout(() => { window.location.href = 'index.html'; }, 1200);
       } else {
-        // Verification failure
         btn.disabled = false;
         btn.innerHTML = `<span class="btn-label">Sign In</span>`;
-        showToast('Authentication Failed', 'Invalid email or password. Hint: Click the autofill card above!', 'error');
+        showToast('Authentication Failed', 'Backend offline and demo credentials did not match.', 'error');
       }
-    }, 1200);
+    })();
   }
 
   // Toast Alerts Generator

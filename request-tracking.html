@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Requests — Lyceum Connect</title>
@@ -1578,6 +1579,187 @@ let currentRequests = [...requests];
 updateCounters();
 renderTable(requests);
 lucide.createIcons();
+</script>
+
+<!-- ============================================================
+     LIVE BACKEND INTEGRATION (Phase 1 lifecycle)
+     Repoints the request list at the Go backend and adds
+     role-aware lifecycle actions to the detail panel.
+     ============================================================ -->
+<script>
+(function () {
+  if (!window.LC) return;
+
+  var catFromCategory = function (c) {
+    c = (c || '').toLowerCase();
+    if (c.indexOf('hr') === 0 || c.indexOf('leave') > -1) return 'HR';
+    if (c.indexOf('facility') > -1) return 'FM';
+    if (c.indexOf('it') > -1 || c.indexOf('email') > -1 || c.indexOf('website') > -1 || c.indexOf('application') > -1) return 'IT';
+    return 'Admin';
+  };
+  var statusBucket = function (s) {
+    if (s === 'pending_approval') return 'pending';
+    if (s === 'in_progress') return 'inprogress';
+    if (s === 'completed' || s === 'rejected') return 'completed';
+    return 'open';
+  };
+  var priBucket = function (p) {
+    p = (p || '').toLowerCase();
+    if (p === 'high' || p === 'urgent') return 'high';
+    if (p === 'low') return 'low';
+    return 'medium';
+  };
+  var fmtDate = function (iso) {
+    var d = new Date(iso);
+    return isNaN(d) ? '—' : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+  var fmtTime = function (iso) {
+    var d = new Date(iso);
+    return isNaN(d) ? '—' : d.toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  };
+  var queueOwner = function (q) {
+    return q === 'lgh_it_review' ? 'LGH Group IT'
+      : q === 'zte' ? 'Zuse Technologies (ZTE)'
+      : 'Department Desk';
+  };
+  var prettyStatus = function (s) {
+    return (s || '').replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  };
+
+  // Backend JobCard -> the shape this page's renderer expects.
+  function mapCard(jc) {
+    var overdue = jc.status !== 'completed' && new Date(jc.sla_deadline) < new Date();
+    var timeline = (jc.timeline || []).map(function (t) {
+      return { label: prettyStatus(t.status), time: fmtTime(t.at), desc: t.note || '', state: 'done' };
+    });
+    return {
+      id: jc.ref,
+      service: jc.service_name,
+      cat: catFromCategory(jc.category),
+      priority: priBucket(jc.priority),
+      status: statusBucket(jc.status),
+      created: fmtDate(jc.created_at),
+      sla: fmtDate(jc.sla_deadline),
+      slaOverdue: overdue,
+      assignedTo: queueOwner(jc.queue),
+      assignedDept: prettyStatus(jc.queue),
+      requestor: jc.requester_name || jc.requester_email || '—',
+      requestorDept: jc.tenant_id || '—',
+      slaPct: overdue ? 100 : 40,
+      comments: [],
+      timeline: timeline.length ? timeline : [{ label: 'Submitted', time: fmtTime(jc.created_at), desc: '', state: 'done' }],
+      _raw: jc,
+    };
+  }
+
+  function dedupePush(target, cards) {
+    var seen = {};
+    target.forEach(function (r) { seen[r.id] = true; });
+    cards.forEach(function (c) { if (!seen[c.id]) { seen[c.id] = true; target.push(c); } });
+  }
+
+  // Load "my requests" plus, for staff, the queues they act on.
+  async function load() {
+    if (!window.LC || !LC.token()) return;
+    if (!(await LC.health())) return;
+    var claims = LC.claims() || {};
+    var role = claims.role || 'employee';
+
+    var collected = [];
+    try {
+      var mine = await LC.get('/api/requests');
+      (mine.requests || []).forEach(function (c) { collected.push(mapCard(c)); });
+    } catch (e) { console.warn('my requests', e); }
+
+    var queues = [];
+    if (role === 'lgh_it_reviewer') queues = ['lgh_it_review'];
+    else if (role === 'zte_technician') queues = ['zte'];
+    else if (role === 'dept_staff' || role === 'company_admin') queues = ['department'];
+    else if (role === 'group_super_admin') queues = ['lgh_it_review', 'zte', 'department'];
+
+    for (var i = 0; i < queues.length; i++) {
+      try {
+        var q = await LC.get('/api/queues/' + queues[i]);
+        dedupePush(collected, (q.requests || []).map(mapCard));
+      } catch (e) { console.warn('queue', queues[i], e); }
+    }
+
+    // Repoint the page's data array and re-render with existing functions.
+    requests.length = 0;
+    Array.prototype.push.apply(requests, collected);
+    updateCounters();
+    renderTable(requests);
+    var badge = document.getElementById('lc-live-badge');
+    if (badge) badge.style.display = 'inline-flex';
+  }
+
+  // --- Lifecycle actions injected into the detail panel ---
+  function actionsFor(jc, role) {
+    var s = jc.status, q = jc.queue, a = [];
+    var isStaff = ['dept_staff', 'lgh_it_reviewer', 'zte_technician', 'company_admin', 'group_super_admin'].indexOf(role) > -1;
+    if (role === 'hod_manager' && s === 'pending_approval') {
+      a.push(['Approve', 'approve', { decision: 'approve' }], ['Reject', 'approve', { decision: 'reject' }, true]);
+    }
+    if ((role === 'lgh_it_reviewer' || role === 'group_super_admin') && q === 'lgh_it_review' && s === 'under_review') {
+      a.push(['Forward to ZTE', 'forward', {}], ['Reject', 'reject', {}, true]);
+    }
+    if (isStaff && (s === 'under_review' || s === 'forwarded')) a.push(['Acknowledge', 'acknowledge', {}]);
+    if (isStaff && s === 'acknowledged') a.push(['Start work', 'start', {}]);
+    if (isStaff && s === 'in_progress') a.push(['Mark complete', 'complete', {}]);
+    if (jc.requester_id === (LC.claims() || {}).sub && s === 'completed' && !jc.csat) a.push(['Rate ★', 'csat', {}]);
+    return a;
+  }
+
+  async function runAction(ref, endpoint, body, danger) {
+    try {
+      if (endpoint === 'csat') {
+        var rating = parseInt(prompt('Rate this service 1–5:', '5'), 10);
+        if (!rating) return;
+        body = { rating: rating, comment: prompt('Any comment? (optional)') || '' };
+      } else if (['forward', 'reject', 'complete'].indexOf(endpoint) > -1) {
+        body = Object.assign({ note: prompt('Add a note (optional):') || '' }, body);
+      } else if (endpoint === 'approve' && danger) {
+        body = Object.assign({ comment: prompt('Reason (optional):') || '' }, body);
+      }
+      await LC.post('/api/requests/' + ref + '/' + endpoint, body);
+      await load();
+      openPanel(ref); // reopen with fresh state
+    } catch (e) {
+      alert('Action failed: ' + e.message);
+    }
+  }
+  window.lcRunAction = runAction;
+
+  function injectActions(id) {
+    var row = requests.find(function (r) { return r.id === id; });
+    var anchor = document.getElementById('sp-timeline');
+    if (!row || !row._raw || !anchor) return;
+    var role = (LC.claims() || {}).role || 'employee';
+    var acts = actionsFor(row._raw, role);
+
+    var bar = document.getElementById('lc-actionbar');
+    if (bar) bar.remove();
+    if (!acts.length) return;
+
+    bar = document.createElement('div');
+    bar.id = 'lc-actionbar';
+    bar.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--bg-tertiary)';
+    bar.innerHTML = '<div style="width:100%;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:2px">Actions · ' +
+      role.replace(/_/g, ' ') + '</div>' +
+      acts.map(function (x) {
+        var cls = x[3] ? 'btn btn-secondary btn-sm' : 'btn btn-primary btn-sm';
+        return '<button class="' + cls + '" onclick="lcRunAction(\'' + id + '\',\'' + x[1] + '\',' + JSON.stringify(x[2]) + ',' + (x[3] ? 'true' : 'false') + ')">' + x[0] + '</button>';
+      }).join('');
+    anchor.parentNode.insertBefore(bar, anchor);
+  }
+
+  // Wrap the page's openPanel so actions appear after it renders.
+  var _openPanel = window.openPanel;
+  window.openPanel = function (id) { _openPanel(id); injectActions(id); };
+
+  if (document.readyState !== 'loading') load();
+  else document.addEventListener('DOMContentLoaded', load);
+})();
 </script>
 </body>
 </html>

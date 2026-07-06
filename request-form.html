@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Submit IT, HR, facility, or admin requests via Lyceum Connect. Dynamic forms with real-time tracking.">
@@ -812,37 +813,62 @@
     document.getElementById('reviewNotesVal').textContent = notes || 'No additional remarks';
   }
 
-  function submitFinalForm() {
-    // Hide active step panel and navs
+  // Maps the frontend service param to a backend catalog service_id.
+  const backendServiceMap = {
+    'it-ticket': 'it-support', 'asset': 'it-support', 'software': 'it-support',
+    'password': 'it-support', 'vpn': 'it-support', 'admin': 'it-support',
+    'email': 'email-account', 'website': 'new-website',
+    'facility': 'vehicle-booking',
+    'service-letter': 'leave-request', 'hr': 'leave-request',
+    'b-card': 'leave-request', 'bank-update': 'leave-request',
+  };
+
+  function showSuccess(refId) {
     document.getElementById('step2').style.display = 'none';
     document.getElementById('formNavigation').style.display = 'none';
-    
-    // Show success panel
-    const successScreen = document.getElementById('successScreen');
-    successScreen.style.display = 'block';
+    document.getElementById('successScreen').style.display = 'block';
+    const idEl = document.getElementById('generatedReqId');
+    if (idEl) idEl.textContent = refId;
+    showToast('Request Raised Successfully!', 'Your request ID is ' + refId + '.', 'success');
+    setTimeout(() => { window.location.href = 'request-tracking.html'; }, 1800);
+  }
 
-    showToast('Request Raised Successfully!', 'Your request ID is REQ-2025-048.', 'success');
+  async function submitFinalForm() {
+    const svcParam = new URLSearchParams(window.location.search).get('service') || '';
+    const serviceId = backendServiceMap[svcParam] || 'it-support';
+    const priority = (document.getElementById('requestPriority') || {}).value || 'Normal';
 
-    // Add new request to mock database
+    // Gather all filled form inputs into a fields object.
+    const fields = {};
+    document.querySelectorAll('#requestForm input, #requestForm textarea, #requestForm select').forEach(el => {
+      const key = el.id || el.name;
+      if (!key || el.type === 'button' || el.type === 'submit' || !el.value) return;
+      fields[key] = el.value;
+    });
+
+    // Try the live backend first; fall back to the static mock if offline.
+    if (LC.token() && await LC.health()) {
+      try {
+        const jc = await LC.post('/api/requests', { service_id: serviceId, priority: priority, fields: fields });
+        showSuccess(jc.ref);
+      } catch (err) {
+        showToast('Submission failed', err.message || 'Could not submit request.', 'error');
+      }
+      return;
+    }
+
+    // Offline fallback — original session-storage mock.
+    const fallbackId = 'REQ-2025-048';
     const newRequest = {
-      id: 'REQ-2025-048',
-      title: selectedServiceLabel,
-      service: selectedServiceLabel,
-      category: selectedCategoryText,
-      priority: document.getElementById('requestPriority').value,
-      status: 'Open',
+      id: fallbackId, title: selectedServiceLabel, service: selectedServiceLabel,
+      category: selectedCategoryText, priority: priority, status: 'Open',
       created: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
       due: document.getElementById('neededDate').value || 'Flexible'
     };
-    
     const mockRequests = JSON.parse(sessionStorage.getItem('lc-mock-requests') || '[]');
     mockRequests.unshift(newRequest);
     sessionStorage.setItem('lc-mock-requests', JSON.stringify(mockRequests));
-
-    // Redirect to tracking page after animation finishes
-    setTimeout(() => {
-      window.location.href = 'request-tracking.html';
-    }, 2000);
+    showSuccess(fallbackId);
   }
 
   // Per-param → [categoryKey, categoryLabel, specificService]
