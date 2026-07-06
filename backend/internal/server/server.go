@@ -4,6 +4,7 @@ package server
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
@@ -27,7 +28,9 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	e.Use(echomw.Logger())
 	e.Use(echomw.Recover())
 	e.Use(echomw.CORSWithConfig(echomw.CORSConfig{
-		AllowOrigins: []string{cfg.AllowedOrigin},
+		// ALLOWED_ORIGIN may be a comma-separated list (e.g. the preview server
+		// plus a live-server dev port).
+		AllowOrigins: splitOrigins(cfg.AllowedOrigin),
 		AllowHeaders: []string{echo.HeaderAuthorization, echo.HeaderContentType},
 		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodDelete, http.MethodOptions},
 	}))
@@ -74,6 +77,17 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	admin.GET("/audit", listAudit(s))
 
 	return e
+}
+
+// splitOrigins turns a comma-separated ALLOWED_ORIGIN into a trimmed list.
+func splitOrigins(v string) []string {
+	var out []string
+	for _, p := range strings.Split(v, ",") {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 func health(s store.Store) echo.HandlerFunc {
