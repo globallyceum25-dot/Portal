@@ -1,8 +1,11 @@
 package auth
 
 import (
+	"context"
+	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 
@@ -16,10 +19,22 @@ import (
 type Handler struct {
 	cfg   config.Config
 	store store.Store
+	authr *Authenticator // nil until Entra ID is configured
 }
 
 func NewHandler(cfg config.Config, s store.Store) *Handler {
-	return &Handler{cfg: cfg, store: s}
+	h := &Handler{cfg: cfg, store: s}
+	if cfg.Entra.Configured() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if a, err := NewAuthenticator(ctx, cfg); err != nil {
+			log.Printf("Entra ID discovery failed (%v) — SSO disabled, dev-login only", err)
+		} else {
+			h.authr = a
+			log.Printf("Entra ID SSO ready (tenant %s)", cfg.Entra.TenantID)
+		}
+	}
+	return h
 }
 
 type devLoginReq struct {
@@ -76,19 +91,71 @@ func (h *Handler) DevLogin(c echo.Context) error {
 	})
 }
 
-// Login begins the Microsoft Entra ID OIDC flow. Scaffolded: returns 501 until
-// ENTRA_* is configured. Wiring point for coreos/go-oidc in the next step.
+// Login begins the Microsoft Entra ID OIDC authorization-code flow: it stores a
+// one-time state, nonce and PKCE verifier in short-lived cookies and redirects
+// the browser to Entra's authorize endpoint.
 func (h *Handler) Login(c echo.Context) error {
-	if !h.cfg.Entra.Configured() {
+	if h.authr == nil {
 		return httpx.Err(c, http.StatusNotImplemented,
 			"Entra ID SSO not configured — set ENTRA_TENANT_ID / ENTRA_CLIENT_ID / ENTRA_CLIENT_SECRET, or use /api/auth/dev-login in development")
 	}
-	// TODO(phase0): redirect to the Entra authorize endpoint with PKCE + state.
-	return httpx.Err(c, http.StatusNotImplemented, "Entra authorize redirect not yet implemented")
+	state, nonce, verifier := randToken(), randToken(), randToken()
+	w := c.Response().Writer
+	h.authr.setCookie(w, "lc_state", state)
+	h.authr.setCookie(w, "lc_nonce", nonce)
+	h.authr.setCookie(w, "lc_verifier", verifier)
+	return c.Redirect(http.StatusFound, h.authr.authCodeURL(state, nonce, pkceChallenge(verifier)))
 }
 
-// Callback handles the Entra OIDC redirect: exchange code, verify id_token,
-// upsert the user, issue our JWT. Scaffolded for the next step.
+// Callback handles Entra's redirect: it validates state, exchanges the code
+// (with the PKCE verifier), verifies the id_token, upserts the user, issues our
+// session JWT, and redirects back to the frontend with the token in the URL
+// fragment (never persisted server-side).
 func (h *Handler) Callback(c echo.Context) error {
-	return httpx.Err(c, http.StatusNotImplemented, "Entra callback not yet implemented")
+	if h.authr == nil {
+		return httpx.Err(c, http.StatusNotImplemented, "Entra ID SSO not configured")
+	}
+	req := c.Request()
+	w := c.Response().Writer
+
+	// Validate one-time state against the cookie.
+	stateCookie, err := req.Cookie("lc_state")
+	if err != nil || c.QueryParam("state") == "" || c.QueryParam("state") != stateCookie.Value {
+		return httpx.Err(c, http.StatusBadRequest, "invalid or expired login state")
+	}
+	nonceCookie, _ := req.Cookie("lc_nonce")
+	verifierCookie, _ := req.Cookie("lc_verifier")
+	if nonceCookie == nil || verifierCookie == nil {
+		return httpx.Err(c, http.StatusBadRequest, "missing login session")
+	}
+	// One-time: clear immediately.
+	for _, n := range []string{"lc_state", "lc_nonce", "lc_verifier"} {
+		h.authr.clearCookie(w, n)
+	}
+
+	if e := c.QueryParam("error"); e != "" {
+		return httpx.Err(c, http.StatusUnauthorized, "sign-in was cancelled or failed")
+	}
+
+	ec, err := h.authr.exchange(req.Context(), c.QueryParam("code"), verifierCookie.Value, nonceCookie.Value)
+	if err != nil {
+		return httpx.Err(c, http.StatusUnauthorized, "could not verify identity")
+	}
+
+	user, err := h.store.UpsertUser(req.Context(), func() *models.User { u := ec.toUser(); return &u }())
+	if err != nil {
+		return httpx.Err(c, http.StatusInternalServerError, "could not provision user")
+	}
+	token, _, err := Issue(h.cfg, *user)
+	if err != nil {
+		return httpx.Err(c, http.StatusInternalServerError, "could not issue token")
+	}
+	_ = audit.Record(req.Context(), h.store, *user, "auth.sso_login", "user:"+user.ID, map[string]any{"idp": "entra"})
+
+	// Hand the token to the SPA via the fragment (kept out of server logs/referrers).
+	sep := "#"
+	if strings.Contains(h.cfg.FrontendURL, "#") {
+		sep = "&"
+	}
+	return c.Redirect(http.StatusFound, h.cfg.FrontendURL+sep+"token="+token)
 }

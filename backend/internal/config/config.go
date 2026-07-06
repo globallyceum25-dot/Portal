@@ -15,6 +15,7 @@ type Config struct {
 	JWTTTLMinutes int
 	DevAuth       bool // enables /api/auth/dev-login for local development
 	AllowedOrigin string
+	FrontendURL   string // where Entra callback redirects back with the session token
 	Entra         Entra
 }
 
@@ -39,6 +40,7 @@ func Load() Config {
 		JWTTTLMinutes: getenvInt("JWT_TTL_MINUTES", 60),
 		DevAuth:       getenvBool("DEV_AUTH", true),
 		AllowedOrigin: getenv("ALLOWED_ORIGIN", "http://localhost:8085"),
+		FrontendURL:   getenv("FRONTEND_URL", "http://localhost:8085/login.html"),
 		Entra: Entra{
 			TenantID:     getenv("ENTRA_TENANT_ID", ""),
 			ClientID:     getenv("ENTRA_CLIENT_ID", ""),

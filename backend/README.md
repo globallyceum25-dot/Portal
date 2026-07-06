@@ -85,7 +85,16 @@ POST /requests/:ref/csat          {rating 1-5, comment}
 GET  /queues/:queue               staff queue view (lgh_it_review | zte | department)
 ```
 
+## Microsoft Entra ID SSO (done)
+Real OIDC authorization-code flow with PKCE lives in `auth/oidc.go`:
+`GET /api/auth/login` → Microsoft → `GET /api/auth/callback` → issues our JWT →
+redirects to `FRONTEND_URL#token=…`. Roles map from the Entra **app roles**
+claim (falling back to `employee`). Set `ENTRA_TENANT_ID / ENTRA_CLIENT_ID /
+ENTRA_CLIENT_SECRET` to enable it; unset, the endpoints return 501 and
+`dev-login` is used instead. The frontend's "Sign in with Microsoft" button and
+`#token` handler complete the round-trip.
+
 ## Next (Phase 1 → Phase 2)
-- Wire real Entra ID OIDC in `auth` (replace dev-login)
-- Point the static frontend's `request-form` / `request-tracking` at these APIs
+- Company (tenant) mapping from Entra claims (currently defaults to `lgh`)
+- Point the static frontend's remaining pages at these APIs
 - Knowledge Center + OneDrive sync; Announcements publishing
