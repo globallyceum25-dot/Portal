@@ -31,6 +31,17 @@ type Store interface {
 	ListJobCardsByQueue(ctx context.Context, tenantID string, queue models.Queue) ([]models.JobCard, error)
 	UpdateJobCard(ctx context.Context, j *models.JobCard) error
 
+	// Knowledge Center documents (spec §4). Visible = group ("lgh") + own tenant.
+	ListDocuments(ctx context.Context, tenantID string) ([]models.Document, error)
+	GetDocument(ctx context.Context, id string) (*models.Document, error)
+	UpsertDocument(ctx context.Context, d *models.Document) error // sync + read updates
+
+	// Announcements (spec §7).
+	ListAnnouncements(ctx context.Context, tenantID string) ([]models.Announcement, error)
+	GetAnnouncement(ctx context.Context, id string) (*models.Announcement, error)
+	CreateAnnouncement(ctx context.Context, a *models.Announcement) (*models.Announcement, error)
+	UpdateAnnouncement(ctx context.Context, a *models.Announcement) error
+
 	// Ping reports store health for /healthz.
 	Ping(ctx context.Context) error
 	Kind() string

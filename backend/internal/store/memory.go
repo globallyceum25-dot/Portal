@@ -19,9 +19,12 @@ type Memory struct {
 	mu       sync.RWMutex
 	users    map[string]*models.User    // keyed by lowercased email
 	audits   []models.AuditEntry
-	services map[string]models.Service  // keyed by service id
-	jobs     map[string]*models.JobCard // keyed by ref
+	services map[string]models.Service       // keyed by service id
+	jobs     map[string]*models.JobCard      // keyed by ref
+	docs     map[string]*models.Document     // keyed by id
+	anns     map[string]*models.Announcement // keyed by id
 	refSeq   int
+	annSeq   int
 }
 
 func NewMemory() *Memory {
@@ -29,7 +32,15 @@ func NewMemory() *Memory {
 		users:    make(map[string]*models.User),
 		services: make(map[string]models.Service),
 		jobs:     make(map[string]*models.JobCard),
+		docs:     make(map[string]*models.Document),
+		anns:     make(map[string]*models.Announcement),
 	}
+	for _, a := range seedAnnouncements() {
+		cp := a
+		m.anns[a.ID] = &cp
+	}
+	// Continue the id sequence past the seeded announcements to avoid collisions.
+	m.annSeq = len(m.anns)
 	for _, s := range seedServices() {
 		m.services[s.ID] = s
 	}
@@ -193,6 +204,98 @@ func (m *Memory) UpdateJobCard(_ context.Context, j *models.JobCard) error {
 	cp := *j
 	m.jobs[j.Ref] = &cp
 	return nil
+}
+
+// --- Knowledge Center documents ---
+
+func (m *Memory) ListDocuments(_ context.Context, tenantID string) ([]models.Document, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	var out []models.Document
+	for _, d := range m.docs {
+		if d.TenantID == "lgh" || d.TenantID == tenantID {
+			out = append(out, *d)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Title < out[j].Title })
+	return out, nil
+}
+
+func (m *Memory) GetDocument(_ context.Context, id string) (*models.Document, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if d, ok := m.docs[id]; ok {
+		cp := *d
+		return &cp, nil
+	}
+	return nil, nil
+}
+
+func (m *Memory) UpsertDocument(_ context.Context, d *models.Document) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	cp := *d
+	m.docs[d.ID] = &cp
+	return nil
+}
+
+// --- Announcements ---
+
+func (m *Memory) ListAnnouncements(_ context.Context, tenantID string) ([]models.Announcement, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	var out []models.Announcement
+	for _, a := range m.anns {
+		if a.TenantID == "lgh" || a.TenantID == tenantID {
+			out = append(out, *a)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.After(out[j].CreatedAt) })
+	return out, nil
+}
+
+func (m *Memory) GetAnnouncement(_ context.Context, id string) (*models.Announcement, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if a, ok := m.anns[id]; ok {
+		cp := *a
+		return &cp, nil
+	}
+	return nil, nil
+}
+
+func (m *Memory) CreateAnnouncement(_ context.Context, a *models.Announcement) (*models.Announcement, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.annSeq++
+	a.ID = fmt.Sprintf("ann_%04d", m.annSeq)
+	if a.CreatedAt.IsZero() {
+		a.CreatedAt = time.Now().UTC()
+	}
+	cp := *a
+	m.anns[a.ID] = &cp
+	out := *a
+	return &out, nil
+}
+
+func (m *Memory) UpdateAnnouncement(_ context.Context, a *models.Announcement) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, ok := m.anns[a.ID]; !ok {
+		return fmt.Errorf("announcement %s not found", a.ID)
+	}
+	cp := *a
+	m.anns[a.ID] = &cp
+	return nil
+}
+
+func seedAnnouncements() []models.Announcement {
+	now := time.Now().UTC()
+	return []models.Announcement{
+		{ID: "ann_0001", TenantID: "lgh", Scope: "group", Title: "Server maintenance 00:00–03:00 on 07 June", Body: "Group IT will perform scheduled maintenance. Plan ahead — portal access may be intermittent.", Category: "IT Maintenance", Priority: "Important", AuthorName: "Group IT", CreatedAt: now.Add(-24 * time.Hour)},
+		{ID: "ann_0002", TenantID: "lgh", Scope: "group", Title: "IT Asset Policy — acknowledgement required by 15 June", Body: "All staff must read and acknowledge the updated IT Asset Policy in the Knowledge Center.", Category: "HR Policy", Priority: "Normal", AuthorName: "HR Department", CreatedAt: now.Add(-48 * time.Hour)},
+		{ID: "ann_0003", TenantID: "lgh", Scope: "group", Title: "Annual Sports Day — 30 June", Body: "Join us at Lyceum Sports Ground for the group-wide Annual Sports Day.", Category: "Event", Priority: "Normal", AuthorName: "Events Committee", CreatedAt: now.Add(-72 * time.Hour)},
+	}
 }
 
 func randID() string {

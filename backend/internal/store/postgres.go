@@ -179,6 +179,111 @@ func (p *Postgres) UpdateJobCard(ctx context.Context, j *models.JobCard) error {
 	return err
 }
 
+// --- Knowledge Center documents (JSONB aggregate) ---
+
+func (p *Postgres) ListDocuments(ctx context.Context, tenantID string) ([]models.Document, error) {
+	rows, err := p.pool.Query(ctx,
+		`SELECT doc FROM documents WHERE tenant_id='lgh' OR tenant_id=$1 ORDER BY title`, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []models.Document
+	for rows.Next() {
+		var b []byte
+		if err := rows.Scan(&b); err != nil {
+			return nil, err
+		}
+		var d models.Document
+		if err := json.Unmarshal(b, &d); err != nil {
+			return nil, err
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
+}
+
+func (p *Postgres) GetDocument(ctx context.Context, id string) (*models.Document, error) {
+	var b []byte
+	if err := p.pool.QueryRow(ctx, `SELECT doc FROM documents WHERE id=$1`, id).Scan(&b); err != nil {
+		return nil, nil
+	}
+	var d models.Document
+	if err := json.Unmarshal(b, &d); err != nil {
+		return nil, err
+	}
+	return &d, nil
+}
+
+func (p *Postgres) UpsertDocument(ctx context.Context, d *models.Document) error {
+	b, _ := json.Marshal(d)
+	_, err := p.pool.Exec(ctx,
+		`INSERT INTO documents (id, tenant_id, title, doc) VALUES ($1,$2,$3,$4)
+		 ON CONFLICT (id) DO UPDATE SET tenant_id=EXCLUDED.tenant_id, title=EXCLUDED.title, doc=EXCLUDED.doc`,
+		d.ID, d.TenantID, d.Title, b)
+	return err
+}
+
+// --- Announcements (JSONB aggregate) ---
+
+func (p *Postgres) ListAnnouncements(ctx context.Context, tenantID string) ([]models.Announcement, error) {
+	rows, err := p.pool.Query(ctx,
+		`SELECT doc FROM announcements WHERE tenant_id='lgh' OR tenant_id=$1 ORDER BY created_at DESC`, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []models.Announcement
+	for rows.Next() {
+		var b []byte
+		if err := rows.Scan(&b); err != nil {
+			return nil, err
+		}
+		var a models.Announcement
+		if err := json.Unmarshal(b, &a); err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
+}
+
+func (p *Postgres) GetAnnouncement(ctx context.Context, id string) (*models.Announcement, error) {
+	var b []byte
+	if err := p.pool.QueryRow(ctx, `SELECT doc FROM announcements WHERE id=$1`, id).Scan(&b); err != nil {
+		return nil, nil
+	}
+	var a models.Announcement
+	if err := json.Unmarshal(b, &a); err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+func (p *Postgres) CreateAnnouncement(ctx context.Context, a *models.Announcement) (*models.Announcement, error) {
+	var id string
+	if err := p.pool.QueryRow(ctx, `SELECT 'ann_' || lpad(nextval('ann_seq')::text, 4, '0')`).Scan(&id); err != nil {
+		return nil, err
+	}
+	a.ID = id
+	a.CreatedAt = time.Now().UTC()
+	b, _ := json.Marshal(a)
+	_, err := p.pool.Exec(ctx,
+		`INSERT INTO announcements (id, tenant_id, created_at, doc) VALUES ($1,$2,$3,$4)`,
+		a.ID, a.TenantID, a.CreatedAt, b)
+	if err != nil {
+		return nil, err
+	}
+	out := *a
+	return &out, nil
+}
+
+func (p *Postgres) UpdateAnnouncement(ctx context.Context, a *models.Announcement) error {
+	b, _ := json.Marshal(a)
+	_, err := p.pool.Exec(ctx, `UPDATE announcements SET doc=$2 WHERE id=$1`, a.ID, b)
+	return err
+}
+
 func (p *Postgres) RecentAudit(ctx context.Context, tenantID string, limit int) ([]models.AuditEntry, error) {
 	if limit <= 0 {
 		limit = 50

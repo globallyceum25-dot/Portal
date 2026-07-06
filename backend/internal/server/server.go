@@ -12,6 +12,7 @@ import (
 	"lyceumconnect/backend/internal/auth"
 	"lyceumconnect/backend/internal/config"
 	"lyceumconnect/backend/internal/httpx"
+	"lyceumconnect/backend/internal/knowledge"
 	"lyceumconnect/backend/internal/lifecycle"
 	"lyceumconnect/backend/internal/middleware"
 	"lyceumconnect/backend/internal/models"
@@ -53,8 +54,10 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	secure := api.Group("", middleware.Auth(cfg.JWTSecret))
 	secure.GET("/me", me)
 
+	notifier := notify.Default()
+
 	// Service Request lifecycle (spec §3).
-	reqs := &requestsAPI{store: s, lc: lifecycle.New(s, notify.Default())}
+	reqs := &requestsAPI{store: s, lc: lifecycle.New(s, notifier)}
 	secure.GET("/services", reqs.listServices)
 	secure.POST("/requests", reqs.submit)
 	secure.GET("/requests", reqs.myRequests)
@@ -68,8 +71,17 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	secure.POST("/requests/:ref/csat", reqs.csat)
 	secure.GET("/queues/:queue", reqs.queue)
 
+	// Knowledge Center + Announcements (spec §4, §7).
+	content := &contentAPI{store: s, syncer: knowledge.NewSyncer(knowledge.SeedSource{}, s), notifier: notifier}
+	secure.GET("/documents", content.listDocuments)
+	secure.POST("/documents/:id/read", content.confirmRead)
+	secure.GET("/announcements", content.listAnnouncements)
+	secure.POST("/announcements", content.publish)
+	secure.POST("/announcements/:id/read", content.markAnnouncementRead)
+
 	// Admin-only: proves RBAC and exposes the audit trail.
 	admin := secure.Group("/admin", middleware.RequireRole(models.RoleCompanyAdmin, models.RoleGroupSuperAdmin))
+	admin.POST("/kb/sync", content.syncNow)
 	admin.GET("/ping", func(c echo.Context) error {
 		u, _ := middleware.CurrentUser(c)
 		return httpx.OK(c, map[string]any{"ok": true, "as": u.Email, "role": u.Role})

@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lyceum Connect Knowledge Center. Access company policies, handbooks, forms, templates, and frequently asked questions.">
@@ -921,6 +922,64 @@
       }
     });
   }
+</script>
+
+<!-- ===== LIVE BACKEND INTEGRATION (Phase 2 Knowledge Center) ===== -->
+<script>
+(function () {
+  if (!window.LC) return;
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  var plural = function (t) { return ({ Policy: 'Policies', SOP: 'SOPs', Memo: 'Memos', Form: 'Forms', Template: 'Templates' })[t] || t + 's'; };
+
+  function sections(docs) {
+    var groups = {};
+    docs.forEach(function (d) { (groups[d.doc_type] = groups[d.doc_type] || []).push(d); });
+    return Object.keys(groups).sort().map(function (type) {
+      var rows = groups[type].map(function (d) {
+        var expiry = d.expired
+          ? '<span class="doc-type-badge" style="background:#FEE2E2;color:#B91C1C;margin-left:6px">Expired</span>'
+          : (d.expiring ? '<span class="doc-type-badge" style="background:#FEF3C7;color:#B45309;margin-left:6px">Expiring soon</span>' : '');
+        var action = d.read
+          ? '<span style="color:var(--success);font-size:12px;font-weight:600">✓ Read</span>'
+          : '<button class="btn btn-ghost btn-sm" onclick="lcConfirmRead(\'' + esc(d.id) + '\',this)">Confirm read</button>';
+        return '<tr class="doc-tr">' +
+          '<td class="doc-td"><a href="' + esc(d.url || '#') + '" class="doc-name" target="_blank" rel="noopener">' + esc(d.title) + '</a>' + expiry + '</td>' +
+          '<td class="doc-td"><span class="doc-type-badge badge-pdf">' + esc(d.doc_type) + '</span></td>' +
+          '<td class="doc-td">v' + esc(d.version || '1.0') + '</td>' +
+          '<td class="doc-td">' + esc((d.tags || []).join(', ')) + '</td>' +
+          '<td class="doc-td" style="text-align:right">' + action + '</td>' +
+        '</tr>';
+      }).join('');
+      return '<div class="doc-list-section card" data-doc-cat="' + esc(type.toLowerCase()) + '" style="margin-bottom:var(--space-6)">' +
+        '<div class="card-header"><h3 class="card-title">' + esc(plural(type)) + '</h3></div>' +
+        '<table class="doc-table"><thead><tr>' +
+        '<th class="doc-th">Document Title</th><th class="doc-th">Type</th><th class="doc-th">Version</th><th class="doc-th">Tags</th><th class="doc-th" style="text-align:right">Action</th>' +
+        '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }).join('');
+  }
+
+  window.lcConfirmRead = async function (id, btn) {
+    try {
+      await LC.post('/api/documents/' + id + '/read', {});
+      btn.outerHTML = '<span style="color:var(--success);font-size:12px;font-weight:600">✓ Read</span>';
+    } catch (e) { alert('Failed to confirm: ' + e.message); }
+  };
+
+  async function load() {
+    if (!LC.token() || !(await LC.health())) return;
+    try {
+      var r = await LC.get('/api/documents');
+      var docs = r.documents || [];
+      var c = document.getElementById('documentListsContainer');
+      if (docs.length && c) c.innerHTML = sections(docs);
+    } catch (e) { console.warn('documents', e); }
+  }
+
+  if (document.readyState !== 'loading') load();
+  else document.addEventListener('DOMContentLoaded', load);
+})();
 </script>
 </body>
 </html>

@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"lyceumconnect/backend/internal/config"
+	"lyceumconnect/backend/internal/knowledge"
 	"lyceumconnect/backend/internal/server"
 	"lyceumconnect/backend/internal/store"
 )
@@ -28,6 +29,13 @@ func main() {
 		log.Printf("store: in-memory (set DATABASE_URL for Postgres)")
 	}
 	defer s.Close()
+
+	// Prime the Knowledge Center with the initial document sync (spec §4).
+	if n, err := knowledge.NewSyncer(knowledge.SeedSource{}, s).Sync(context.Background()); err != nil {
+		log.Printf("knowledge sync failed: %v", err)
+	} else {
+		log.Printf("knowledge: %d documents cached", n)
+	}
 
 	if cfg.DevAuth {
 		log.Printf("dev auth ENABLED — POST /api/auth/dev-login is available")

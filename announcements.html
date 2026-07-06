@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lyceum Connect News and Announcements. Stay updated with HR policies, IT maintenance alerts, and staff achievements.">
@@ -939,6 +940,76 @@
   document.addEventListener('DOMContentLoaded', () => {
     renderFeed();
   });
+</script>
+
+<!-- ===== LIVE BACKEND INTEGRATION (Phase 2 announcements) ===== -->
+<script>
+(function () {
+  if (!window.LC) return;
+
+  var catKey = function (c) {
+    c = (c || '').toLowerCase();
+    if (c.indexOf('hr') > -1) return 'hr';
+    if (c.indexOf('it') > -1 || c.indexOf('maintenance') > -1 || c.indexOf('emergency') > -1) return 'it';
+    if (c.indexOf('facility') > -1) return 'facility';
+    if (c.indexOf('event') > -1) return 'event';
+    if (c.indexOf('achievement') > -1) return 'achievement';
+    return 'circular';
+  };
+  var colorFor = function (cat, priority) {
+    if (priority === 'Urgent') return ['#B91C1C', '#FEE2E2'];
+    return { hr: ['#0369A1', '#F0F8FD'], it: ['#7C3AED', '#F3E8FF'], facility: ['#0D9488', '#CCFBF1'],
+             event: ['#B45309', '#FEF3C7'], achievement: ['#15803D', '#DCFCE7'] }[cat] || ['#475569', '#F1F5F9'];
+  };
+  var fmt = function (iso) { var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }); };
+
+  function map(a) {
+    var cat = catKey(a.category), col = colorFor(cat, a.priority);
+    return { id: a.id, title: a.title, category: cat,
+      tag: (a.priority === 'Urgent' ? '⚠ ' : '') + (a.category || 'Notice'),
+      tagColor: col[0], tagBg: col[1], preview: a.body || '', date: fmt(a.created_at),
+      author: a.author_name || 'Admin', likes: 0, comments: 0, unread: !a.read,
+      timestamp: new Date(a.created_at).getTime() || 0 };
+  }
+
+  async function load() {
+    if (!LC.token() || !(await LC.health())) return;
+    try {
+      var r = await LC.get('/api/announcements');
+      var mapped = (r.announcements || []).map(map);
+      if (mapped.length && typeof announcementsData !== 'undefined') {
+        announcementsData.length = 0;
+        Array.prototype.push.apply(announcementsData, mapped);
+        if (typeof renderFeed === 'function') renderFeed();
+      }
+    } catch (e) { console.warn('announcements', e); }
+
+    var role = (LC.claims() || {}).role;
+    if (role === 'company_admin' || role === 'group_super_admin') addPublish(role);
+  }
+
+  function addPublish(role) {
+    if (document.getElementById('lc-publish-btn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'lc-publish-btn';
+    btn.className = 'btn btn-primary';
+    btn.textContent = '+ New announcement';
+    btn.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:500;box-shadow:var(--shadow-lg)';
+    btn.onclick = async function () {
+      var title = prompt('Announcement title:'); if (!title) return;
+      var body = prompt('Body:') || '';
+      var priority = prompt('Priority: Normal / Important / Urgent', 'Normal') || 'Normal';
+      var scope = role === 'group_super_admin' ? (prompt('Scope: group / company', 'group') || 'group') : 'company';
+      var category = prompt('Category (HR Policy / IT Maintenance / Event / Achievement / Emergency):', 'Event') || 'Event';
+      try { await LC.post('/api/announcements', { title: title, body: body, priority: priority, scope: scope, category: category }); await load(); }
+      catch (e) { alert('Publish failed: ' + e.message); }
+    };
+    document.body.appendChild(btn);
+  }
+
+  if (document.readyState !== 'loading') load();
+  else document.addEventListener('DOMContentLoaded', load);
+})();
 </script>
 </body>
 </html>

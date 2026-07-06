@@ -94,7 +94,19 @@ ENTRA_CLIENT_SECRET` to enable it; unset, the endpoints return 501 and
 `dev-login` is used instead. The frontend's "Sign in with Microsoft" button and
 `#token` handler complete the round-trip.
 
-## Next (Phase 1 → Phase 2)
+## Phase 2 — Knowledge Center + Announcements (done)
+- **Knowledge Center** (`knowledge/sync.go`): pluggable document Source (seed now,
+  Microsoft Graph/OneDrive the seam), a Syncer that caches metadata into the DB
+  on startup and on-demand. Documents carry type/tags/version/expiry and track
+  read-confirmations. `GET /documents`, `POST /documents/:id/read`,
+  `POST /admin/kb/sync`.
+- **Announcements** (`server/content.go`): scoped feed (group/company), admin
+  publishing with category + priority, notification fan-out (Urgent = immediate),
+  read tracking. `GET /announcements`, `POST /announcements` (admin),
+  `POST /announcements/:id/read`.
+- Schema in `db/migrations/0003_content.sql`.
+
+## Next (Phase 2 → beyond)
 - Company (tenant) mapping from Entra claims (currently defaults to `lgh`)
-- Point the static frontend's remaining pages at these APIs
-- Knowledge Center + OneDrive sync; Announcements publishing
+- Microsoft Graph adapter for real OneDrive sync (behind the `knowledge.Source` seam)
+- Phase 3: Meeting transcription → Tasks pipeline; Phase 4: Slack Hub
