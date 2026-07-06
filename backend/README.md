@@ -58,8 +58,34 @@ db/migrations         SQL schema (multi-tenant, audit_log)
 `hod_manager` · `company_admin` · `group_super_admin`
 (Group Super Admin bypasses role checks and sees all tenants.)
 
-## Next (Phase 0 → Phase 1)
-- Wire real Entra ID OIDC in `auth/oidc` (replace dev-login)
-- `Service`, `JobCard`, `JobCardStatusLog`, `ApprovalRequest`, `CsatResponse`
-- The **Routing Engine** (two-tier LGH IT → ZTE) as its own module
+## Phase 1 — Service Request lifecycle (done)
+The core workflow is live end-to-end (spec §3): submission → Job Card → routing →
+optional approval → acknowledge → in-progress → complete → CSAT, each step
+audited and notified across three channels.
+
+Key pieces: `internal/routing` (the Routing Engine — two-tier LGH IT → ZTE),
+`internal/lifecycle` (the state machine), `internal/notify` (concurrent fan-out),
+`internal/pii` (masking on submit). Job Card model in `models/jobcard.go`;
+schema in `db/migrations/0002_service_requests.sql`.
+
+Endpoints (all under `/api`, JWT-protected):
+
+```
+GET  /services                    catalog (routing flags per service)
+POST /requests                    submit → creates Job Card, routes it
+GET  /requests                    my requests
+GET  /requests/:ref               one request + timeline
+POST /requests/:ref/approve       HOD approval gate {decision, comment}
+POST /requests/:ref/acknowledge   assignee picks up
+POST /requests/:ref/start         → in progress
+POST /requests/:ref/forward       LGH IT → ZTE {note}
+POST /requests/:ref/reject        reject during LGH IT review {note}
+POST /requests/:ref/complete      {note}
+POST /requests/:ref/csat          {rating 1-5, comment}
+GET  /queues/:queue               staff queue view (lgh_it_review | zte | department)
+```
+
+## Next (Phase 1 → Phase 2)
+- Wire real Entra ID OIDC in `auth` (replace dev-login)
 - Point the static frontend's `request-form` / `request-tracking` at these APIs
+- Knowledge Center + OneDrive sync; Announcements publishing

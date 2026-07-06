@@ -19,6 +19,18 @@ type Store interface {
 	CreateAudit(ctx context.Context, e models.AuditEntry) error
 	RecentAudit(ctx context.Context, tenantID string, limit int) ([]models.AuditEntry, error)
 
+	// Service catalog (spec §3.1). "lgh" services are group-wide and visible to
+	// every tenant; others are scoped to their own tenant.
+	ListServices(ctx context.Context, tenantID string) ([]models.Service, error)
+	GetService(ctx context.Context, id string) (*models.Service, error)
+
+	// Job Cards (spec §3.2). CreateJobCard assigns the reference number.
+	CreateJobCard(ctx context.Context, j *models.JobCard) (*models.JobCard, error)
+	GetJobCard(ctx context.Context, ref string) (*models.JobCard, error)
+	ListJobCardsByRequester(ctx context.Context, requesterID string) ([]models.JobCard, error)
+	ListJobCardsByQueue(ctx context.Context, tenantID string, queue models.Queue) ([]models.JobCard, error)
+	UpdateJobCard(ctx context.Context, j *models.JobCard) error
+
 	// Ping reports store health for /healthz.
 	Ping(ctx context.Context) error
 	Kind() string

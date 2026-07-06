@@ -11,8 +11,10 @@ import (
 	"lyceumconnect/backend/internal/auth"
 	"lyceumconnect/backend/internal/config"
 	"lyceumconnect/backend/internal/httpx"
+	"lyceumconnect/backend/internal/lifecycle"
 	"lyceumconnect/backend/internal/middleware"
 	"lyceumconnect/backend/internal/models"
+	"lyceumconnect/backend/internal/notify"
 	"lyceumconnect/backend/internal/store"
 )
 
@@ -47,6 +49,21 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	// --- Protected routes (require a valid token) ---
 	secure := api.Group("", middleware.Auth(cfg.JWTSecret))
 	secure.GET("/me", me)
+
+	// Service Request lifecycle (spec §3).
+	reqs := &requestsAPI{store: s, lc: lifecycle.New(s, notify.Default())}
+	secure.GET("/services", reqs.listServices)
+	secure.POST("/requests", reqs.submit)
+	secure.GET("/requests", reqs.myRequests)
+	secure.GET("/requests/:ref", reqs.getRequest)
+	secure.POST("/requests/:ref/approve", reqs.approve)
+	secure.POST("/requests/:ref/acknowledge", reqs.acknowledge)
+	secure.POST("/requests/:ref/start", reqs.start)
+	secure.POST("/requests/:ref/forward", reqs.forward)
+	secure.POST("/requests/:ref/reject", reqs.reject)
+	secure.POST("/requests/:ref/complete", reqs.complete)
+	secure.POST("/requests/:ref/csat", reqs.csat)
+	secure.GET("/queues/:queue", reqs.queue)
 
 	// Admin-only: proves RBAC and exposes the audit trail.
 	admin := secure.Group("/admin", middleware.RequireRole(models.RoleCompanyAdmin, models.RoleGroupSuperAdmin))
