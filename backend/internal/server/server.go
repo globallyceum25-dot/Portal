@@ -18,6 +18,7 @@ import (
 	"lyceumconnect/backend/internal/middleware"
 	"lyceumconnect/backend/internal/models"
 	"lyceumconnect/backend/internal/notify"
+	"lyceumconnect/backend/internal/slack"
 	"lyceumconnect/backend/internal/store"
 )
 
@@ -55,10 +56,14 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	secure := api.Group("", middleware.Auth(cfg.JWTSecret))
 	secure.GET("/me", me)
 
-	notifier := notify.Default()
+	// Slack Integration Hub (spec §6): owns Slack delivery via the notifier's
+	// extra channel, and exposes the inbound interactions endpoint.
+	hub := slack.NewHub(slack.Pick(cfg.Slack))
+	notifier := notify.Default(slackChannel{hub: hub})
 
 	// Service Request lifecycle (spec §3).
-	reqs := &requestsAPI{store: s, lc: lifecycle.New(s, notifier)}
+	lc := lifecycle.New(s, notifier)
+	reqs := &requestsAPI{store: s, lc: lc}
 	secure.GET("/services", reqs.listServices)
 	secure.POST("/requests", reqs.submit)
 	secure.GET("/requests", reqs.myRequests)
@@ -89,9 +94,15 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	secure.POST("/tasks", meetings.createTask)
 	secure.PATCH("/tasks/:id", meetings.updateTask)
 
+	// Slack Integration Hub (spec §6). Inbound interactions are public (Slack
+	// posts server-to-server) but signature-verified when a secret is set.
+	slackH := &slackAPI{cfg: cfg.Slack, hub: hub, lc: lc}
+	e.POST("/api/slack/interactions", slackH.interactions)
+
 	// Admin-only: proves RBAC and exposes the audit trail.
 	admin := secure.Group("/admin", middleware.RequireRole(models.RoleCompanyAdmin, models.RoleGroupSuperAdmin))
 	admin.POST("/kb/sync", content.syncNow)
+	admin.GET("/slack/hub", slackH.hubStatus)
 	admin.GET("/ping", func(c echo.Context) error {
 		u, _ := middleware.CurrentUser(c)
 		return httpx.OK(c, map[string]any{"ok": true, "as": u.Email, "role": u.Role})

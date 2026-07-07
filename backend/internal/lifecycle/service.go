@@ -101,9 +101,31 @@ func (s *Service) Submit(ctx context.Context, actor models.User, in SubmitInput)
 		"service": svc.ID, "queue": created.Queue, "route": plan.Path,
 	})
 	s.notifier.Notify(ctx, notify.Event{
-		JobRef: created.Ref, Kind: "submitted", Recipient: actor.Email,
+		JobRef: created.Ref, Kind: "submitted", Recipient: actor.Email, Category: svc.Category,
 		Message: fmt.Sprintf("Your request %q was submitted (%s).", svc.Name, created.Ref),
 	})
+
+	// Slack Hub routing extras: send actionable messages to the right channel so
+	// the request can be approved/forwarded straight from Slack (spec §6.2).
+	if svc.ApprovalRequired {
+		s.notifier.Notify(ctx, notify.Event{
+			JobRef: created.Ref, Kind: "approval_needed", Category: svc.Category, Recipient: "#approvals",
+			Message: fmt.Sprintf("Approval needed for %s (%s), requested by %s.", svc.Name, created.Ref, actor.Name),
+			Actions: []notify.Action{
+				{Label: "Approve", Action: "approve", Value: created.Ref},
+				{Label: "Reject", Action: "reject-approval", Value: created.Ref},
+			},
+		})
+	} else if created.Queue == models.QueueLGHIT {
+		s.notifier.Notify(ctx, notify.Event{
+			JobRef: created.Ref, Kind: "lgh_it_review", Category: svc.Category, Recipient: "#it-requests",
+			Message: fmt.Sprintf("New IT request %s (%s) awaiting LGH IT review.", svc.Name, created.Ref),
+			Actions: []notify.Action{
+				{Label: "Forward to ZTE", Action: "forward", Value: created.Ref},
+				{Label: "Reject", Action: "reject", Value: created.Ref},
+			},
+		})
+	}
 	return created, nil
 }
 
@@ -266,7 +288,7 @@ func (s *Service) persist(ctx context.Context, actor models.User, jc *models.Job
 		return nil, errf(500, "could not update request")
 	}
 	_ = audit.Record(ctx, s.store, actor, action, "jobcard:"+jc.Ref, map[string]any{"status": jc.Status})
-	s.notifier.Notify(ctx, notify.Event{JobRef: jc.Ref, Kind: string(jc.Status), Recipient: jc.RequesterEmail, Message: msg})
+	s.notifier.Notify(ctx, notify.Event{JobRef: jc.Ref, Kind: string(jc.Status), Recipient: jc.RequesterEmail, Message: msg, Category: jc.Category})
 	return jc, nil
 }
 

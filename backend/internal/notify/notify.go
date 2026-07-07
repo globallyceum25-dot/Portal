@@ -13,12 +13,21 @@ import (
 	"sync"
 )
 
+// Action is an interactive control carried to channels that support it (Slack).
+type Action struct {
+	Label  string
+	Action string // e.g. "approve", "forward"
+	Value  string // e.g. the job reference
+}
+
 // Event is a single notification to deliver.
 type Event struct {
 	JobRef    string
-	Kind      string // e.g. "submitted", "acknowledged", "completed"
-	Recipient string // email of the requester or queue owner
+	Kind      string   // e.g. "submitted", "acknowledged", "completed"
+	Recipient string   // email of the requester or queue owner
 	Message   string
+	Category  string   // routing hint for the Slack Hub (e.g. "IT Support", "HR")
+	Actions   []Action // interactive buttons for bidirectional channels
 }
 
 // Channel delivers an event over one medium.
@@ -33,9 +42,10 @@ type Notifier struct{ channels []Channel }
 
 func New(channels ...Channel) *Notifier { return &Notifier{channels: channels} }
 
-// Default wires the Phase 1 channels: in-portal, email, Slack (all logging).
-func Default() *Notifier {
-	return New(logChannel{"in-portal"}, logChannel{"email"}, logChannel{"slack"})
+// Default wires the in-portal and email channels (both logging) plus any extra
+// channels — the Slack Hub is passed in as an extra so it owns Slack delivery.
+func Default(extra ...Channel) *Notifier {
+	return New(append([]Channel{logChannel{"in-portal"}, logChannel{"email"}}, extra...)...)
 }
 
 func (n *Notifier) Notify(ctx context.Context, e Event) {

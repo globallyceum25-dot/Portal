@@ -118,7 +118,22 @@ ENTRA_CLIENT_SECRET` to enable it; unset, the endpoints return 501 and
 - Frontend: `meeting-transcription` "Generate Minutes" runs the pipeline;
   `tasks.html` Task Manager loads live tasks and syncs status back.
 
-## Next (Phase 3 → beyond)
+## Phase 4 — Slack Integration Hub (done)
+- `slack/`: an event-driven Hub (spec §6). Publishers emit `slack.Event`s; the
+  Hub **routes** to the right channel (`#it-requests`, `#hr-requests`,
+  `#approvals`, `#announcements`, …) and delivers via a pluggable **Transport**
+  (log by default; real bot / webhook behind config) with **bounded retry**.
+- Wired into the notifier as an extra channel, so every portal notification
+  flows through the Hub. Lifecycle events carry a routing category + interactive
+  **actions** (Approve / Forward to ZTE).
+- **Bidirectional** (spec §6.2): `POST /api/slack/interactions` performs portal
+  actions from Slack (approve / reject / forward), signature-verified when
+  `SLACK_SIGNING_SECRET` is set. `GET /admin/slack/hub` shows transport +
+  channels. Unit tests cover routing + retry.
+
+## Next (Phase 4 → beyond)
 - Company (tenant) mapping from Entra claims (currently defaults to `lgh`)
-- Microsoft Graph adapter for real OneDrive sync (behind `knowledge.Source`)
-- Phase 4: Slack Integration Hub; Phase 5: Dashboards + Portal Bot
+- Real adapters behind the seams: Microsoft Graph (OneDrive), Nemotron (NIM),
+  Slack bot token / signing secret
+- Phase 5: Dashboards & Reports + Portal Bot (grounded, tool-calling)
+- Persist to Postgres (schema + parity already written)

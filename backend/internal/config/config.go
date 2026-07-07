@@ -18,6 +18,26 @@ type Config struct {
 	FrontendURL   string // where Entra callback redirects back with the session token
 	Entra         Entra
 	NIM           NIM
+	Slack         Slack
+}
+
+// Slack configures the Slack Integration Hub (spec §6). Unset => the log
+// transport is used (events are logged, not sent). BotToken enables real
+// per-channel posting; WebhookURL is a single-channel fallback.
+type Slack struct {
+	BotToken      string
+	WebhookURL    string
+	SigningSecret string // verifies inbound interactions/slash commands
+}
+
+func (s Slack) Outbound() string {
+	if s.BotToken != "" {
+		return "bot"
+	}
+	if s.WebhookURL != "" {
+		return "webhook"
+	}
+	return "log"
 }
 
 // NIM configures the NVIDIA NIM endpoint used for the meeting AI pipeline
@@ -62,6 +82,11 @@ func Load() Config {
 			BaseURL: getenv("NVIDIA_NIM_BASE_URL", ""),
 			APIKey:  getenv("NVIDIA_NIM_API_KEY", ""),
 			Model:   getenv("NVIDIA_NIM_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct"),
+		},
+		Slack: Slack{
+			BotToken:      getenv("SLACK_BOT_TOKEN", ""),
+			WebhookURL:    getenv("SLACK_WEBHOOK_URL", ""),
+			SigningSecret: getenv("SLACK_SIGNING_SECRET", ""),
 		},
 	}
 }
