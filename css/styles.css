@@ -7,14 +7,20 @@
 
 /* ---- CSS Custom Properties (Design Tokens) ---- */
 :root {
-  /* Brand — Charter: corporate blue on navy ink */
-  --primary:       #0369A1;
-  --primary-dark:  #075985;
-  --primary-light: #38BDF8;
-  --primary-50:    #F0F7FB;
-  --primary-100:   #DCEBF4;
-  --primary-200:   #B9DCED;
-  --primary-gradient: linear-gradient(135deg, #0F2A44 0%, #0369A1 100%);
+  /* Brand — Aurora Glass: modern indigo-blue with violet/cyan orb accents */
+  --primary:       #4F6EF7;
+  --primary-dark:  #3B54D6;
+  --primary-light: #8AA1FB;
+  --primary-50:    #EEF1FE;
+  --primary-100:   #E0E6FE;
+  --primary-200:   #C6D0FC;
+  --primary-gradient: linear-gradient(135deg, #6D5EF6 0%, #4F7DF6 55%, #38BDF8 100%);
+
+  /* Orb palette — the signature blended-sphere hero visual */
+  --orb-1: #6D8BFF; /* blue   */
+  --orb-2: #22D3EE; /* cyan   */
+  --orb-3: #A78BFA; /* violet */
+  --orb-4: #F472B6; /* pink accent */
 
   /* Neutrals */
   --gray-50:  #F8FAFC;
@@ -41,44 +47,44 @@
   --error:         #EF4444;
   --error-dark:    #B91C1C;
 
-  /* Surface & Background — Charter: crisp, opaque, near-white */
-  --bg-page:       #F5F7FA;
-  --bg-primary:    #F5F7FA;
-  --bg-secondary:  #FAFBFD;
-  --bg-tertiary:   #EDF1F6;
-  --surface:       #FFFFFF;
-  --surface-raised: #FFFFFF;
+  /* Surface & Background — Aurora Glass: airy, translucent, frosted */
+  --bg-page:       #EEF2FB;
+  --bg-primary:    #EEF2FB;
+  --bg-secondary:  rgba(255, 255, 255, 0.45);
+  --bg-tertiary:   rgba(233, 238, 250, 0.60);
+  --surface:       rgba(255, 255, 255, 0.62);
+  --surface-raised: rgba(255, 255, 255, 0.80);
 
-  /* Glassmorphism neutralized — Charter uses flat opaque surfaces */
-  --glass-blur:    blur(0px);
-  --glass-blur-sm: blur(0px);
-  --glass-shadow:  0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
-  --glass-border:  rgba(15, 23, 42, 0.09);
+  /* Glassmorphism — frosted surfaces with real blur */
+  --glass-blur:    blur(18px) saturate(140%);
+  --glass-blur-sm: blur(10px) saturate(130%);
+  --glass-shadow:  0 8px 32px rgba(80, 100, 180, 0.10), 0 2px 8px rgba(80, 100, 180, 0.05);
+  --glass-border:  rgba(255, 255, 255, 0.55);
 
-  /* Text — navy ink */
-  --text-primary:   #0F172A;
-  --text-secondary: #475569;
-  --text-tertiary:  #8494AC;
+  /* Text — soft navy for readability on light glass */
+  --text-primary:   #1E2440;
+  --text-secondary: #5A6685;
+  --text-tertiary:  #93A0BE;
   --text-inverse:   #FFFFFF;
-  --text-link:      #0369A1;
+  --text-link:      #4F6EF7;
 
-  /* Border — Charter: crisp neutral slate hairlines */
-  --border-light:  rgba(15, 23, 42, 0.04);
-  --border:        rgba(15, 23, 42, 0.09);
-  --border-strong: rgba(15, 23, 42, 0.16);
+  /* Border — soft, luminous glass edges */
+  --border-light:  rgba(255, 255, 255, 0.35);
+  --border:        rgba(120, 135, 190, 0.16);
+  --border-strong: rgba(120, 135, 190, 0.28);
 
-  /* Shadows — Charter: flat and restrained; borders carry structure */
-  --shadow-xs:  0 1px 2px rgba(15, 23, 42, 0.03);
-  --shadow-sm:  0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md:  0 2px 6px rgba(15, 23, 42, 0.05);
-  --shadow-lg:  0 6px 16px rgba(15, 23, 42, 0.06);
-  --shadow-xl:  0 12px 28px rgba(15, 23, 42, 0.08);
-  --shadow-2xl: 0 20px 44px rgba(15, 23, 42, 0.10);
-  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
-  --shadow-glow: 0 0 0 3px rgba(3, 105, 161, 0.15);
+  /* Shadows — soft, floating, coloured for depth */
+  --shadow-xs:  0 1px 3px rgba(80, 100, 180, 0.05);
+  --shadow-sm:  0 4px 14px rgba(80, 100, 180, 0.07);
+  --shadow-md:  0 8px 24px rgba(80, 100, 180, 0.09);
+  --shadow-lg:  0 14px 36px rgba(80, 100, 180, 0.12);
+  --shadow-xl:  0 22px 50px rgba(80, 100, 180, 0.14);
+  --shadow-2xl: 0 32px 70px rgba(80, 100, 180, 0.18);
+  --shadow-card: 0 8px 30px rgba(80, 100, 180, 0.09), 0 1px 3px rgba(80, 100, 180, 0.05);
+  --shadow-glow: 0 0 0 4px rgba(79, 110, 247, 0.16);
 
-  /* Sidebar */
-  --sidebar-bg:    #FFFFFF;
+  /* Sidebar — frosted glass */
+  --sidebar-bg:    rgba(255, 255, 255, 0.55);
   --sidebar-width: 256px;
   --sidebar-collapsed: 72px;
   --topbar-height: 64px;
@@ -96,12 +102,12 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* Border Radii — Charter: crisp, institutional */
-  --radius-sm:  6px;
-  --radius-md:  10px;
-  --radius-lg:  14px;
-  --radius-xl:  20px;
-  --radius-2xl: 28px;
+  /* Border Radii — Aurora Glass: soft and rounded */
+  --radius-sm:  10px;
+  --radius-md:  14px;
+  --radius-lg:  18px;
+  --radius-xl:  24px;
+  --radius-2xl: 32px;
   --radius-full: 9999px;
 
   /* Typography */
@@ -123,32 +129,31 @@
   --z-toast:    500;
 }
 
-/* ---- Dark Mode — Charter ---- */
+/* ---- Dark Mode — Aurora Glass (deep translucent) ---- */
 [data-theme="dark"] {
-  --bg-page:       #0A0F1A;
-  --bg-primary:    #0A0F1A;
-  --bg-secondary:  #111827;
-  --bg-tertiary:   #172033;
-  --surface:       #111827;
-  --surface-raised: #172033;
-  --sidebar-bg:    #111827;
+  --bg-page:       #0A0E1C;
+  --bg-primary:    #0A0E1C;
+  --bg-secondary:  rgba(28, 36, 60, 0.45);
+  --bg-tertiary:   rgba(34, 44, 72, 0.60);
+  --surface:       rgba(28, 36, 60, 0.55);
+  --surface-raised: rgba(38, 48, 78, 0.72);
+  --sidebar-bg:    rgba(20, 27, 48, 0.60);
 
-  --text-primary:   #E6ECF5;
-  --text-secondary: #94A3B8;
-  --text-tertiary:  #64748B;
+  --text-primary:   #E8ECF7;
+  --text-secondary: #9BA8C7;
+  --text-tertiary:  #6B788F;
 
-  /* Brighter tints so the corporate blue stays legible on dark */
-  --primary-light: #7DD3FC;
-  --primary-50:    rgba(3, 105, 161, 0.14);
-  --primary-100:   rgba(3, 105, 161, 0.22);
-  --text-link:      #38BDF8;
+  --primary-light: #A9BBFD;
+  --primary-50:    rgba(79, 110, 247, 0.16);
+  --primary-100:   rgba(79, 110, 247, 0.26);
+  --text-link:      #8AA1FB;
 
-  --border-light:  rgba(255, 255, 255, 0.04);
-  --border:        rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --glass-border:  rgba(255, 255, 255, 0.10);
+  --border-light:  rgba(255, 255, 255, 0.05);
+  --border:        rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --glass-border:  rgba(255, 255, 255, 0.12);
 
-  --shadow-card: 0 2px 8px rgba(0,0,0,0.32);
+  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 
 /* ============================================================
@@ -166,9 +171,11 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: radial-gradient(circle at 10% 20%, rgba(59, 123, 248, 0.05) 0%, transparent 45%),
-              radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.04) 0%, transparent 45%),
-              radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.03) 0%, transparent 55%),
+  /* Aurora Glass: airy pale ground with soft blue/violet/cyan/pink light blooms */
+  background: radial-gradient(38rem 30rem at 8% 6%, rgba(109, 139, 255, 0.20) 0%, transparent 60%),
+              radial-gradient(34rem 28rem at 92% 4%, rgba(167, 139, 250, 0.18) 0%, transparent 60%),
+              radial-gradient(40rem 34rem at 88% 92%, rgba(34, 211, 238, 0.16) 0%, transparent 62%),
+              radial-gradient(30rem 26rem at 12% 96%, rgba(244, 114, 182, 0.12) 0%, transparent 60%),
               var(--bg-page);
   background-attachment: fixed;
   color: var(--text-primary);
@@ -177,9 +184,10 @@ body {
 }
 
 [data-theme="dark"] body {
-  background: radial-gradient(circle at 10% 20%, rgba(59, 123, 248, 0.12) 0%, transparent 45%),
-              radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.08) 0%, transparent 45%),
-              radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.06) 0%, transparent 55%),
+  background: radial-gradient(38rem 30rem at 8% 6%, rgba(109, 139, 255, 0.22) 0%, transparent 60%),
+              radial-gradient(34rem 28rem at 92% 4%, rgba(167, 139, 250, 0.18) 0%, transparent 60%),
+              radial-gradient(40rem 34rem at 88% 92%, rgba(34, 211, 238, 0.16) 0%, transparent 62%),
+              radial-gradient(30rem 26rem at 12% 96%, rgba(244, 114, 182, 0.12) 0%, transparent 60%),
               var(--bg-page);
   background-attachment: fixed;
 }
@@ -1744,22 +1752,48 @@ ul { list-style: none; }
    MOCKUP UI REDESIGN SECTION (OVERRIDES & LAYOUTS)
    ============================================================ */
 .welcome-banner {
-  background: linear-gradient(135deg, #0F172A 0%, #0B3A5C 55%, #0369A1 100%) !important; /* Charter navy → corporate blue */
-  border-radius: 16px !important;
-  padding: 24px 32px !important;
+  background: linear-gradient(120deg, #5B4BE0 0%, #4F7DF6 45%, #2FB6E8 100%) !important; /* Aurora gradient */
+  border-radius: var(--radius-2xl) !important;
+  padding: 30px 34px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   gap: 24px !important;
   color: #ffffff !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
   position: relative !important;
   overflow: hidden !important;
+  box-shadow: 0 20px 50px -18px rgba(79, 110, 247, 0.55) !important;
 }
 
+/* Re-enable the decorative orbs as soft animated light blooms */
 .welcome-banner::before,
 .welcome-banner::after {
-  display: none !important; /* Hide circular decorative shapes to match mockup */
+  display: block !important;
+  content: '' !important;
+  position: absolute !important;
+  border-radius: 50% !important;
+  filter: blur(28px) !important;
+  pointer-events: none !important;
+}
+.welcome-banner::before {
+  top: -80px !important; right: 60px !important;
+  width: 260px !important; height: 260px !important;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.85), transparent 70%) !important;
+  animation: orbFloat 9s ease-in-out infinite !important;
+}
+.welcome-banner::after {
+  bottom: -110px !important; right: 240px !important;
+  width: 320px !important; height: 320px !important;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.55), transparent 70%) !important;
+  animation: orbFloat 11s ease-in-out infinite reverse !important;
+}
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-24px, 18px) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .welcome-banner::before, .welcome-banner::after { animation: none !important; }
 }
 
 .welcome-content {
@@ -2784,5 +2818,62 @@ ul { list-style: none; }
   [data-magnetic] { transform: none !important; transition: none !important; }
   [data-tilt]::after,
   [data-spotlight]::after { display: none !important; }
+}
+
+/* ============================================================
+   AURORA GLASS ENABLEMENT
+   Frost the translucent surfaces so cards read as real glass.
+   backdrop-filter only shows when the element background is
+   translucent (which the tokens now make it).
+   ============================================================ */
+.sidebar,
+.topbar,
+.stat-card,
+.quick-action-card,
+.split-card,
+.section-card,
+.news-card,
+.request-stat-card,
+.notif-dropdown,
+.search-results,
+[class*="-card"],
+.card {
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* Luminous top edge that sells the frosted-glass look */
+.stat-card,
+.quick-action-card,
+.split-card,
+.card {
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---- Signature hero orb: blended translucent spheres ---- */
+.hero-orb {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  flex-shrink: 0;
+  filter: blur(2px) saturate(140%);
+  animation: orbSpin 18s linear infinite;
+}
+.hero-orb span {
+  position: absolute;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  filter: blur(6px);
+}
+.hero-orb span:nth-child(1) { top: 0;    left: 8px;  background: radial-gradient(circle at 35% 35%, #8AA1FB, #4F6EF7 70%); }
+.hero-orb span:nth-child(2) { top: 12px; right: 0;   background: radial-gradient(circle at 35% 35%, #7DEBFB, #22D3EE 70%); animation: orbPulse 6s ease-in-out infinite; }
+.hero-orb span:nth-child(3) { bottom: 0;  left: 20px; background: radial-gradient(circle at 35% 35%, #C4B5FD, #A78BFA 70%); animation: orbPulse 7.5s ease-in-out infinite reverse; }
+@keyframes orbSpin  { to { transform: rotate(360deg); } }
+@keyframes orbPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+@media (prefers-reduced-motion: reduce) {
+  .hero-orb, .hero-orb span { animation: none !important; }
 }
 
