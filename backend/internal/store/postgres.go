@@ -284,6 +284,125 @@ func (p *Postgres) UpdateAnnouncement(ctx context.Context, a *models.Announcemen
 	return err
 }
 
+// --- Meetings + Tasks (JSONB aggregate) ---
+
+func (p *Postgres) CreateMeeting(ctx context.Context, m *models.Meeting) (*models.Meeting, error) {
+	var id string
+	if err := p.pool.QueryRow(ctx, `SELECT 'mtg_' || lpad(nextval('mtg_seq')::text, 4, '0')`).Scan(&id); err != nil {
+		return nil, err
+	}
+	m.ID = id
+	m.CreatedAt = time.Now().UTC()
+	b, _ := json.Marshal(m)
+	if _, err := p.pool.Exec(ctx,
+		`INSERT INTO meetings (id, tenant_id, created_at, doc) VALUES ($1,$2,$3,$4)`,
+		m.ID, m.TenantID, m.CreatedAt, b); err != nil {
+		return nil, err
+	}
+	out := *m
+	return &out, nil
+}
+
+func (p *Postgres) GetMeeting(ctx context.Context, id string) (*models.Meeting, error) {
+	var b []byte
+	if err := p.pool.QueryRow(ctx, `SELECT doc FROM meetings WHERE id=$1`, id).Scan(&b); err != nil {
+		return nil, nil
+	}
+	var m models.Meeting
+	if err := json.Unmarshal(b, &m); err != nil {
+		return nil, err
+	}
+	return &m, nil
+}
+
+func (p *Postgres) ListMeetings(ctx context.Context, tenantID string) ([]models.Meeting, error) {
+	rows, err := p.pool.Query(ctx, `SELECT doc FROM meetings WHERE ($1='' OR tenant_id=$1) ORDER BY created_at DESC`, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []models.Meeting
+	for rows.Next() {
+		var b []byte
+		if err := rows.Scan(&b); err != nil {
+			return nil, err
+		}
+		var m models.Meeting
+		if err := json.Unmarshal(b, &m); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, rows.Err()
+}
+
+func (p *Postgres) UpdateMeeting(ctx context.Context, m *models.Meeting) error {
+	b, _ := json.Marshal(m)
+	_, err := p.pool.Exec(ctx, `UPDATE meetings SET doc=$2 WHERE id=$1`, m.ID, b)
+	return err
+}
+
+func (p *Postgres) CreateTask(ctx context.Context, t *models.Task) (*models.Task, error) {
+	var id string
+	if err := p.pool.QueryRow(ctx, `SELECT 'task_' || lpad(nextval('task_seq')::text, 4, '0')`).Scan(&id); err != nil {
+		return nil, err
+	}
+	t.ID = id
+	now := time.Now().UTC()
+	t.CreatedAt, t.UpdatedAt = now, now
+	if t.Status == "" {
+		t.Status = models.TaskTodo
+	}
+	b, _ := json.Marshal(t)
+	if _, err := p.pool.Exec(ctx,
+		`INSERT INTO tasks (id, tenant_id, status, created_at, doc) VALUES ($1,$2,$3,$4,$5)`,
+		t.ID, t.TenantID, t.Status, t.CreatedAt, b); err != nil {
+		return nil, err
+	}
+	out := *t
+	return &out, nil
+}
+
+func (p *Postgres) GetTask(ctx context.Context, id string) (*models.Task, error) {
+	var b []byte
+	if err := p.pool.QueryRow(ctx, `SELECT doc FROM tasks WHERE id=$1`, id).Scan(&b); err != nil {
+		return nil, nil
+	}
+	var t models.Task
+	if err := json.Unmarshal(b, &t); err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
+func (p *Postgres) ListTasks(ctx context.Context, tenantID string) ([]models.Task, error) {
+	rows, err := p.pool.Query(ctx, `SELECT doc FROM tasks WHERE ($1='' OR tenant_id=$1) ORDER BY created_at DESC`, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []models.Task
+	for rows.Next() {
+		var b []byte
+		if err := rows.Scan(&b); err != nil {
+			return nil, err
+		}
+		var t models.Task
+		if err := json.Unmarshal(b, &t); err != nil {
+			return nil, err
+		}
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+func (p *Postgres) UpdateTask(ctx context.Context, t *models.Task) error {
+	t.UpdatedAt = time.Now().UTC()
+	b, _ := json.Marshal(t)
+	_, err := p.pool.Exec(ctx, `UPDATE tasks SET status=$2, doc=$3, updated_at=now() WHERE id=$1`, t.ID, t.Status, b)
+	return err
+}
+
 func (p *Postgres) RecentAudit(ctx context.Context, tenantID string, limit int) ([]models.AuditEntry, error) {
 	if limit <= 0 {
 		limit = 50

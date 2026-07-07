@@ -53,6 +53,7 @@
     },
     get: function (p) { return req('GET', p); },
     post: function (p, b) { return req('POST', p, b); },
+    patch: function (p, b) { return req('PATCH', p, b); },
     devLogin: async function (email, role, name) {
       var d = await req('POST', '/api/auth/dev-login', { email: email, role: role, name: name });
       LC.setToken(d.token);

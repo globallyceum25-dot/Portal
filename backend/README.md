@@ -106,7 +106,19 @@ ENTRA_CLIENT_SECRET` to enable it; unset, the endpoints return 501 and
   `POST /announcements/:id/read`.
 - Schema in `db/migrations/0003_content.sql`.
 
-## Next (Phase 2 → beyond)
+## Phase 3 — Meeting transcription → Tasks pipeline (done)
+- `meetingai/`: pluggable **Analyzer** (heuristic now; **NVIDIA Nemotron via NIM**
+  behind the config seam) + a Pipeline that turns a transcript into summary +
+  key points + action items and auto-creates linked **Tasks**. Browser Web Speech
+  API stays as the live STT front end (English + Sinhala).
+- Transcript is PII-masked before storage; analysis runs on the raw text so
+  assignee names survive for auto-assignment.
+- `POST /meetings` (run pipeline), `GET /meetings`, `GET /meetings/:id`,
+  `GET /tasks`, `POST /tasks`, `PATCH /tasks/:id`. Schema `0004_meetings_tasks.sql`.
+- Frontend: `meeting-transcription` "Generate Minutes" runs the pipeline;
+  `tasks.html` Task Manager loads live tasks and syncs status back.
+
+## Next (Phase 3 → beyond)
 - Company (tenant) mapping from Entra claims (currently defaults to `lgh`)
-- Microsoft Graph adapter for real OneDrive sync (behind the `knowledge.Source` seam)
-- Phase 3: Meeting transcription → Tasks pipeline; Phase 4: Slack Hub
+- Microsoft Graph adapter for real OneDrive sync (behind `knowledge.Source`)
+- Phase 4: Slack Integration Hub; Phase 5: Dashboards + Portal Bot

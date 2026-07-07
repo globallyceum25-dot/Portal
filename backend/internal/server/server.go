@@ -14,6 +14,7 @@ import (
 	"lyceumconnect/backend/internal/httpx"
 	"lyceumconnect/backend/internal/knowledge"
 	"lyceumconnect/backend/internal/lifecycle"
+	"lyceumconnect/backend/internal/meetingai"
 	"lyceumconnect/backend/internal/middleware"
 	"lyceumconnect/backend/internal/models"
 	"lyceumconnect/backend/internal/notify"
@@ -78,6 +79,15 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	secure.GET("/announcements", content.listAnnouncements)
 	secure.POST("/announcements", content.publish)
 	secure.POST("/announcements/:id/read", content.markAnnouncementRead)
+
+	// Meeting transcription → Tasks pipeline + Task Manager (spec §5).
+	meetings := &meetingsAPI{store: s, pipeline: meetingai.NewPipeline(s, meetingai.Pick(cfg))}
+	secure.POST("/meetings", meetings.ingest)
+	secure.GET("/meetings", meetings.listMeetings)
+	secure.GET("/meetings/:id", meetings.getMeeting)
+	secure.GET("/tasks", meetings.listTasks)
+	secure.POST("/tasks", meetings.createTask)
+	secure.PATCH("/tasks/:id", meetings.updateTask)
 
 	// Admin-only: proves RBAC and exposes the audit trail.
 	admin := secure.Group("/admin", middleware.RequireRole(models.RoleCompanyAdmin, models.RoleGroupSuperAdmin))

@@ -42,6 +42,16 @@ type Store interface {
 	CreateAnnouncement(ctx context.Context, a *models.Announcement) (*models.Announcement, error)
 	UpdateAnnouncement(ctx context.Context, a *models.Announcement) error
 
+	// Meetings + Tasks (spec §5).
+	CreateMeeting(ctx context.Context, m *models.Meeting) (*models.Meeting, error)
+	GetMeeting(ctx context.Context, id string) (*models.Meeting, error)
+	ListMeetings(ctx context.Context, tenantID string) ([]models.Meeting, error)
+	UpdateMeeting(ctx context.Context, m *models.Meeting) error
+	CreateTask(ctx context.Context, t *models.Task) (*models.Task, error)
+	GetTask(ctx context.Context, id string) (*models.Task, error)
+	ListTasks(ctx context.Context, tenantID string) ([]models.Task, error)
+	UpdateTask(ctx context.Context, t *models.Task) error
+
 	// Ping reports store health for /healthz.
 	Ping(ctx context.Context) error
 	Kind() string

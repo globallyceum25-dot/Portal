@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
   <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lyceum Connect Live Meeting Transcription. Real-time speech-to-text in English and Sinhalese. Prepare meeting minutes and summaries.">
@@ -531,6 +532,38 @@
 <!-- ========= SCRIPTS ========= -->
 <script src="js/main.js"></script>
 <script src="js/transcription.js"></script>
+
+<!-- ===== LIVE BACKEND INTEGRATION (Phase 3 meeting pipeline) ===== -->
+<script>
+(function () {
+  if (!window.LC) return;
+
+  // Send the current transcript through the backend AI pipeline: summary +
+  // action items + auto-created Tasks (which then appear in the Task Manager).
+  window.lcProcessMeeting = async function () {
+    var ed = document.getElementById('transcriptEditor');
+    var text = ed ? (ed.innerText || ed.textContent || '').trim() : '';
+    if (!text) { if (window.showToast) showToast('Nothing to process', 'Record or type a transcript first.', 'error'); return; }
+    if (!(LC.token() && await LC.health())) { if (window.showToast) showToast('Backend offline', 'Start the API to run the AI pipeline.', 'error'); return; }
+    var title = (document.getElementById('meetingTitleInput') || {}).value || ('Meeting — ' + new Date().toLocaleDateString());
+    try {
+      var r = await LC.post('/api/meetings', { title: title, language: 'en', transcript: text });
+      var n = (r.tasks || []).length;
+      if (window.showToast) showToast('Minutes generated', n + ' task(s) created and sent to the Task Manager.', 'success');
+    } catch (e) {
+      if (window.showToast) showToast('Pipeline failed', e.message || 'Could not process meeting.', 'error');
+    }
+  };
+
+  // Augment the existing "Generate Minutes" action with the real pipeline,
+  // without disturbing its local behaviour.
+  var _gen = window.generateMinutes;
+  window.generateMinutes = function () {
+    if (_gen) { try { _gen(); } catch (e) {} }
+    window.lcProcessMeeting();
+  };
+})();
+</script>
 
 </body>
 </html>

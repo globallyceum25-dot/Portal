@@ -23,8 +23,12 @@ type Memory struct {
 	jobs     map[string]*models.JobCard      // keyed by ref
 	docs     map[string]*models.Document     // keyed by id
 	anns     map[string]*models.Announcement // keyed by id
+	meetings map[string]*models.Meeting      // keyed by id
+	tasks    map[string]*models.Task         // keyed by id
 	refSeq   int
 	annSeq   int
+	mtgSeq   int
+	taskSeq  int
 }
 
 func NewMemory() *Memory {
@@ -34,6 +38,8 @@ func NewMemory() *Memory {
 		jobs:     make(map[string]*models.JobCard),
 		docs:     make(map[string]*models.Document),
 		anns:     make(map[string]*models.Announcement),
+		meetings: make(map[string]*models.Meeting),
+		tasks:    make(map[string]*models.Task),
 	}
 	for _, a := range seedAnnouncements() {
 		cp := a
@@ -286,6 +292,110 @@ func (m *Memory) UpdateAnnouncement(_ context.Context, a *models.Announcement) e
 	}
 	cp := *a
 	m.anns[a.ID] = &cp
+	return nil
+}
+
+// --- Meetings + Tasks (spec §5) ---
+
+func (m *Memory) CreateMeeting(_ context.Context, mt *models.Meeting) (*models.Meeting, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.mtgSeq++
+	mt.ID = fmt.Sprintf("mtg_%04d", m.mtgSeq)
+	if mt.CreatedAt.IsZero() {
+		mt.CreatedAt = time.Now().UTC()
+	}
+	cp := *mt
+	m.meetings[mt.ID] = &cp
+	out := *mt
+	return &out, nil
+}
+
+func (m *Memory) GetMeeting(_ context.Context, id string) (*models.Meeting, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if mt, ok := m.meetings[id]; ok {
+		cp := *mt
+		return &cp, nil
+	}
+	return nil, nil
+}
+
+func (m *Memory) ListMeetings(_ context.Context, tenantID string) ([]models.Meeting, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	var out []models.Meeting
+	for _, mt := range m.meetings {
+		if tenantID == "" || mt.TenantID == tenantID {
+			out = append(out, *mt)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.After(out[j].CreatedAt) })
+	return out, nil
+}
+
+func (m *Memory) UpdateMeeting(_ context.Context, mt *models.Meeting) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, ok := m.meetings[mt.ID]; !ok {
+		return fmt.Errorf("meeting %s not found", mt.ID)
+	}
+	cp := *mt
+	m.meetings[mt.ID] = &cp
+	return nil
+}
+
+func (m *Memory) CreateTask(_ context.Context, t *models.Task) (*models.Task, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.taskSeq++
+	t.ID = fmt.Sprintf("task_%04d", m.taskSeq)
+	now := time.Now().UTC()
+	if t.CreatedAt.IsZero() {
+		t.CreatedAt = now
+	}
+	t.UpdatedAt = now
+	if t.Status == "" {
+		t.Status = models.TaskTodo
+	}
+	cp := *t
+	m.tasks[t.ID] = &cp
+	out := *t
+	return &out, nil
+}
+
+func (m *Memory) GetTask(_ context.Context, id string) (*models.Task, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	if t, ok := m.tasks[id]; ok {
+		cp := *t
+		return &cp, nil
+	}
+	return nil, nil
+}
+
+func (m *Memory) ListTasks(_ context.Context, tenantID string) ([]models.Task, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	var out []models.Task
+	for _, t := range m.tasks {
+		if tenantID == "" || t.TenantID == tenantID {
+			out = append(out, *t)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.After(out[j].CreatedAt) })
+	return out, nil
+}
+
+func (m *Memory) UpdateTask(_ context.Context, t *models.Task) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if _, ok := m.tasks[t.ID]; !ok {
+		return fmt.Errorf("task %s not found", t.ID)
+	}
+	t.UpdatedAt = time.Now().UTC()
+	cp := *t
+	m.tasks[t.ID] = &cp
 	return nil
 }
 

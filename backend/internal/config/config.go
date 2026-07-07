@@ -17,7 +17,18 @@ type Config struct {
 	AllowedOrigin string
 	FrontendURL   string // where Entra callback redirects back with the session token
 	Entra         Entra
+	NIM           NIM
 }
+
+// NIM configures the NVIDIA NIM endpoint used for the meeting AI pipeline
+// (Nemotron, spec §13.1). Unset => the heuristic analyzer is used.
+type NIM struct {
+	BaseURL string
+	APIKey  string
+	Model   string
+}
+
+func (n NIM) Configured() bool { return n.APIKey != "" && n.BaseURL != "" }
 
 // Entra holds Microsoft Entra ID (Azure AD) OIDC settings. When unset, SSO
 // endpoints return 501 and the dev-login path is used instead.
@@ -46,6 +57,11 @@ func Load() Config {
 			ClientID:     getenv("ENTRA_CLIENT_ID", ""),
 			ClientSecret: getenv("ENTRA_CLIENT_SECRET", ""),
 			RedirectURL:  getenv("ENTRA_REDIRECT_URL", "http://localhost:8090/api/auth/callback"),
+		},
+		NIM: NIM{
+			BaseURL: getenv("NVIDIA_NIM_BASE_URL", ""),
+			APIKey:  getenv("NVIDIA_NIM_API_KEY", ""),
+			Model:   getenv("NVIDIA_NIM_MODEL", "nvidia/llama-3.1-nemotron-70b-instruct"),
 		},
 	}
 }

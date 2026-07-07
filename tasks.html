@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/styles.css">
   
   <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
 
   <style>
     /* Task Page Custom Metrics & Layout Styles */
@@ -405,5 +406,52 @@
 <script src="js/main.js"></script>
 <script src="js/tasks.js?v=3"></script>
 
+<!-- ===== LIVE BACKEND INTEGRATION (Phase 3 Task Manager) ===== -->
+<script>
+(function () {
+  if (!window.LC) return;
+
+  var mapPri = function (p) { return { High: 'High', Normal: 'Medium', Low: 'Low' }[p] || 'Medium'; };
+
+  async function load() {
+    if (!LC.token() || !(await LC.health())) return;
+    var meetings = {};
+    try {
+      var mr = await LC.get('/api/meetings');
+      (mr.meetings || []).forEach(function (m) { meetings[m.id] = m.title; });
+    } catch (e) {}
+    var tasks;
+    try { tasks = (await LC.get('/api/tasks')).tasks || []; } catch (e) { return; }
+
+    var mapped = tasks.map(function (t) {
+      return {
+        id: t.id, title: t.title,
+        assignee: t.assignee_name || 'Unassigned',
+        meetingTitle: meetings[t.source_meeting_id] || (t.source_meeting_id ? 'Meeting' : 'Manual'),
+        completed: t.status === 'done',
+        priority: mapPri(t.priority),
+        dueDate: t.due_date ? new Date(t.due_date).toISOString().slice(0, 10) : '',
+        status: t.status,
+      };
+    });
+    localStorage.setItem('lc-tasks', JSON.stringify(mapped));
+    if (typeof renderTasksList === 'function') renderTasksList();
+  }
+
+  // Wrap the local toggle so status changes also persist to the backend.
+  var _toggle = window.toggleTaskStatus;
+  window.toggleTaskStatus = function (id) {
+    if (_toggle) _toggle(id);
+    if (!(window.LC && LC.token())) return;
+    var t = (JSON.parse(localStorage.getItem('lc-tasks') || '[]')).find(function (x) { return x.id === id; });
+    if (t && /^task_/.test(id)) {
+      LC.patch('/api/tasks/' + id, { status: t.completed ? 'done' : 'todo' }).catch(function () {});
+    }
+  };
+
+  if (document.readyState !== 'loading') load();
+  else document.addEventListener('DOMContentLoaded', load);
+})();
+</script>
 </body>
 </html>
