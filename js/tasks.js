@@ -205,9 +205,21 @@ function seedTasksPage() {
 
 console.log('Lyceum Connect: tasks.js loaded');
 
-function initTasksModule() {
+async function initTasksModule() {
   console.log('Lyceum Connect: Initializing tasks module...');
   seedTasksPage();
+  // Merge live Supabase tasks (by id) when signed in — never clobbers local edits.
+  try {
+    if (window.LCData) {
+      const d = await window.LCData.tasks();
+      if (d.source === 'supabase' && d.rows.length) {
+        const local = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const ids = new Set(local.map(t => t.id));
+        const add = d.rows.filter(t => !ids.has(t.id));
+        if (add.length) localStorage.setItem(STORAGE_KEY, JSON.stringify([...add, ...local]));
+      }
+    }
+  } catch (e) { /* keep local tasks */ }
   renderTasksList();
   populateMeetingFilters();
 }

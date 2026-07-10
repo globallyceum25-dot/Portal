@@ -59,6 +59,34 @@
     };
   }
 
+  // Admin-only: create an employee in Supabase, then refresh the live roster.
+  async function onAddEmployee() {
+    var admin = false;
+    try { admin = !!(window.LCData && await window.LCData.isAdmin()); } catch (e) { }
+    if (!admin) { toast('Admins only — sign in with an admin account to add employees', 'error'); return; }
+
+    var name = prompt('Full name:'); if (!name) return;
+    var designation = prompt('Designation:', 'Officer') || '';
+    var department = prompt('Department:', 'Operations') || '';
+    var email = prompt('Work email:', name.trim().toLowerCase().replace(/\s+/g, '.') + '@lyceum.edu') || '';
+    var senior = /manager|director|lead|head|chief|officer of|vp|president/i.test(designation);
+    var category = senior ? 'Management' : 'Non-Management';
+    var row = {
+      id: 'emp_' + Date.now(), name: name.trim(), designation: designation, department: department,
+      category: category, email: email, emp_code: 'EMP-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000),
+      joining_date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-'),
+      location: 'HQ — Main Building', reports_to: 'Department Head',
+      tags: [category], hue: Math.floor(Math.random() * 360), online: false
+    };
+    try {
+      var res = await window.LCData.createEmployee(row);
+      if (res.error) throw new Error(res.error.message);
+      toast('Employee added — ' + row.name, 'success');
+      var d = await window.LCData.employees();
+      if (d.source === 'supabase') { roster = d.rows.map(normalizeEmp); state.page = 1; load(); }
+    } catch (e) { toast('Add failed: ' + (e.message || e), 'error'); }
+  }
+
   function wire() {
     var search = $('dirSearch');
     search.addEventListener('input', function () {
@@ -107,8 +135,8 @@
     $('drawerOverlay').addEventListener('click', closeDrawer);
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDrawer(); });
 
-    // Header actions (demo toasts)
-    $('addBtn').addEventListener('click', function () { toast('“Add New Employee” — form coming soon', 'info'); });
+    // Header actions
+    $('addBtn').addEventListener('click', onAddEmployee);
     $('importBtn').addEventListener('click', function () { toast('Import flow — connect your HRIS to sync', 'info'); });
   }
 

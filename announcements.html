@@ -1001,8 +1001,11 @@
       replaceFeed((r.announcements || []).map(map));
     } catch (e) { console.warn('announcements', e); }
 
+    // Show the admin publish button for Go-backend admins OR Supabase admins.
     var role = (LC.claims() || {}).role;
-    if (role === 'company_admin' || role === 'group_super_admin') addPublish(role);
+    var admin = role === 'company_admin' || role === 'group_super_admin';
+    if (!admin && window.LCData) { try { admin = await window.LCData.isAdmin(); } catch (e) { } }
+    if (admin) addPublish(role);
   }
 
   function addPublish(role) {
@@ -1016,8 +1019,20 @@
       var title = prompt('Announcement title:'); if (!title) return;
       var body = prompt('Body:') || '';
       var priority = prompt('Priority: Normal / Important / Urgent', 'Normal') || 'Normal';
-      var scope = role === 'group_super_admin' ? (prompt('Scope: group / company', 'group') || 'group') : 'company';
-      var category = prompt('Category (HR Policy / IT Maintenance / Event / Achievement / Emergency):', 'Event') || 'Event';
+      var category = prompt('Category (HR / IT / Facility / Event / Achievement / Circular):', 'Event') || 'Event';
+
+      // Prefer Supabase when signed in with a real session.
+      try {
+        if (window.LCData && await window.LCData.live()) {
+          var res = await window.LCData.createAnnouncement({ title: title, body: body, priority: priority, category: category, published: true });
+          if (res.error) throw new Error(res.error.message);
+          await load();
+          return;
+        }
+      } catch (e) { alert('Publish failed: ' + (e.message || e)); return; }
+
+      // Fallback: Go backend.
+      var scope = role === 'group_super_admin' ? 'group' : 'company';
       try { await LC.post('/api/announcements', { title: title, body: body, priority: priority, scope: scope, category: category }); await load(); }
       catch (e) { alert('Publish failed: ' + e.message); }
     };

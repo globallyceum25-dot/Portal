@@ -408,6 +408,7 @@
 
 <!-- ========= SCRIPTS ========= -->
 <script src="js/main.js"></script>
+<script src="js/data.js"></script>
 <script src="js/tasks.js?v=3"></script>
 
 <!-- ===== LIVE BACKEND INTEGRATION (Phase 3 Task Manager) ===== -->
@@ -438,8 +439,12 @@
         status: t.status,
       };
     });
-    localStorage.setItem('lc-tasks', JSON.stringify(mapped));
-    if (typeof renderTasksList === 'function') renderTasksList();
+    // Only adopt the backend list when it actually has tasks — an empty
+    // response must not wipe the seeded / Supabase-merged local tasks.
+    if (mapped.length) {
+      localStorage.setItem('lc-tasks', JSON.stringify(mapped));
+      if (typeof renderTasksList === 'function') renderTasksList();
+    }
   }
 
   // Wrap the local toggle so status changes also persist to the backend.

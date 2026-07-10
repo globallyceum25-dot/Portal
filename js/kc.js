@@ -283,7 +283,19 @@
     });
   };
 
-  function boot() {
+  async function boot() {
+    // Hydrate the document catalogue from Supabase when signed in.
+    try {
+      if (window.LCData) {
+        var live = await window.LCData.documents();
+        if (live.source === 'supabase' && live.rows.length) {
+          DOCS.length = 0;
+          Array.prototype.push.apply(DOCS, live.rows);
+          byId = {}; DOCS.forEach(function (d) { byId[d.id] = d; });
+        }
+      }
+    } catch (e) { /* keep demo docs */ }
+
     renderFeatured();
     renderSections();
     renderRecent();

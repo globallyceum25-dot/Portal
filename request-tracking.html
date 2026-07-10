@@ -1042,6 +1042,7 @@
 </div>
 
 <script src="js/main.js"></script>
+<script src="js/data.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════
 // DATA
@@ -1594,6 +1595,23 @@ let currentRequests = [...requests];
 updateCounters();
 renderTable(requests);
 lucide.createIcons();
+
+// Merge live Supabase requests (by id) when signed in — never clobbers demo rows.
+(async function hydrateRequests() {
+  try {
+    if (!window.LCData) return;
+    var d = await window.LCData.requests();
+    if (d.source !== 'supabase' || !d.rows.length) return;
+    var have = {}; requests.forEach(function (r) { have[r.id] = 1; });
+    var add = d.rows.filter(function (r) { return !have[r.id]; });
+    if (!add.length) return;
+    Array.prototype.unshift.apply(requests, add);
+    currentRequests = [...requests];
+    updateCounters();
+    if (typeof filterTable === 'function') filterTable(); else renderTable(requests);
+    if (window.lucide) lucide.createIcons();
+  } catch (e) { console.warn('requests supabase', e); }
+})();
 </script>
 
 <!-- ============================================================
@@ -1699,7 +1717,9 @@ lucide.createIcons();
       } catch (e) { console.warn('queue', queues[i], e); }
     }
 
-    // Repoint the page's data array and re-render with existing functions.
+    // Only repoint when the backend actually returned requests — an empty
+    // response must not wipe the demo / Supabase-merged rows.
+    if (!collected.length) return;
     requests.length = 0;
     Array.prototype.push.apply(requests, collected);
     updateCounters();
