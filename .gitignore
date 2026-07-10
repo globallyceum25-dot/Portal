@@ -2,6 +2,7 @@ node_modules/
 .DS_Store
 .antigravity-ide/
 .gemini/
+.claude/skills/
 dist/
 build/
 *.log

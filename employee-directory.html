@@ -4,177 +4,196 @@
   <script src="js/auth.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Lyceum Connect Employee Directory. Search staff members, contact information, office locations, and departments.">
+  <meta name="description" content="Lyceum Connect Employee Directory — search, filter and browse staff across departments and locations.">
   <title>Employee Directory — Lyceum Connect</title>
   <link rel="stylesheet" href="css/styles.css">
   <style>
-    /* Employee Directory Custom Styling */
-    .search-filter-container {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: var(--space-4) var(--space-5);
-      margin-bottom: var(--space-6);
-      display: flex;
-      gap: var(--space-3);
-      align-items: center;
-      flex-wrap: wrap;
-      box-shadow: var(--shadow-sm);
-    }
-    
-    .dir-main-search {
-      flex: 1;
-      min-width: 250px;
-    }
+    /* ===========================================================
+       EMPLOYEE DIRECTORY — modern card grid + motion (Phase 5+)
+       =========================================================== */
+    .dir-head { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap; margin-bottom:var(--space-5); }
+    .dir-title { font-family:var(--font-display); font-size:26px; font-weight:800; letter-spacing:-0.4px; color:var(--text-primary); line-height:1.15; display:flex; align-items:baseline; gap:10px; }
+    .dir-count { color:var(--primary); font-variant-numeric:tabular-nums; }
+    .dir-sub { color:var(--text-secondary); font-size:13.5px; margin-top:4px; }
+    .dir-head-actions { display:flex; gap:var(--space-3); flex-shrink:0; }
 
-    .dir-select-filter {
-      width: 180px;
+    /* Toolbar */
+    .dir-toolbar { display:flex; gap:var(--space-3); align-items:center; margin-bottom:var(--space-4); flex-wrap:wrap; }
+    .dir-search { position:relative; flex:1; min-width:240px; }
+    .dir-search .search-icon { position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); pointer-events:none; }
+    .dir-search input {
+      width:100%; height:46px; padding:0 16px 0 44px; border-radius:var(--radius-lg);
+      background:var(--surface); border:1px solid var(--border); color:var(--text-primary);
+      font-size:14px; outline:none; transition:border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
     }
-    
-    /* View Switcher */
-    .view-toggle {
-      display: flex;
-      border: 1.5px solid var(--border-strong);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      height: 38px;
-    }
-    .view-toggle-btn {
-      padding: 0 12px;
-      font-size: 14px;
-      cursor: pointer;
-      background: var(--surface);
-      color: var(--text-secondary);
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all var(--transition-fast);
-    }
-    .view-toggle-btn.active {
-      background: var(--primary);
-      color: #fff;
-    }
+    .dir-search input:focus { border-color:var(--primary); box-shadow:var(--shadow-glow); background:var(--surface-raised); }
+    .dir-search .clear-x { position:absolute; right:12px; top:50%; transform:translateY(-50%); width:24px; height:24px; border-radius:50%; display:none; align-items:center; justify-content:center; color:var(--text-tertiary); background:var(--bg-tertiary); }
+    .dir-search.has-text .clear-x { display:flex; }
 
-    /* Grid layout override */
-    .directory-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: var(--space-4);
-      margin-bottom: var(--space-6);
-      animation: fadeIn var(--transition-base);
+    .filter-btn {
+      height:46px; padding:0 18px; border-radius:var(--radius-lg); border:1px solid var(--border);
+      background:var(--surface); color:var(--text-primary); font-weight:600; font-size:13.5px;
+      display:inline-flex; align-items:center; gap:8px; transition:all var(--transition-fast); position:relative;
     }
-    
-    @media (max-width: 1200px) {
-      .directory-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 900px) {
-      .directory-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 600px) {
-      .directory-grid { grid-template-columns: 1fr; }
-    }
+    .filter-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .filter-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .filter-btn .fdot { position:absolute; top:-4px; right:-4px; width:10px; height:10px; border-radius:50%; background:var(--warning); border:2px solid var(--bg-page); display:none; }
+    .filter-btn.has-filters .fdot { display:block; }
 
-    /* List view structure */
-    .directory-list {
-      display: none;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-      margin-bottom: var(--space-6);
-      animation: fadeIn var(--transition-base);
+    .view-toggle { display:flex; height:46px; border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; background:var(--surface); }
+    .view-toggle button { width:44px; display:flex; align-items:center; justify-content:center; color:var(--text-tertiary); transition:all var(--transition-fast); }
+    .view-toggle button.active { background:var(--primary); color:#fff; }
+
+    /* Filters panel (collapsible) */
+    .filters-panel {
+      overflow:hidden; max-height:0; opacity:0; transition:max-height var(--transition-base), opacity var(--transition-base), margin var(--transition-base);
+      margin-bottom:0;
     }
-    
-    .dir-table {
-      width: 100%;
-      border-collapse: collapse;
+    .filters-panel.open { max-height:240px; opacity:1; margin-bottom:var(--space-4); }
+    .filters-inner { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); padding:var(--space-4) var(--space-5); box-shadow:var(--shadow-sm); }
+    .filters-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .filters-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--text-tertiary); margin-right:6px; }
+
+    /* Department / tag chips */
+    .dir-chips { display:flex; gap:8px; overflow-x:auto; padding:2px 2px 10px; margin-bottom:var(--space-4); scrollbar-width:none; }
+    .dir-chips::-webkit-scrollbar { display:none; }
+    .chip {
+      flex-shrink:0; height:34px; padding:0 14px; border-radius:var(--radius-full); border:1px solid var(--border);
+      background:var(--surface); color:var(--text-secondary); font-size:12.5px; font-weight:600;
+      display:inline-flex; align-items:center; gap:7px; cursor:pointer; white-space:nowrap;
+      transition:transform var(--transition-fast), background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
     }
-    .dir-th {
-      text-align: left;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-tertiary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: var(--space-3) var(--space-4);
-      border-bottom: 1px solid var(--border);
+    .chip:hover { transform:translateY(-1px); border-color:var(--primary-light); color:var(--text-primary); }
+    .chip.active { background:var(--primary-gradient); color:#fff; border-color:transparent; box-shadow:0 6px 16px -6px rgba(79,110,247,.6); }
+    .chip .chip-count { font-size:10.5px; font-weight:700; padding:1px 7px; border-radius:var(--radius-full); background:var(--bg-tertiary); color:var(--text-tertiary); }
+    .chip.active .chip-count { background:rgba(255,255,255,.25); color:#fff; }
+
+    /* Grid */
+    /* Fluid grid: auto-fits more columns on wide screens, collapses on small. */
+    .emp-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:var(--space-4); }
+    @media (max-width:560px){ .emp-grid { grid-template-columns:1fr; } }
+
+    .emp-card {
+      position:relative; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl);
+      padding:var(--space-4) var(--space-4) var(--space-3); box-shadow:var(--shadow-sm); cursor:pointer; overflow:hidden;
+      transition:transform var(--transition-spring), box-shadow var(--transition-base), border-color var(--transition-base);
+      animation:empIn .5s cubic-bezier(.22,1,.36,1) both;
+      animation-delay:calc(var(--i,0) * 45ms);
     }
-    .dir-tr {
-      border-bottom: 1px solid var(--border-light);
-      transition: background var(--transition-fast);
-      cursor: pointer;
+    .emp-card::before {   /* pointer-tracked spotlight */
+      content:''; position:absolute; inset:0; border-radius:inherit; opacity:0; pointer-events:none;
+      background:radial-gradient(320px circle at var(--mx,50%) var(--my,0%), rgba(79,110,247,.14), transparent 60%);
+      transition:opacity var(--transition-base);
     }
-    .dir-tr:hover {
-      background: var(--bg-primary);
+    .emp-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-lg); border-color:var(--primary-light); }
+    .emp-card:hover::before { opacity:1; }
+    .emp-card:active { transform:translateY(-2px) scale(.995); }
+
+    .emp-top { display:flex; align-items:center; gap:12px; margin-bottom:var(--space-3); }
+    .emp-avatar {
+      width:46px; height:46px; border-radius:14px; flex-shrink:0; position:relative;
+      display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:15px;
+      box-shadow:0 6px 16px -6px rgba(0,0,0,.35);
     }
-    .dir-tr:last-child {
-      border-bottom: none;
-    }
-    .dir-td {
-      padding: var(--space-3) var(--space-4);
-      font-size: 13px;
-      color: var(--text-primary);
-    }
-    .dir-list-avatar-wrap {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-    }
-    
+    .emp-avatar .av-photo, .drawer-avatar .av-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; border-radius:inherit; z-index:1; }
+    .drawer-avatar { position:relative; overflow:hidden; }
+    .emp-avatar .ring { position:absolute; inset:-3px; border-radius:17px; border:2px solid transparent; transition:border-color var(--transition-base); z-index:2; }
+    .emp-card:hover .emp-avatar .ring { border-color:var(--primary-light); }
+    .emp-online { position:absolute; right:-2px; bottom:-2px; width:12px; height:12px; border-radius:50%; background:var(--success); border:2.5px solid var(--surface); z-index:3; }
+    .emp-idcol { min-width:0; flex:1; }
+    .emp-name { font-size:14.5px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .emp-role { font-size:12.5px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .emp-menu { width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; color:var(--text-tertiary); flex-shrink:0; transition:all var(--transition-fast); }
+    .emp-menu:hover { background:var(--bg-tertiary); color:var(--text-primary); }
+
+    .emp-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:var(--space-3); }
+    .emp-tag { font-size:11px; font-weight:600; padding:3px 9px; border-radius:var(--radius-full); line-height:1.4; }
+    .emp-tag.role { background:var(--primary-50); color:var(--primary); }
+    .emp-tag.mgmt { background:var(--warning-light); color:var(--warning-dark); }
+    .emp-tag.nonmgmt { background:var(--bg-tertiary); color:var(--text-secondary); }
+
+    .emp-meta { border-top:1px solid var(--border-light); padding-top:var(--space-3); display:flex; flex-direction:column; gap:5px; }
+    .emp-meta-row { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--text-secondary); }
+    .emp-meta-row b { color:var(--text-primary); font-weight:600; }
+    .emp-meta-row svg { color:var(--text-tertiary); flex-shrink:0; }
+
+    /* Skeleton */
+    .skel-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); padding:var(--space-4); box-shadow:var(--shadow-sm); }
+    .skel { position:relative; overflow:hidden; background:var(--bg-tertiary); border-radius:8px; }
+    .skel::after { content:''; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); animation:shimmer 1.3s infinite; }
+    [data-theme="dark"] .skel::after { background:linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent); }
+
+    /* List view */
+    .emp-list { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); overflow:hidden; box-shadow:var(--shadow-sm); }
+    .emp-row { display:grid; grid-template-columns:2.2fr 1.4fr 1.2fr 1fr; align-items:center; gap:var(--space-3); padding:12px var(--space-5); border-bottom:1px solid var(--border-light); cursor:pointer; transition:background var(--transition-fast); animation:empIn .4s ease both; animation-delay:calc(var(--i,0) * 30ms); }
+    .emp-row:last-child { border-bottom:none; }
+    .emp-row:hover { background:var(--bg-tertiary); }
+    .emp-row .who { display:flex; align-items:center; gap:11px; min-width:0; }
+    .emp-row .emp-avatar { width:38px; height:38px; font-size:13px; border-radius:11px; }
+    .emp-row .rn { font-size:13.5px; font-weight:600; color:var(--text-primary); }
+    .emp-row .rr { font-size:12px; color:var(--text-tertiary); }
+    .col-hide { color:var(--text-secondary); font-size:12.5px; }
+    @media (max-width:760px){ .emp-row { grid-template-columns:1fr auto; } .emp-row .col-hide { display:none; } }
+
+    /* Empty state */
+    .dir-empty { text-align:center; padding:var(--space-16) var(--space-6); color:var(--text-secondary); }
+    .dir-empty .em-emoji { font-size:40px; margin-bottom:12px; animation:floaty 3s ease-in-out infinite; }
+
     /* Pagination */
-    .pagination {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-top: 1px solid var(--border);
-      padding-top: var(--space-4);
-      font-size: 13px;
-      color: var(--text-secondary);
+    .dir-pager { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); margin-top:var(--space-6); flex-wrap:wrap; }
+    .pager-info { font-size:12.5px; color:var(--text-secondary); }
+    .pager-btns { display:flex; align-items:center; gap:6px; }
+    .page-btn { min-width:38px; height:38px; padding:0 10px; border-radius:11px; border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); font-size:13px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:all var(--transition-fast); }
+    .page-btn:hover:not(:disabled):not(.active) { border-color:var(--primary-light); color:var(--primary); transform:translateY(-1px); }
+    .page-btn.active { background:var(--primary-gradient); color:#fff; border-color:transparent; box-shadow:0 6px 16px -8px rgba(79,110,247,.7); }
+    .page-btn:disabled { opacity:.45; cursor:default; }
+    .page-ellipsis { color:var(--text-tertiary); padding:0 4px; }
+
+    /* Detail drawer */
+    .drawer-overlay { position:fixed; inset:0; background:rgba(15,20,40,.42); backdrop-filter:blur(3px); opacity:0; pointer-events:none; transition:opacity var(--transition-base); z-index:var(--z-modal); }
+    .drawer-overlay.open { opacity:1; pointer-events:auto; }
+    .drawer {
+      position:fixed; top:0; right:0; bottom:0; width:420px; max-width:92vw; z-index:calc(var(--z-modal) + 1);
+      background:var(--surface-raised); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+      border-left:1px solid var(--glass-border); box-shadow:-24px 0 60px rgba(16,24,55,.28);
+      transform:translateX(100%); transition:transform var(--transition-spring); display:flex; flex-direction:column;
     }
-    .pagination-btns {
-      display: flex;
-      gap: var(--space-2);
+    .drawer.open { transform:translateX(0); }
+    .drawer-hero { position:relative; padding:var(--space-6) var(--space-6) var(--space-5); overflow:hidden; }
+    .drawer-hero::before { content:''; position:absolute; inset:0; background:var(--primary-gradient); opacity:.14; }
+    .drawer-x { position:absolute; top:16px; right:16px; width:34px; height:34px; border-radius:50%; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--text-secondary); z-index:1; transition:all var(--transition-fast); }
+    .drawer-x:hover { color:var(--text-primary); transform:rotate(90deg); }
+    .drawer-hero-inner { position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; gap:10px; }
+    .drawer-avatar { width:84px; height:84px; border-radius:26px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:28px; box-shadow:0 12px 30px -8px rgba(0,0,0,.4); }
+    .drawer-name { font-family:var(--font-display); font-size:20px; font-weight:800; color:var(--text-primary); }
+    .drawer-role { font-size:13.5px; color:var(--text-secondary); }
+    .drawer-badges { display:flex; gap:8px; margin-top:4px; }
+    .drawer-body { flex:1; overflow-y:auto; padding:var(--space-5) var(--space-6); }
+    .drawer-fields { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4) var(--space-5); }
+    .df-label { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--text-tertiary); }
+    .df-value { font-size:13px; color:var(--text-primary); font-weight:600; margin-top:3px; word-break:break-word; }
+    .df-full { grid-column:1/-1; }
+    .drawer-foot { padding:var(--space-4) var(--space-6); border-top:1px solid var(--border-light); display:flex; gap:var(--space-3); }
+
+    /* Keyframes */
+    @keyframes empIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes shimmer { to { transform:translateX(100%); } }
+    @keyframes floaty { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); } }
+
+    @media (max-width:640px){
+      .dir-head-actions { width:100%; flex-direction:column; }
+      .dir-head-actions .btn { width:100%; justify-content:center; }
+      .dir-title { font-size:22px; }
+      .dir-chips { max-width:100%; }
     }
 
-    /* Modal custom profiles */
-    .profile-hero {
-      display: flex;
-      align-items: center;
-      gap: var(--space-5);
-      border-bottom: 1px solid var(--border-light);
-      padding-bottom: var(--space-5);
-      margin-bottom: var(--space-5);
-    }
-    .profile-large-avatar {
-      width: 72px;
-      height: 72px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      font-weight: 800;
-      color: #fff;
-    }
-    .profile-fields-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: var(--space-4);
-      margin-bottom: var(--space-5);
-    }
-    .profile-field-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-tertiary);
-    }
-    .profile-field-value {
-      font-size: 13px;
-      color: var(--text-primary);
-      margin-top: 2px;
-      font-weight: 500;
+    @media (prefers-reduced-motion: reduce) {
+      .emp-card, .emp-row { animation:none !important; }
+      .emp-card:hover { transform:none; }
+      .emp-card::before { display:none; }
+      .drawer { transition:none; }
+      .dir-empty .em-emoji { animation:none; }
+      .skel::after { animation:none; }
     }
   </style>
 </head>
@@ -200,6 +219,10 @@
       <a href="index.html" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span class="nav-item-text">Dashboard</span>
+      </a>
+      <a href="dashboards.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-item-text">Dashboards &amp; Reports</span>
       </a>
 
       <a href="service-catalog.html" class="nav-item">
@@ -267,7 +290,6 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
 
-      <!-- Global Search -->
       <div class="topbar-search relative">
         <div class="search-input-wrap">
           <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -278,32 +300,9 @@
       </div>
 
       <div class="topbar-actions">
-        <!-- Notifications -->
-        <div class="relative">
-          <button class="topbar-btn" id="notifBtn" onclick="toggleNotifications()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span class="topbar-notif-dot"></span>
-          </button>
-          <div class="notif-dropdown" id="notifDropdown">
-            <div class="notif-header">
-              <span class="notif-title">Notifications</span>
-              <span class="notif-count">5</span>
-            </div>
-            <div class="notif-list">
-              <div class="notif-item">
-                <div class="notif-content">
-                  <div class="notif-text">Employee details synced successfully</div>
-                  <div class="notif-time">3 hours ago</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button class="topbar-btn" onclick="toggleDarkMode()">
+        <button class="topbar-btn" onclick="toggleDarkMode()" title="Toggle theme">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
-
         <a href="profile.html" class="topbar-user" id="topbarUser">
           <div class="topbar-avatar">LT</div>
           <div class="topbar-user-info">
@@ -317,360 +316,137 @@
     <!-- PAGE CONTENT -->
     <main class="page-content">
 
-      <!-- Breadcrumbs -->
+      <!-- Breadcrumb -->
       <nav class="breadcrumb">
         <a href="index.html">Home</a>
         <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-current">Employee Directory</span>
+        <a href="sectors.html">Organisation</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Employees</span>
       </nav>
 
-      <div class="page-header">
-        <h1 class="page-title">Employee Directory</h1>
-        <p class="page-subtitle">Search contact information and structures of staff members across all locations.</p>
-      </div>
-
-      <!-- Quick Metrics Row -->
-      <div class="grid grid-4 mb-6" style="gap: var(--space-4)">
-        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
-          <div style="font-size:24px">👥</div>
-          <div>
-            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">247</div>
-            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Total Employees</div>
-          </div>
+      <!-- Header -->
+      <div class="dir-head">
+        <div>
+          <h1 class="dir-title">Employees <span class="dir-count" id="empCount">0</span></h1>
+          <p class="dir-sub">All the employees of the company are listed here</p>
         </div>
-        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
-          <div style="font-size:24px">🏢</div>
-          <div>
-            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">18</div>
-            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Departments</div>
-          </div>
-        </div>
-        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
-          <div style="font-size:24px">📍</div>
-          <div>
-            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">3</div>
-            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Offices/Campuses</div>
-          </div>
-        </div>
-        <div class="card" style="padding:var(--space-4); display:flex; align-items:center; gap:var(--space-3)">
-          <div style="font-size:24px">🟢</div>
-          <div>
-            <div style="font-size:20px; font-weight:700; color:var(--text-primary)">43</div>
-            <div style="font-size:11px; color:var(--text-tertiary); text-transform:uppercase; font-weight:600">Online Now</div>
-          </div>
+        <div class="dir-head-actions">
+          <button class="btn btn-secondary" id="importBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Import Employees
+          </button>
+          <button class="btn btn-primary" id="addBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add New Employee
+          </button>
         </div>
       </div>
 
-      <!-- Quick Chips Filter for Departments -->
-      <div class="chips-wrapper" style="margin-bottom: var(--space-4)">
-        <button class="chip-btn active" onclick="filterDeptChip('all', this)">All</button>
-        <button class="chip-btn" onclick="filterDeptChip('Human Resources', this)">Human Resources</button>
-        <button class="chip-btn" onclick="filterDeptChip('Information Technology', this)">Information Technology</button>
-        <button class="chip-btn" onclick="filterDeptChip('Finance', this)">Finance</button>
-        <button class="chip-btn" onclick="filterDeptChip('Operations', this)">Operations</button>
-        <button class="chip-btn" onclick="filterDeptChip('Marketing', this)">Marketing</button>
-        <button class="chip-btn" onclick="filterDeptChip('Academic Staff', this)">Academic Staff</button>
-        <button class="chip-btn" onclick="filterDeptChip('Administration', this)">Administration</button>
-        <button class="chip-btn" onclick="filterDeptChip('Facility Management', this)">Facility Management</button>
-        <button class="chip-btn" onclick="filterDeptChip('Legal', this)">Legal</button>
-      </div>
-
-      <!-- Search & Filters Container -->
-      <div class="search-filter-container">
-        <!-- Main Search input -->
-        <div class="topbar-search dir-main-search" style="max-width:none">
-          <div class="search-input-wrap">
-            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="search-input" id="directorySearchInput" placeholder="Search by name, role, extension..." oninput="handleSearch(this.value)">
-          </div>
+      <!-- Toolbar -->
+      <div class="dir-toolbar">
+        <div class="dir-search" id="dirSearchWrap">
+          <svg class="search-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="dirSearch" placeholder="Search by name, role or employee code…" autocomplete="off">
+          <button class="clear-x" id="dirSearchClear" aria-label="Clear">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
-
-        <!-- Location Dropdown -->
-        <select class="form-control form-select dir-select-filter" id="locationFilter" onchange="handleLocationFilter(this.value)">
-          <option value="all">All Locations</option>
-          <option value="HQ - Main Building">HQ - Main Building</option>
-          <option value="Campus A">Campus A</option>
-          <option value="Campus B">Campus B</option>
-          <option value="Remote">Remote</option>
-        </select>
-
-        <!-- View Switcher -->
+        <button class="filter-btn" id="filterBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Filters
+          <span class="fdot"></span>
+        </button>
         <div class="view-toggle">
-          <button class="view-toggle-btn active" id="gridViewBtn" onclick="setViewMode('grid')" title="Grid View">田</button>
-          <button class="view-toggle-btn" id="listViewBtn" onclick="setViewMode('list')" title="List View">☰</button>
+          <button id="gridViewBtn" class="active" title="Grid view" aria-label="Grid view">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          </button>
+          <button id="listViewBtn" title="List view" aria-label="List view">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1.5"/><circle cx="3.5" cy="12" r="1.5"/><circle cx="3.5" cy="18" r="1.5"/></svg>
+          </button>
         </div>
       </div>
 
-      <!-- GRID VIEW -->
-      <div class="directory-grid" id="directoryGrid">
-        <!-- Rendered via JS -->
-      </div>
-
-      <!-- LIST VIEW -->
-      <div class="directory-list" id="directoryList">
-        <table class="dir-table">
-          <thead>
-            <tr>
-              <th class="dir-th">Name</th>
-              <th class="dir-th">Department</th>
-              <th class="dir-th">Designation</th>
-              <th class="dir-th">Work Email</th>
-              <th class="dir-th">Extension</th>
-              <th class="dir-th" style="text-align:right">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="directoryListBody">
-            <!-- Rendered via JS -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination Footer -->
-      <div class="pagination">
-        <span>Showing 1-20 of <span id="displayedCount">20</span> employees</span>
-        <div class="pagination-btns">
-          <button class="btn btn-secondary btn-sm" disabled>Previous</button>
-          <button class="btn btn-secondary btn-sm" disabled>Next</button>
+      <!-- Filters panel -->
+      <div class="filters-panel" id="filtersPanel">
+        <div class="filters-inner">
+          <div class="filters-row" style="margin-bottom:12px">
+            <span class="filters-label">Category</span>
+            <button class="chip" data-tag="">All</button>
+            <button class="chip" data-tag="Management">Management</button>
+            <button class="chip" data-tag="Non-Management">Non-Management</button>
+          </div>
+          <div class="filters-row">
+            <span class="filters-label">Role</span>
+            <button class="chip" data-tag="Designer">Designer</button>
+            <button class="chip" data-tag="Developer">Developer</button>
+            <button class="chip" data-tag="HR">HR</button>
+            <button class="chip" data-tag="Finance">Finance</button>
+            <button class="chip" data-tag="Marketing">Marketing</button>
+            <button class="chip" data-tag="IT">IT</button>
+            <button class="chip" data-tag="Operations">Operations</button>
+            <button class="chip" data-tag="Analyst">Analyst</button>
+          </div>
         </div>
+      </div>
+
+      <!-- Department chips -->
+      <div class="dir-chips" id="deptChips"></div>
+
+      <!-- Results -->
+      <div class="emp-grid" id="empGrid"></div>
+      <div class="emp-list" id="empList" style="display:none"></div>
+
+      <!-- Empty -->
+      <div class="dir-empty" id="empEmpty" style="display:none">
+        <div class="em-emoji">🔍</div>
+        <div style="font-weight:700; color:var(--text-primary); margin-bottom:4px">No employees found</div>
+        <div>Try a different search term or clear the filters.</div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="dir-pager" id="dirPager" style="display:none">
+        <span class="pager-info" id="pagerInfo"></span>
+        <div class="pager-btns" id="pagerBtns"></div>
       </div>
 
     </main>
   </div><!-- /MAIN CONTENT -->
 </div><!-- /APP LAYOUT -->
 
-<!-- Employee Profile Popup Modal -->
-<div class="modal-overlay" id="profilePopupModal">
-  <div class="modal" style="max-width: 580px">
-    <div class="modal-header">
-      <h3 class="modal-title" style="font-size: 15px">Employee Profile Card</h3>
-      <button class="btn btn-ghost btn-sm btn-icon" onclick="closeModal('profilePopupModal')">✕</button>
-    </div>
-    <div class="modal-body" style="padding: var(--space-6)">
-      
-      <div class="profile-hero">
-        <div class="profile-large-avatar" id="modalEmpAvatar">IS</div>
-        <div>
-          <h2 style="font-size: 18px; font-weight: 700; color: var(--text-primary)" id="modalEmpName">Sudaraka Perera</h2>
-          <div style="font-size: 13px; color: var(--text-secondary)" id="modalEmpRole">IT Governance Lead</div>
-          <span class="badge badge-blue" style="font-size: 10px; margin-top: 4px" id="modalEmpDept">IT Governance</span>
-        </div>
+<!-- Detail drawer -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="drawer" id="empDrawer" aria-hidden="true">
+  <div class="drawer-hero">
+    <button class="drawer-x" id="drawerClose" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="drawer-hero-inner">
+      <div class="drawer-avatar" id="dwAvatar">—</div>
+      <div>
+        <div class="drawer-name" id="dwName">—</div>
+        <div class="drawer-role" id="dwRole">—</div>
       </div>
-
-      <div class="profile-fields-grid">
-        <div>
-          <div class="profile-field-label">Employee ID</div>
-          <div class="profile-field-value" id="modalEmpId">EMP-2019-0142</div>
-        </div>
-        <div>
-          <div class="profile-field-label">Office Location</div>
-          <div class="profile-field-value" id="modalEmpLocation">HQ - Block A, Floor 2</div>
-        </div>
-        <div>
-          <div class="profile-field-label">Work Extension</div>
-          <div class="profile-field-value" id="modalEmpExt">1142</div>
-        </div>
-        <div>
-          <div class="profile-field-label">Employment Type</div>
-          <div class="profile-field-value">Full-time Regular</div>
-        </div>
-        <div>
-          <div class="profile-field-label">Reports To Manager</div>
-          <div class="profile-field-value" id="modalEmpManager" style="color:var(--primary); cursor:pointer; font-weight:600">Dr. Omar Khalid</div>
-        </div>
-        <div>
-          <div class="profile-field-label">Direct Reports</div>
-          <div class="profile-field-value" id="modalEmpReports">3 staff members</div>
-        </div>
-      </div>
-
-      <div style="border-top:1px solid var(--border-light); padding-top:var(--space-4); display:flex; justify-content:space-between; gap:var(--space-3)">
-        <a href="" class="btn btn-secondary" style="flex:1" id="modalEmailBtn">✉ Send Email</a>
-        <button class="btn btn-primary" style="flex:1" id="modalChatBtn">💬 Start Chat</button>
-      </div>
-
+      <div class="drawer-badges" id="dwBadges"></div>
     </div>
   </div>
-</div>
+  <div class="drawer-body">
+    <div class="drawer-fields" id="dwFields"></div>
+  </div>
+  <div class="drawer-foot">
+    <a class="btn btn-secondary" style="flex:1" id="dwEmail">✉ Email</a>
+    <button class="btn btn-primary" style="flex:1" id="dwChat">💬 Message</button>
+  </div>
+</aside>
 
-
-
-<!-- ========= TOAST CONTAINER ========= -->
+<!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- ========= SCRIPTS ========= -->
+<!-- Scripts -->
 <script src="js/main.js"></script>
-<script>
-  // Full Employees Dataset (20 required items)
-  const directoryData = [
-    { id: '1', initials: 'SP', name: 'Sudaraka Perera', designation: 'IT Governance Lead', department: 'IT Governance', location: 'HQ - Block A, Floor 2', bg: 'linear-gradient(135deg,#059669,#10B981)', email: 'sudaraka.perera@lyceum.edu', phone: '+968 2451 1150', ext: '1150', empId: 'EMP-2024-00381', manager: 'Dr. Omar Khalid', reports: 0 },
-    { id: '2', initials: 'RP', name: 'Raj Patel', designation: 'IT Manager', department: 'Information Technology', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,var(--primary),var(--primary-light))', email: 'raj.patel@lyceum.edu', phone: '+968 2451 1005', ext: '1005', empId: 'EMP-2020-0087', manager: 'Ahmed Al-Rashid', reports: 5 },
-    { id: '3', initials: 'FA', name: 'Fatima Al-Hassan', designation: 'Finance Director', department: 'Finance', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#7C3AED,#A855F7)', email: 'fatima.hassan@lyceum.edu', phone: '+968 2451 1010', ext: '1010', empId: 'EMP-2015-0012', manager: 'Office of the CEO', reports: 8 },
-    { id: '4', initials: 'MC', name: 'Michael Chen', designation: 'Principal', department: 'Academic Staff', location: 'Campus A', bg: 'linear-gradient(135deg,#D97706,#F59E0B)', email: 'michael.chen@lyceum.edu', phone: '+968 2451 2001', ext: '2001', empId: 'EMP-2018-0054', manager: 'Fatima Al-Hassan', reports: 34 },
-    { id: '5', initials: 'PS', name: 'Priya Sharma', designation: 'Marketing Manager', department: 'Marketing', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#0D9488,#14B8A6)', email: 'priya.sharma@lyceum.edu', phone: '+968 2451 1102', ext: '1102', empId: 'EMP-2021-0230', manager: 'Fatima Al-Hassan', reports: 2 },
-    { id: '6', initials: 'AR', name: 'Ahmed Al-Rashid', designation: 'Operations Director', department: 'Operations', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#E11D48,#F43F5E)', email: 'ahmed.rashid@lyceum.edu', phone: '+968 2451 1002', ext: '1002', empId: 'EMP-2014-0005', manager: 'Office of the CEO', reports: 12 },
-    { id: '7', initials: 'LT', name: 'Lisa Thompson', designation: 'HR Officer', department: 'Human Resources', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,var(--primary),var(--primary-light))', email: 'lisa.thompson@lyceum.edu', phone: '+968 2451 1143', ext: '1143', empId: 'EMP-2022-0310', manager: 'Fatima Al-Hassan', reports: 0 },
-    { id: '8', initials: 'JW', name: 'James Wilson', designation: 'Network Engineer', department: 'Information Technology', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#7C3AED,#8B5CF6)', email: 'james.wilson@lyceum.edu', phone: '+968 2451 1088', ext: '1088', empId: 'EMP-2021-0294', manager: 'Raj Patel', reports: 0 },
-    { id: '9', initials: 'NA', name: 'Noor Abdullah', designation: 'Academic Coordinator', department: 'Academic Staff', location: 'Campus A', bg: 'linear-gradient(135deg,#059669,#34D399)', email: 'noor.abdullah@lyceum.edu', phone: '+968 2451 2005', ext: '2005', empId: 'EMP-2017-0096', manager: 'Michael Chen', reports: 8 },
-    { id: '10', initials: 'DL', name: 'David Lee', designation: 'Finance Officer', department: 'Finance', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#D97706,#FCD34D)', email: 'david.lee@lyceum.edu', phone: '+968 2451 1024', ext: '1024', empId: 'EMP-2023-0442', manager: 'Fatima Al-Hassan', reports: 0 },
-    { id: '11', initials: 'AM', name: 'Aisha Mohamed', designation: 'Administrative Officer', department: 'Administration', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#0D9488,#2DD4BF)', email: 'aisha.mohamed@lyceum.edu', phone: '+968 2451 1045', ext: '1045', empId: 'EMP-2020-0118', manager: 'Ahmed Al-Rashid', reports: 0 },
-    { id: '12', initials: 'RM', name: 'Robert Martinez', designation: 'Facility Manager', department: 'Facility Management', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#475569,#94A3B8)', email: 'robert.martinez@lyceum.edu', phone: '+968 2451 1009', ext: '1009', empId: 'EMP-2016-0042', manager: 'Ahmed Al-Rashid', reports: 6 },
-    { id: '13', initials: 'ZH', name: 'Zainab Hassan', designation: 'HR Coordinator', department: 'Human Resources', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,var(--primary),var(--primary-light))', email: 'zainab.hassan@lyceum.edu', phone: '+968 2451 1144', ext: '1144', empId: 'EMP-2023-0418', manager: 'Fatima Al-Hassan', reports: 0 },
-    { id: '14', initials: 'KO', name: 'Kevin O\'Brien', designation: 'System Administrator', department: 'Information Technology', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#7C3AED,#C084FC)', email: 'kevin.obrien@lyceum.edu', phone: '+968 2451 1089', ext: '1089', empId: 'EMP-2019-0182', manager: 'Raj Patel', reports: 0 },
-    { id: '15', initials: 'MS', name: 'Maria Santos', designation: 'Marketing Officer', department: 'Marketing', location: 'Campus B', bg: 'linear-gradient(135deg,#059669,#86EFAC)', email: 'maria.santos@lyceum.edu', phone: '+968 2451 3004', ext: '3004', empId: 'EMP-2022-0344', manager: 'Priya Sharma', reports: 0 },
-    { id: '16', initials: 'AF', name: 'Abdullah Al-Farsi', designation: 'Head of Operations', department: 'Operations', location: 'Campus B', bg: 'linear-gradient(135deg,#D97706,#FEF08A)', email: 'abdullah.farsi@lyceum.edu', phone: '+968 2451 3001', ext: '3001', empId: 'EMP-2016-0038', manager: 'Ahmed Al-Rashid', reports: 4 },
-    { id: '17', initials: 'SW', name: 'Sophie Williams', designation: 'Legal Counsel', department: 'Legal', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#E11D48,#FDA4AF)', email: 'sophie.williams@lyceum.edu', phone: '+968 2451 1099', ext: '1099', empId: 'EMP-2021-0266', manager: 'Office of the CEO', reports: 0 },
-    { id: '18', initials: 'OK', name: 'Omar Khalid', designation: 'IT Support Specialist', department: 'Information Technology', location: 'Campus A', bg: 'linear-gradient(135deg,#0D9488,#67E8F9)', email: 'omar.khalid@lyceum.edu', phone: '+968 2451 2045', ext: '2045', empId: 'EMP-2022-0382', manager: 'Raj Patel', reports: 0 },
-    { id: '19', initials: 'HS', name: 'Hana Suzuki', designation: 'Academic Teacher', department: 'Academic Staff', location: 'Campus B', bg: 'linear-gradient(135deg,var(--primary),var(--primary-light))', email: 'hana.suzuki@lyceum.edu', phone: '+968 2451 3099', ext: '3099', empId: 'EMP-2020-0205', manager: 'Michael Chen', reports: 0 },
-    { id: '20', initials: 'CR', name: 'Carlos Rivera', designation: 'Facility Technician', department: 'Facility Management', location: 'HQ - Main Building', bg: 'linear-gradient(135deg,#475569,#CBD5E1)', email: 'carlos.rivera@lyceum.edu', phone: '+968 2451 1014', ext: '1014', empId: 'EMP-2022-0391', manager: 'Robert Martinez', reports: 0 }
-  ];
-
-  let currentView = 'grid';
-  let searchQuery = '';
-  let deptFilter = 'all';
-  let locationFilter = 'all';
-
-  function filterDeptChip(dept, chipBtn) {
-    document.querySelectorAll('.chip-btn').forEach(btn => btn.classList.remove('active'));
-    chipBtn.className = 'chip-btn active';
-    deptFilter = dept;
-    renderDirectory();
-  }
-
-  function handleSearch(q) {
-    searchQuery = q.toLowerCase();
-    renderDirectory();
-  }
-
-  function handleLocationFilter(loc) {
-    locationFilter = loc;
-    renderDirectory();
-  }
-
-  function setViewMode(mode) {
-    currentView = mode;
-    document.getElementById('gridViewBtn').classList.toggle('active', mode === 'grid');
-    document.getElementById('listViewBtn').classList.toggle('active', mode === 'list');
-    
-    document.getElementById('directoryGrid').style.display = mode === 'grid' ? 'grid' : 'none';
-    document.getElementById('directoryList').style.display = mode === 'list' ? 'block' : 'none';
-    renderDirectory();
-  }
-
-  function renderDirectory() {
-    let list = [...directoryData];
-
-    // Filter by Dept
-    if (deptFilter !== 'all') {
-      list = list.filter(e => e.department === deptFilter);
-    }
-
-    // Filter by Location
-    if (locationFilter !== 'all') {
-      list = list.filter(e => e.location === locationFilter);
-    }
-
-    // Filter by Search Query
-    if (searchQuery) {
-      list = list.filter(e => 
-        e.name.toLowerCase().includes(searchQuery) ||
-        e.designation.toLowerCase().includes(searchQuery) ||
-        e.department.toLowerCase().includes(searchQuery) ||
-        e.ext.includes(searchQuery)
-      );
-    }
-
-    document.getElementById('displayedCount').textContent = list.length;
-
-    // Render Grid View
-    const gridContainer = document.getElementById('directoryGrid');
-    gridContainer.innerHTML = list.map(e => `
-      <div class="employee-card" onclick="openProfileCard('${e.id}')">
-        <div class="emp-avatar" style="background: ${e.bg}">${e.initials}</div>
-        <div class="emp-info">
-          <div class="emp-name">${e.name}</div>
-          <div class="emp-role">${e.designation}</div>
-          <div class="emp-dept">${e.department}</div>
-        </div>
-        <div class="emp-actions" onclick="event.stopPropagation()">
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="openChatWith('${e.name}')" title="Chat with ${e.name}">💬</button>
-        </div>
-      </div>
-    `).join('');
-
-    // Render List View
-    const listBody = document.getElementById('directoryListBody');
-    listBody.innerHTML = list.map(e => `
-      <tr class="dir-tr" onclick="openProfileCard('${e.id}')">
-        <td class="dir-td">
-          <div class="dir-list-avatar-wrap">
-            <div class="emp-avatar" style="background: ${e.bg}; width: 28px; height: 28px; font-size: 11px">${e.initials}</div>
-            <span style="font-weight:600">${e.name}</span>
-          </div>
-        </td>
-        <td class="dir-td">${e.department}</td>
-        <td class="dir-td">${e.designation}</td>
-        <td class="dir-td" style="font-family:monospace">${e.email}</td>
-        <td class="dir-td">${e.ext}</td>
-        <td class="dir-td" style="text-align:right" onclick="event.stopPropagation()">
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="openChatWith('${e.name}')" title="Chat with ${e.name}">💬</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function openProfileCard(id) {
-    const e = directoryData.find(emp => emp.id === id);
-    if (!e) return;
-
-    document.getElementById('modalEmpName').textContent = e.name;
-    document.getElementById('modalEmpRole').textContent = e.designation;
-    document.getElementById('modalEmpDept').textContent = e.department;
-    document.getElementById('modalEmpId').textContent = e.empId;
-    document.getElementById('modalEmpLocation').textContent = e.location;
-    document.getElementById('modalEmpExt').textContent = e.ext;
-    document.getElementById('modalEmpManager').textContent = e.manager;
-    document.getElementById('modalEmpReports').textContent = `${e.reports} staff member(s)`;
-    
-    const avatar = document.getElementById('modalEmpAvatar');
-    avatar.style.background = e.bg;
-    avatar.textContent = e.initials;
-
-    // Mail link
-    document.getElementById('modalEmailBtn').href = `mailto:${e.email}`;
-
-    // Chat link
-    document.getElementById('modalChatBtn').onclick = function() {
-      closeModal('profilePopupModal');
-      openChatWith(e.name);
-    };
-
-    // Manager click linking
-    document.getElementById('modalEmpManager').onclick = function() {
-      const managerObj = directoryData.find(emp => emp.name === e.manager);
-      if (managerObj) {
-        openProfileCard(managerObj.id);
-      } else {
-        showToast(e.manager, 'Manager profile page not loaded in prototype.', 'info');
-      }
-    };
-
-    openModal('profilePopupModal');
-  }
-
-  function openChatWith(name) {
-    showToast(`Opening chat with ${name}...`, 'Connecting to chat widget.', 'success');
-    toggleAIChat();
-    setTimeout(() => {
-      addAIMessage(`Hello! I would like to send a direct message to **${name}**. Can you help me?`, 'user');
-      setTimeout(() => {
-        addAIMessage(`Connecting secure chat tunnel to **${name}**. Feel free to send your message below!`, 'bot');
-      }, 600);
-    }, 400);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    renderDirectory();
-  });
-</script>
+<script src="js/api.js"></script>
+<script src="js/photos.js"></script>
+<script src="js/directory.js"></script>
+<script src="js/bot.js"></script>
 </body>
 </html>

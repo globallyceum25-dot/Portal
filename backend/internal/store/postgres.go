@@ -403,6 +403,48 @@ func (p *Postgres) UpdateTask(ctx context.Context, t *models.Task) error {
 	return err
 }
 
+func (p *Postgres) CreateBotLog(ctx context.Context, l *models.BotConversationLog) (*models.BotConversationLog, error) {
+	var id string
+	if err := p.pool.QueryRow(ctx, `SELECT 'bot_' || lpad(nextval('bot_seq')::text, 4, '0')`).Scan(&id); err != nil {
+		return nil, err
+	}
+	l.ID = id
+	l.CreatedAt = time.Now().UTC()
+	b, _ := json.Marshal(l)
+	if _, err := p.pool.Exec(ctx,
+		`INSERT INTO bot_conversation_log (id, tenant_id, actor_id, created_at, doc) VALUES ($1,$2,$3,$4,$5)`,
+		l.ID, l.TenantID, l.ActorID, l.CreatedAt, b); err != nil {
+		return nil, err
+	}
+	out := *l
+	return &out, nil
+}
+
+func (p *Postgres) ListBotLogs(ctx context.Context, tenantID string, limit int) ([]models.BotConversationLog, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	rows, err := p.pool.Query(ctx,
+		`SELECT doc FROM bot_conversation_log WHERE ($1='' OR tenant_id=$1) ORDER BY created_at DESC LIMIT $2`, tenantID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []models.BotConversationLog
+	for rows.Next() {
+		var b []byte
+		if err := rows.Scan(&b); err != nil {
+			return nil, err
+		}
+		var l models.BotConversationLog
+		if err := json.Unmarshal(b, &l); err != nil {
+			return nil, err
+		}
+		out = append(out, l)
+	}
+	return out, rows.Err()
+}
+
 func (p *Postgres) RecentAudit(ctx context.Context, tenantID string, limit int) ([]models.AuditEntry, error) {
 	if limit <= 0 {
 		limit = 50

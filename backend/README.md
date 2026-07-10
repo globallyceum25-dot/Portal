@@ -131,9 +131,34 @@ ENTRA_CLIENT_SECRET` to enable it; unset, the endpoints return 501 and
   `SLACK_SIGNING_SECRET` is set. `GET /admin/slack/hub` shows transport +
   channels. Unit tests cover routing + retry.
 
-## Next (Phase 4 → beyond)
+## Phase 5 — Dashboards & Reports + Portal Bot (done)
+- **Dashboards & Reporting** (`internal/analytics`, spec §13.6): a `Builder` rolls
+  the transactional data (Job Cards, Tasks, CSAT, documents, announcements) up
+  into a `Report` of aggregate metrics — SLA compliance, request volume/day,
+  category & status breakdowns, the two-tier LGH IT → ZTE turnaround, CSAT by
+  category, task-completion, KB engagement. A `Narrator` layers natural-language
+  insight on top (heuristic by default; **GLM-5.1 / Nemotron via NIM** behind the
+  config seam), **grounded** in the report's own numbers — the model explains
+  figures, it never invents them. Charts render client-side (`js/charts.js`).
+  RBAC-scoped: HOD/Company Admin see their tenant, Group Super Admin sees all.
+  `GET /reports/overview`, `GET /reports/insights`, `POST /reports/ask` (ad-hoc
+  NL Q&A, e.g. "why did CSAT drop for ZTE?"). Restricted to HOD/admin roles.
+- **Portal Bot** (`internal/bot`, spec §13.5): a grounded, tool-calling assistant.
+  It has **no direct DB access** — it selects one of a fixed tool set
+  (`my_requests`, `request_status`, `my_tasks`, `search_knowledge`,
+  `queue_summary`, `navigation`), each of which calls the store through the
+  RBAC-scoped seam, and the answer is composed in Go from the tool's real results
+  — so a reported ticket status is always a real one. The routing model plugs in
+  behind the same seam (keyword Heuristic default; **GLM-5.1 via NIM** when
+  configured). RBAC is enforced above the tools (an Employee only ever reaches
+  their own data; queue summaries need a staff/admin role). `POST /bot/ask`; each
+  exchange is logged PII-masked as a `BotConversationLog` (`GET /admin/bot/logs`).
+  Frontend: the `js/bot.js` chat widget is available portal-wide; `dashboards.html`
+  is the reporting UI. Unit tests cover bot grounding + RBAC. Schema
+  `0005_reporting_bot.sql` (bot log + reporting materialized-view seam).
+
+## Next (beyond Phase 5)
 - Company (tenant) mapping from Entra claims (currently defaults to `lgh`)
-- Real adapters behind the seams: Microsoft Graph (OneDrive), Nemotron (NIM),
-  Slack bot token / signing secret
-- Phase 5: Dashboards & Reports + Portal Bot (grounded, tool-calling)
+- Real adapters behind the seams: Microsoft Graph (OneDrive), Nemotron/GLM (NIM),
+  Slack bot token / signing secret, Google Translate (Sinhala bot queries)
 - Persist to Postgres (schema + parity already written)

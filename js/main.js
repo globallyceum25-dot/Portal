@@ -14,23 +14,27 @@ function toggleDarkMode() {
 
 (function initTheme() {
   const saved = localStorage.getItem('lc-theme');
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (saved === 'dark' || (!saved && prefersDark)) {
+  // Dark is the default — only switch to light when the user explicitly chose it.
+  if (saved !== 'light') {
     document.documentElement.setAttribute('data-theme', 'dark');
   }
 })();
 
 // ---- Sidebar Toggle ----
+// The shell is a floating icon rail (see styles.css "SHELL REDESIGN"). Toggling
+// only flips classes; CSS owns the layout (a `.collapsed` rail slides off-canvas
+// and `.sidebar.collapsed ~ .main-content` reclaims the space). We never write
+// inline margins here — inline styles would beat the responsive media queries.
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   if (!sidebar) return;
+  // Clear any legacy inline margin left over from older builds.
+  const main = document.querySelector('.main-content');
+  if (main && main.style.marginLeft) main.style.marginLeft = '';
   if (window.innerWidth <= 768) {
     sidebar.classList.toggle('mobile-open');
   } else {
     sidebar.classList.toggle('collapsed');
-    const main = document.querySelector('.main-content');
-    if (main) main.style.marginLeft = sidebar.classList.contains('collapsed')
-      ? 'var(--sidebar-collapsed)' : 'var(--sidebar-width)';
   }
 }
 

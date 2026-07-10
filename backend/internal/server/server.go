@@ -9,7 +9,10 @@ import (
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
 
+	"lyceumconnect/backend/internal/analytics"
 	"lyceumconnect/backend/internal/auth"
+	"lyceumconnect/backend/internal/bot"
+	"lyceumconnect/backend/internal/directory"
 	"lyceumconnect/backend/internal/config"
 	"lyceumconnect/backend/internal/httpx"
 	"lyceumconnect/backend/internal/knowledge"
@@ -30,13 +33,23 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	e.Use(echomw.RequestID())
 	e.Use(echomw.Logger())
 	e.Use(echomw.Recover())
-	e.Use(echomw.CORSWithConfig(echomw.CORSConfig{
+	corsCfg := echomw.CORSConfig{
 		// ALLOWED_ORIGIN may be a comma-separated list (e.g. the preview server
 		// plus a live-server dev port).
 		AllowOrigins: splitOrigins(cfg.AllowedOrigin),
 		AllowHeaders: []string{echo.HeaderAuthorization, echo.HeaderContentType},
 		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodDelete, http.MethodOptions},
-	}))
+	}
+	// In dev mode the static frontend is served by live-server, which floats to a
+	// random localhost port when its default is busy. Rather than pin the port,
+	// accept any localhost/127.0.0.1 origin — scoped to dev only, mirroring the
+	// dev-login gate. Production keeps the strict ALLOWED_ORIGIN allowlist.
+	if cfg.DevAuth {
+		corsCfg.AllowOriginFunc = func(origin string) (bool, error) {
+			return isLocalhostOrigin(origin), nil
+		}
+	}
+	e.Use(echomw.CORSWithConfig(corsCfg))
 	// Rate limiting per client IP (spec §13.3). In-memory store for Phase 0.
 	e.Use(echomw.RateLimiter(echomw.NewRateLimiterMemoryStore(20)))
 
@@ -94,15 +107,47 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	secure.POST("/tasks", meetings.createTask)
 	secure.PATCH("/tasks/:id", meetings.updateTask)
 
+	// Employee Directory (spec §"Employee Directory"). Read-only roster, visible
+	// to every authenticated user; search/filter/paginate happen server-side.
+	dirH := &directoryAPI{dir: directory.New(140)}
+	secure.GET("/directory", dirH.list)
+	secure.GET("/directory/:id", dirH.get)
+
+	// Portal Bot — grounded, tool-calling conversational assistant (spec §13.5).
+	// Available to every authenticated user; RBAC scoping happens inside the
+	// assistant's tools (an Employee only ever reaches their own data).
+	botH := &botAPI{store: s, assistant: bot.New(s, bot.Pick(cfg))}
+	secure.POST("/bot/ask", botH.ask)
+
 	// Slack Integration Hub (spec §6). Inbound interactions are public (Slack
 	// posts server-to-server) but signature-verified when a secret is set.
 	slackH := &slackAPI{cfg: cfg.Slack, hub: hub, lc: lc}
 	e.POST("/api/slack/interactions", slackH.interactions)
 
+	// Dashboards & Reporting module (spec §13.6). Restricted to HODs, admins and
+	// the Group Super Admin; each caller's scope is derived from their role.
+	reportsH := &reportsAPI{store: s, builder: analytics.NewBuilder(s), narrator: analytics.Pick(cfg)}
+	reports := secure.Group("/reports", middleware.RequireRole(models.RoleHODManager, models.RoleCompanyAdmin, models.RoleGroupSuperAdmin))
+	reports.GET("/overview", reportsH.overview)
+	reports.GET("/insights", reportsH.insights)
+	reports.POST("/ask", reportsH.ask)
+
 	// Admin-only: proves RBAC and exposes the audit trail.
 	admin := secure.Group("/admin", middleware.RequireRole(models.RoleCompanyAdmin, models.RoleGroupSuperAdmin))
 	admin.POST("/kb/sync", content.syncNow)
 	admin.GET("/slack/hub", slackH.hubStatus)
+	admin.GET("/bot/logs", func(c echo.Context) error {
+		u, _ := middleware.CurrentUser(c)
+		scope := u.TenantID
+		if u.Role == models.RoleGroupSuperAdmin {
+			scope = ""
+		}
+		logs, err := s.ListBotLogs(c.Request().Context(), scope, 50)
+		if err != nil {
+			return httpx.Err(c, http.StatusInternalServerError, "could not read bot logs")
+		}
+		return httpx.OK(c, map[string]any{"logs": logs})
+	})
 	admin.GET("/ping", func(c echo.Context) error {
 		u, _ := middleware.CurrentUser(c)
 		return httpx.OK(c, map[string]any{"ok": true, "as": u.Email, "role": u.Role})
@@ -110,6 +155,17 @@ func New(cfg config.Config, s store.Store) *echo.Echo {
 	admin.GET("/audit", listAudit(s))
 
 	return e
+}
+
+// isLocalhostOrigin reports whether an Origin header points at the local machine
+// on any port — used to relax CORS for the floating live-server dev port.
+func isLocalhostOrigin(origin string) bool {
+	for _, prefix := range []string{"http://localhost:", "http://127.0.0.1:", "http://localhost", "http://127.0.0.1"} {
+		if origin == strings.TrimSuffix(prefix, ":") || strings.HasPrefix(origin, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 // splitOrigins turns a comma-separated ALLOWED_ORIGIN into a trimmed list.

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <script src="js/auth.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Dashboard — Lyceum Connect</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* ===========================================================
+       PER-EMPLOYEE DASHBOARD (Phase 5+)
+       =========================================================== */
+    .emp-dash-head { display:flex; align-items:center; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap; margin-bottom:var(--space-5); }
+    .back-link { display:inline-flex; align-items:center; gap:8px; font-size:13.5px; font-weight:600; color:var(--text-secondary); transition:color var(--transition-fast); }
+    .back-link:hover { color:var(--primary); }
+    .dash-head-actions { display:flex; gap:var(--space-3); }
+
+    /* Grid */
+    .dash-grid { display:grid; grid-template-columns:repeat(12, 1fr); gap:var(--space-4); }
+    .w { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); box-shadow:var(--shadow-sm); padding:var(--space-5);
+         animation:wIn .55s cubic-bezier(.22,1,.36,1) both; animation-delay:calc(var(--i,0)*60ms); position:relative; overflow:hidden; }
+    .w-title { font-size:13px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; justify-content:space-between; }
+    .w-sub { font-size:11px; color:var(--text-tertiary); }
+    .expand-btn { width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--text-tertiary); background:var(--bg-tertiary); transition:all var(--transition-fast); }
+    .expand-btn:hover { color:var(--primary); transform:translateY(-1px); }
+
+    /* Column spans */
+    .col-3{grid-column:span 3}.col-4{grid-column:span 4}.col-5{grid-column:span 5}.col-6{grid-column:span 6}.col-7{grid-column:span 7}.col-8{grid-column:span 8}.col-12{grid-column:span 12}
+    @media (max-width:1100px){ .col-3{grid-column:span 6}.col-4{grid-column:span 6}.col-5{grid-column:span 6}.col-7{grid-column:span 12}.col-8{grid-column:span 12} }
+    @media (max-width:680px){ .dash-grid{grid-template-columns:1fr} [class*="col-"]{grid-column:1/-1} }
+
+    /* Stat tiles */
+    .stat-tiles { display:grid; grid-template-columns:repeat(3,1fr); gap:var(--space-4); }
+    .stat-tile { display:flex; align-items:center; gap:14px; }
+    .stat-ic { width:44px; height:44px; border-radius:13px; display:flex; align-items:center; justify-content:center; background:var(--primary-50); color:var(--primary); flex-shrink:0; }
+    .stat-val { font-size:24px; font-weight:800; color:var(--text-primary); line-height:1; font-variant-numeric:tabular-nums; }
+    .stat-lbl { font-size:12px; color:var(--text-secondary); margin-top:3px; }
+
+    /* KPI mini bars */
+    .kpi-row { display:flex; gap:var(--space-5); }
+    .kpi { flex:1; }
+    .kpi-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .kpi-name { font-size:12px; color:var(--text-secondary); font-weight:600; }
+    .kpi-pct { font-size:12px; font-weight:800; color:var(--text-primary); }
+    .kpi-track { height:8px; border-radius:99px; background:var(--bg-tertiary); overflow:hidden; }
+    .kpi-fill { height:100%; border-radius:99px; width:0; transition:width 1.1s cubic-bezier(.22,1,.36,1); }
+
+    /* Profile hero */
+    .hero { position:relative; min-height:230px; border-radius:var(--radius-xl); overflow:hidden; display:flex; align-items:flex-end; padding:var(--space-5);
+            border:1px solid var(--border); box-shadow:var(--shadow-sm); animation:wIn .55s cubic-bezier(.22,1,.36,1) both; }
+    .hero-bg { position:absolute; inset:0; }
+    .hero-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+    .hero.has-photo .hero-mark { display:none; }
+    .hero-bg::after { content:''; position:absolute; inset:0; z-index:1; background:linear-gradient(180deg, transparent 30%, rgba(10,14,28,.82) 100%); }
+    .hero-mark { position:absolute; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; }
+    .hero-mark span { font-size:96px; font-weight:800; color:rgba(255,255,255,.9); letter-spacing:2px; }
+    .hero-info { position:relative; z-index:1; color:#fff; }
+    .hero-name { font-family:var(--font-display); font-size:19px; font-weight:800; }
+    .hero-role { font-size:12.5px; opacity:.85; }
+    .hero-chip { position:absolute; top:14px; right:14px; z-index:1; font-size:10.5px; font-weight:700; padding:5px 11px; border-radius:99px; background:rgba(255,255,255,.16); color:#fff; backdrop-filter:blur(8px); display:flex; align-items:center; gap:6px; }
+    .hero-chip .dot { width:7px; height:7px; border-radius:50%; background:var(--success); }
+    /* company logo tile (reused in hero + details) */
+    .co-tile { position:relative; display:inline-grid; place-items:center; border-radius:10px; background:#fff; overflow:hidden; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,.14); }
+    .co-tile img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; padding:4px; background:#fff; }
+    .co-tile .co-fb { font-size:12px; font-weight:800; color:#334155; }
+    .hero-company { display:flex; align-items:center; gap:9px; margin-top:10px; position:relative; z-index:1; }
+    .hero-company .co-tile { width:32px; height:32px; }
+    .hero-company .co-cname { font-size:12.5px; font-weight:700; color:#fff; }
+    .co-detail { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+    .co-detail .co-tile { width:48px; height:48px; }
+    .co-detail .co-name2 { font-size:13.5px; font-weight:700; color:var(--text-primary); line-height:1.25; }
+    .co-detail .co-sector2 { font-size:11.5px; color:var(--text-tertiary); margin-top:1px; }
+
+    /* Work-time bar chart */
+    .wt-total { font-size:26px; font-weight:800; color:var(--text-primary); }
+    .wt-total small { font-size:12px; font-weight:600; color:var(--text-tertiary); }
+    .bars { display:flex; align-items:flex-end; justify-content:space-between; gap:8px; height:120px; margin-top:14px; }
+    .bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; height:100%; justify-content:flex-end; position:relative; }
+    .bar { width:8px; border-radius:99px; background:var(--gray-800); height:0; transition:height .9s cubic-bezier(.22,1,.36,1); }
+    [data-theme="dark"] .bar { background:#cfd6e6; }
+    .bar.peak { background:var(--primary); }
+    .bar-dot { width:5px; height:5px; border-radius:50%; background:var(--border-strong); }
+    .bar-lbl { font-size:11px; color:var(--text-tertiary); font-weight:600; }
+    .bar-tip { position:absolute; top:-2px; transform:translateY(-100%); background:var(--primary); color:#fff; font-size:10px; font-weight:700; padding:3px 8px; border-radius:8px; white-space:nowrap; opacity:0; transition:opacity .4s .6s; }
+    .bar-col.has-tip .bar-tip { opacity:1; }
+
+    /* Circular timer */
+    .ring-wrap { display:flex; flex-direction:column; align-items:center; gap:var(--space-4); }
+    .ring { position:relative; width:170px; height:170px; }
+    .ring svg { transform:rotate(-90deg); }
+    .ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .ring-time { font-size:26px; font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums; }
+    .ring-lbl { font-size:11px; color:var(--text-tertiary); }
+    .ring-ctrls { display:flex; gap:10px; }
+    .ring-btn { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); transition:all var(--transition-fast); }
+    .ring-btn:hover { color:var(--primary); border-color:var(--primary-light); transform:translateY(-1px); }
+    .ring-btn.primary { background:var(--primary); color:#fff; border-color:transparent; }
+
+    /* Onboarding */
+    .ob-head { display:flex; align-items:baseline; justify-content:space-between; }
+    .ob-pct { font-size:30px; font-weight:800; color:var(--text-primary); }
+    .ob-seg { display:flex; gap:8px; margin-top:16px; }
+    .ob-block { height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; transition:flex-basis 1s cubic-bezier(.22,1,.36,1); flex-basis:0; overflow:hidden; }
+    .ob-legend { display:flex; gap:16px; margin-top:12px; flex-wrap:wrap; }
+    .ob-leg { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-secondary); }
+    .ob-leg i { width:9px; height:9px; border-radius:3px; }
+
+    /* Tasks widget */
+    .task-sum { margin-bottom:14px; }
+    .task-sum-top { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px; }
+    .task-sum-k { font-size:12px; font-weight:600; color:var(--text-secondary); }
+    .task-sum-pct { font-size:16px; font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums; }
+    .task-bar { height:7px; border-radius:99px; background:var(--bg-tertiary); overflow:hidden; }
+    .task-bar-fill { height:100%; width:0; border-radius:99px; background:var(--primary-gradient); transition:width 1s cubic-bezier(.22,1,.36,1); }
+    .task-list { display:flex; flex-direction:column; }
+    .task-item { display:flex; align-items:flex-start; gap:11px; padding:11px 0; border-bottom:1px solid var(--border-light); animation:wIn .4s ease both; animation-delay:calc(var(--j,0)*50ms); }
+    .task-item:last-child { border-bottom:none; }
+    .task-check { width:20px; height:20px; border-radius:7px; border:2px solid var(--border-strong); background:var(--surface); color:transparent; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; transition:all var(--transition-fast); }
+    .task-check:hover { border-color:var(--primary); transform:scale(1.08); }
+    .task-item.is-done .task-check { background:var(--success); border-color:var(--success); color:#fff; }
+    .task-main { min-width:0; flex:1; }
+    .task-title { font-size:13px; font-weight:600; color:var(--text-primary); line-height:1.35; transition:color var(--transition-fast); }
+    .task-item.is-done .task-title { color:var(--text-tertiary); text-decoration:line-through; }
+    .task-meta { display:flex; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap; }
+    .task-pill { font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; letter-spacing:.2px; }
+    .task-pill.done { background:var(--success-light); color:var(--success-dark); }
+    .task-pill.prog { background:var(--primary-50); color:var(--primary); }
+    .task-pill.todo { background:var(--bg-tertiary); color:var(--text-secondary); }
+    .task-upd { font-size:10.5px; color:var(--text-tertiary); }
+
+    /* Schedule */
+    .sched { display:grid; grid-template-columns:48px repeat(5,1fr); gap:0; }
+    .sched-hour { font-size:11px; color:var(--text-tertiary); padding:14px 8px 0 0; text-align:right; }
+    .sched-dayhead { text-align:center; padding-bottom:10px; border-bottom:1px solid var(--border-light); }
+    .sched-dow { font-size:11px; color:var(--text-tertiary); font-weight:600; }
+    .sched-date { font-size:15px; font-weight:700; color:var(--text-primary); }
+    .sched-cell { border-bottom:1px solid var(--border-light); border-left:1px solid var(--border-light); min-height:46px; position:relative; }
+    .ev { position:absolute; left:5px; right:5px; border-radius:10px; padding:7px 9px; font-size:11px; box-shadow:var(--shadow-sm); animation:wIn .5s ease both; }
+    .ev-title { font-weight:700; }
+    .ev-sub { opacity:.8; font-size:10px; }
+    .ev.blue { background:var(--primary); color:#fff; }
+    .ev.soft { background:var(--primary-50); color:var(--primary); border:1px solid var(--primary-100); }
+    .ev.dark { background:var(--gray-800); color:#fff; }
+
+    /* Accordions */
+    .acc-item { border-bottom:1px solid var(--border-light); }
+    .acc-item:last-child { border-bottom:none; }
+    .acc-head { display:flex; align-items:center; justify-content:space-between; padding:14px 0; cursor:pointer; font-size:13px; font-weight:600; color:var(--text-primary); }
+    .acc-head svg { transition:transform var(--transition-base); color:var(--text-tertiary); }
+    .acc-item.open .acc-head svg { transform:rotate(180deg); }
+    .acc-body { max-height:0; overflow:hidden; transition:max-height var(--transition-base); }
+    .acc-item.open .acc-body { max-height:260px; }
+    .acc-inner { padding:0 0 14px; }
+    .device-row { display:flex; align-items:center; gap:12px; }
+    .device-ic { width:52px; height:40px; border-radius:10px; background:var(--bg-tertiary); display:flex; align-items:center; justify-content:center; font-size:22px; }
+    .kv { display:flex; justify-content:space-between; font-size:12.5px; padding:5px 0; }
+    .kv b { color:var(--text-primary); font-weight:600; }
+    .kv span { color:var(--text-secondary); }
+
+    @keyframes wIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+    @media (prefers-reduced-motion: reduce){ .w,.hero,.tp-item,.ev{animation:none!important} .bar,.kpi-fill,.ob-block{transition:none!important} }
+
+    /* Loading state */
+    .dash-loading { display:flex; align-items:center; justify-content:center; padding:var(--space-16); color:var(--text-secondary); gap:12px; }
+    .spin { width:22px; height:22px; border:2.5px solid var(--border-strong); border-top-color:var(--primary); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Narrow-screen stacking (kept last so it wins the cascade) */
+    @media (max-width:560px){
+      .stat-tiles { grid-template-columns:1fr; gap:var(--space-3); }
+      .kpi-row { flex-direction:column; gap:var(--space-3); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ========= SIDEBAR ========= -->
+  <aside class="sidebar" id="sidebar">
+    <a href="index.html" class="sidebar-logo">
+      <img src="assets/logo.png" alt="Lyceum" id="sidebarLogo"
+           onerror="this.style.display='none';document.getElementById('sidebarLogoFallback').style.display='flex'">
+      <div id="sidebarLogoFallback" style="width:36px;height:36px;background:linear-gradient(135deg,#0F172A,#0369A1);border-radius:8px;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;display:none;flex-shrink:0">L</div>
+      <div class="sidebar-logo-text">
+        <span class="sidebar-logo-title">Lyceum Connect</span>
+        <span class="sidebar-logo-sub">Employee Portal</span>
+      </div>
+    </a>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Main Menu</div>
+      <a href="index.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+      <a href="dashboards.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-item-text">Dashboards &amp; Reports</span>
+      </a>
+      <a href="service-catalog.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <span class="nav-item-text">Service Catalog</span>
+      </a>
+      <a href="request-tracking.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">My Requests</span>
+      </a>
+      <div class="sidebar-section-label">Resources</div>
+      <a href="knowledge-center.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="nav-item-text">Knowledge Center</span>
+      </a>
+      <a href="announcements.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Announcements</span>
+      </a>
+      <a href="employee-directory.html" class="nav-item active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Employee Directory</span>
+      </a>
+      <a href="meeting-transcription.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+        <span class="nav-item-text">Meeting Transcriber</span>
+      </a>
+      <a href="tasks.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <span class="nav-item-text">Tasks Manager</span>
+      </a>
+      <a href="sectors.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="2" width="8" height="5" rx="1"/><rect x="3" y="17" width="8" height="5" rx="1"/><rect x="13" y="17" width="8" height="5" rx="1"/><path d="M8 17V12h8v5M12 7v5"/></svg>
+        <span class="nav-item-text">Company Hierarchy</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="profile.html" class="sidebar-user">
+        <div class="sidebar-avatar">LT</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">LGH IT Test</div>
+          <div class="sidebar-user-role">IT Governance Lead</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ========= MAIN CONTENT ========= -->
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="topbar-search relative">
+        <div class="search-input-wrap">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input" placeholder="Search services, people, documents..." id="globalSearch" autocomplete="off">
+          <span class="search-shortcut">⌘K</span>
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn" onclick="toggleDarkMode()" title="Toggle theme">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <a href="profile.html" class="topbar-user">
+          <div class="topbar-avatar">LT</div>
+          <div class="topbar-user-info">
+            <div class="topbar-user-name">LGH IT Test</div>
+            <div class="topbar-user-dept">IT Governance</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <main class="page-content">
+      <div class="emp-dash-head">
+        <div>
+          <a href="employee-directory.html" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Directory
+          </a>
+          <nav class="breadcrumb" style="margin-top:6px">
+            <a href="index.html">Home</a><span class="breadcrumb-sep">/</span>
+            <a href="employee-directory.html">Employees</a><span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current" id="crumbName">Loading…</span>
+          </nav>
+        </div>
+        <div class="dash-head-actions">
+          <button class="btn btn-secondary" id="msgBtn">💬 Message</button>
+          <button class="btn btn-primary" id="editBtn">Edit Profile</button>
+        </div>
+      </div>
+
+      <div id="dashLoading" class="dash-loading"><span class="spin"></span> Loading employee dashboard…</div>
+      <div class="dash-grid" id="dashGrid" style="display:none"></div>
+    </main>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/main.js"></script>
+<script src="js/api.js"></script>
+<script src="js/sectors-data.js"></script>
+<script src="js/photos.js"></script>
+<script src="js/employee.js"></script>
+<script src="js/bot.js"></script>
+</body>
+</html>

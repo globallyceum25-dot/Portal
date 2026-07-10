@@ -52,6 +52,11 @@ type Store interface {
 	ListTasks(ctx context.Context, tenantID string) ([]models.Task, error)
 	UpdateTask(ctx context.Context, t *models.Task) error
 
+	// Portal Bot conversation logs (spec §13.5). Stored PII-masked for audit and
+	// model-improvement review; scoped to the tenant.
+	CreateBotLog(ctx context.Context, l *models.BotConversationLog) (*models.BotConversationLog, error)
+	ListBotLogs(ctx context.Context, tenantID string, limit int) ([]models.BotConversationLog, error)
+
 	// Ping reports store health for /healthz.
 	Ping(ctx context.Context) error
 	Kind() string

@@ -1,393 +1,285 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/sectors-data.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Lyceum Connect Employee Portal Login Page.">
   <title>Sign In — Lyceum Connect</title>
   <link rel="stylesheet" href="css/styles.css">
-  
+
   <style>
     /* ============================================================
-       PREMIUM SPLIT SCREEN LOGIN PAGE STYLING
+       LOGIN — form left · motion integration grid right
+       Single solid background colour, modern pop-in + parallax.
        ============================================================ */
+    :root { --login-bg: #0c0e14; }
+
+    html, body { background: var(--login-bg); }
+
     .login-page {
       display: flex;
       min-height: 100vh;
-      background: var(--bg-page);
+      background: var(--login-bg);
       font-family: var(--font-sans);
+      color: #EAF0FF;
     }
 
-    /* Left Pane: Branding & Slogans */
+    /* ---------- LEFT: login area ---------- */
     .login-left {
-      flex: 1.2;
-      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%);
+      order: 2;                 /* login area sits on the right */
+      width: 480px;
+      max-width: 46vw;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: var(--space-12) var(--space-16);
-      color: #FFFFFF;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .login-left-content {
+      padding: 40px 48px;
       position: relative;
       z-index: 5;
-      max-width: 540px;
-      margin: auto 0;
     }
 
-    .login-logo {
+    .login-brand {
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 22px;
-      font-weight: 800;
-      color: #FFFFFF;
       text-decoration: none;
-      position: relative;
-      z-index: 5;
+      color: #fff;
     }
-
-    .login-logo-fallback {
-      width: 40px;
-      height: 40px;
-      background: var(--primary);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      font-size: 20px;
-      color: #FFFFFF;
+    .login-brand-mark {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--primary), #7C93FF);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 20px; color: #fff;
+      box-shadow: 0 8px 24px -8px rgba(79,110,247,.7);
     }
+    .login-brand-name { font-weight: 800; font-size: 17px; line-height: 1.1; }
+    .login-brand-sub  { font-size: 10px; font-weight: 600; letter-spacing: .6px; color: rgba(255,255,255,.5); margin-top: 2px; }
 
-    .login-left-title {
-      font-family: var(--font-display);
-      font-size: 38px;
-      font-weight: 800;
-      line-height: 1.25;
-      margin-bottom: var(--space-4);
-      background: linear-gradient(120deg, #FFFFFF 60%, var(--primary-light));
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+    .login-form-wrap { margin: auto 0; width: 100%; }
 
-    .login-left-desc {
-      font-size: 16px;
-      line-height: 1.6;
-      color: rgba(255, 255, 255, 0.7);
-      margin-bottom: var(--space-8);
-    }
-
-    /* Feature check list */
-    .login-features {
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-3);
-    }
-
-    .login-feature-item {
-      display: flex;
-      align-items: center;
-      gap: var(--space-3);
-      font-size: 14px;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    .login-feature-icon {
-      width: 24px;
-      height: 24px;
-      border-radius: var(--radius-sm);
-      background: rgba(59, 123, 248, 0.25);
-      border: 1px solid rgba(59, 123, 248, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
+    .login-eyebrow {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 11.5px; font-weight: 600; letter-spacing: .3px;
       color: var(--primary-light);
+      background: rgba(79,110,247,.12);
+      border: 1px solid rgba(79,110,247,.25);
+      padding: 5px 11px; border-radius: 99px; margin-bottom: 18px;
+    }
+    .login-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #34D399; box-shadow: 0 0 0 3px rgba(52,211,153,.2); }
+
+    .login-title { font-family: var(--font-display); font-size: 30px; font-weight: 800; line-height: 1.15; color: #fff; margin-bottom: 8px; }
+    .login-subtitle { font-size: 14px; color: rgba(234,240,255,.55); margin-bottom: 26px; }
+
+    /* Dark surfaces for the form controls on the solid background */
+    .login-left .form-label { color: rgba(234,240,255,.72); font-weight: 600; }
+    .login-left .form-control {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.1);
+      color: #EAF0FF;
+    }
+    .login-left .form-control::placeholder { color: rgba(234,240,255,.32); }
+    .login-left .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(79,110,247,.18);
+      background: rgba(255,255,255,.06);
     }
 
-    .login-left-footer {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.4);
-      position: relative;
-      z-index: 5;
-    }
-
-    /* Glow Circles Backdrop */
-    .glow-circle {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      z-index: 1;
-      opacity: 0.12;
-    }
-
-    .glow-1 {
-      width: 450px;
-      height: 450px;
-      background: var(--primary);
-      top: -100px;
-      left: -150px;
-      animation: floatCircle1 15s infinite alternate;
-    }
-
-    .glow-2 {
-      width: 350px;
-      height: 350px;
-      background: #10B981;
-      bottom: -100px;
-      right: -50px;
-      animation: floatCircle2 18s infinite alternate;
-    }
-
-    @keyframes floatCircle1 {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(60px, 40px) scale(1.1); }
-    }
-
-    @keyframes floatCircle2 {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(-50px, -30px) scale(1.1); }
-    }
-
-    /* Right Pane: Credentials Form */
-    .login-right {
-      flex: 0.8;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--space-6);
-      background: var(--bg-page);
-      position: relative;
-    }
-
-    .login-card {
-      width: 100%;
-      max-width: 440px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-xl);
-      padding: var(--space-10);
-      box-shadow: var(--shadow-xl);
-      position: relative;
-      z-index: 10;
-    }
-
-    .login-card-header {
-      margin-bottom: var(--space-6);
-    }
-
-    .login-card-title {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--text-primary);
-      margin-bottom: var(--space-1);
-    }
-
-    .login-card-subtitle {
-      font-size: 13.5px;
-      color: var(--text-secondary);
-    }
-
-    /* Autofill helper widget */
     .demo-autofill {
-      background: var(--primary-50);
-      border: 1px solid var(--primary-100);
-      border-radius: var(--radius-md);
+      background: rgba(79,110,247,.1);
+      border: 1px dashed rgba(79,110,247,.35);
+      border-radius: 10px;
       padding: 10px 14px;
       font-size: 11.5px;
-      color: var(--primary-dark);
-      margin-bottom: var(--space-5);
+      color: var(--primary-light);
+      margin-bottom: 18px;
       cursor: pointer;
-      transition: all var(--transition-fast);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      transition: all .18s ease;
+      display: flex; align-items: center; gap: 8px;
     }
+    .demo-autofill:hover { background: rgba(79,110,247,.18); transform: translateY(-1px); }
 
-    .demo-autofill:hover {
-      background: var(--primary-100);
-      transform: translateY(-1px);
+    .form-group-checkbox { display: flex; align-items: center; justify-content: space-between; margin: 16px 0 22px; }
+    .checkbox-wrap { display: flex; align-items: center; gap: 8px; font-size: 13px; color: rgba(234,240,255,.6); cursor: pointer; user-select: none; }
+    .forgot-link { font-size: 13px; color: var(--primary-light); text-decoration: none; font-weight: 600; }
+    .forgot-link:hover { text-decoration: underline; }
+
+    .login-or { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; color: rgba(234,240,255,.35); font-size: 12px; }
+    .login-or span.line { flex: 1; height: 1px; background: rgba(255,255,255,.1); }
+
+    .login-left .btn-secondary {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.12);
+      color: #EAF0FF;
     }
+    .login-left .btn-secondary:hover { background: rgba(255,255,255,.09); }
 
-    /* Form Styles */
-    .form-group-checkbox {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: var(--space-4);
-      margin-bottom: var(--space-6);
-    }
+    .login-foot { font-size: 11.5px; color: rgba(234,240,255,.32); }
 
-    .checkbox-wrap {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      font-size: 13px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .forgot-link {
-      font-size: 13px;
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color var(--transition-fast);
-    }
-
-    .forgot-link:hover {
-      color: var(--primary-dark);
-      text-decoration: underline;
-    }
-
-    /* Premium Theme Toggle button position */
-    .theme-toggle-btn {
-      position: absolute;
-      top: var(--space-6);
-      right: var(--space-6);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-full);
+    /* ---------- RIGHT: motion integration grid ---------- */
+    .login-visual {
+      order: 1;                 /* logo grid sits on the left */
+      flex: 1;
+      position: relative;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      color: var(--text-primary);
-      box-shadow: var(--shadow-sm);
-      z-index: 100;
-      transition: all var(--transition-fast);
+      /* keep the page one colour — only a whisper of depth */
+      background: var(--login-bg);
+    }
+    .login-visual::before {
+      content: "";
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(60% 55% at 55% 45%, rgba(120,140,255,.08), transparent 70%),
+        radial-gradient(40% 40% at 70% 75%, rgba(255,255,255,.03), transparent 70%);
+      pointer-events: none;
+    }
+    /* subtle seam so the left area reads as its own column on one colour */
+    .login-visual::after {
+      content: ""; position: absolute; right: 0; top: 12%; bottom: 12%; width: 1px;
+      background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,.08), rgba(255,255,255,0));
     }
 
-    .theme-toggle-btn:hover {
-      background: var(--bg-tertiary);
-      transform: scale(1.05);
+    .int-scene {
+      position: relative;
+      transform-style: preserve-3d;
+      perspective: 1100px;
+      will-change: transform;
+      /* Compositor-driven easing → smooth parallax without a JS rAF loop. */
+      transition: transform .38s cubic-bezier(.22,.61,.36,1);
+    }
+    .int-glow {
+      position: absolute; left: 50%; top: 50%;
+      width: 640px; height: 640px; transform: translate(-50%,-50%);
+      background: radial-gradient(closest-side, rgba(150,170,255,.14), transparent 72%);
+      filter: blur(6px); pointer-events: none;
+    }
+    /* Radial hub-and-orbit board: bubbles are absolutely placed around a centre. */
+    .int-grid { position: relative; transform-style: preserve-3d; }
+
+    .int-cell {
+      position: absolute;
+      width: 72px; height: 72px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,.022);
+      border: 1px solid rgba(255,255,255,.06);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+      transform: translateZ(var(--tz, 0px));
+      animation: intFloat var(--dur, 6s) ease-in-out var(--del, 0s) infinite;
+      transition: background .5s ease, border-color .5s ease, box-shadow .5s ease;
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 900px) {
-      .login-left {
-        display: none;
-      }
-      .login-right {
-        flex: 1;
-        padding: var(--space-4);
-      }
-      .login-card {
-        padding: var(--space-8) var(--space-6);
-      }
+    /* Centre hub — Lyceum Global Holdings, larger and always shown. */
+    .int-hub {
+      width: 176px; height: 176px; z-index: 4;
+      background: #fff;
+      border-color: rgba(255,255,255,.2);
+      box-shadow: 0 26px 64px -18px rgba(0,0,0,.85), 0 0 0 9px rgba(120,140,255,.06), inset 0 1px 0 rgba(255,255,255,.6);
+      animation: intHubFloat 7s ease-in-out infinite;
+    }
+    .int-hub::after {
+      content: ""; position: absolute; inset: -26px; border-radius: 50%; z-index: -1;
+      background: radial-gradient(closest-side, rgba(130,150,255,.28), transparent 72%);
+    }
+    .int-hub .int-logo img { width: 76%; height: 76%; }
+    @keyframes intHubFloat {
+      0%, 100% { transform: translateZ(30px) translateY(0); }
+      50%      { transform: translateZ(30px) translateY(-6px); }
+    }
+    .int-cell.lit {
+      background: #fbfcff;                     /* light tile so company logos read on the dark board */
+      border-color: rgba(255,255,255,.16);
+      box-shadow: 0 16px 34px -14px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.4);
+    }
+    /* Centre hero — Lyceum Global Holdings on a dark brand tile so its light logo pops. */
+    .int-cell.int-hero {
+      background: radial-gradient(circle at 32% 26%, #3a56a8, #0c1230 82%);
+      border-color: rgba(140,165,255,.35);
+      box-shadow: 0 24px 56px -16px rgba(0,0,0,.85), 0 0 0 7px rgba(120,140,255,.08), 0 0 42px rgba(90,120,255,.28);
+    }
+    .int-cell.int-hero .int-logo img { filter: drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
+    @keyframes intFloat {
+      0%, 100% { transform: translateZ(var(--tz,0px)) translateY(0); }
+      50%      { transform: translateZ(var(--tz,0px)) translateY(-5px); }
     }
 
-    /* Spinning Loader */
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #ffffff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
+    .int-logo {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: scale(.3);
+      transition: opacity .45s ease, transform .55s cubic-bezier(.34,1.56,.64,1);
+    }
+    .int-logo.show { opacity: 1; transform: scale(1); }
+    /* Recurring "pop" — a random bubble springs in and out for constant life. */
+    @keyframes intPop { 0% { transform: scale(1); } 26% { transform: scale(.42); } 62% { transform: scale(1.09); } 100% { transform: scale(1); } }
+    .int-logo.pop { animation: intPop .7s cubic-bezier(.34,1.56,.64,1); }
+    .int-logo svg { width: 52%; height: 52%; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,.45)); }
+    .int-logo img { width: 68%; height: 68%; object-fit: contain; display: block; filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
+    .int-fallback {
+      width: 100%; height: 100%; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px; letter-spacing: .5px; color: #fff;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    /* ---------- responsive ---------- */
+    @media (max-width: 980px) {
+      .login-visual { display: none; }
+      .login-left { width: 100%; max-width: 100%; align-items: center; padding: 32px 22px; }
+      .login-brand, .login-form-wrap, .login-foot { width: 100%; max-width: 420px; }
+      .login-form-wrap { margin: 32px 0; }
     }
+    @media (max-width: 420px) {
+      .login-left { padding: 24px 16px; }
+      .login-title { font-size: 26px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .int-cell { animation: none !important; }
+    }
+
+    .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-<!-- Theme Switcher -->
-<button class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
-  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-</button>
-
 <div class="login-page">
-  
-  <!-- ========= LEFT PANEL: BRAND AND SLOGANS ========= -->
+
+  <!-- ========= LEFT: LOGIN AREA ========= -->
   <section class="login-left">
-    <!-- Glow Backdrop effects -->
-    <div class="glow-circle glow-1"></div>
-    <div class="glow-circle glow-2"></div>
-    
-    <!-- Header Logo -->
-    <div class="login-logo">
-      <div class="login-logo-fallback">L</div>
+    <a class="login-brand" href="#">
+      <div class="login-brand-mark">L</div>
       <div>
-        <div style="font-weight: 800; font-size: 18px; line-height: 1.1">Lyceum Connect</div>
-        <div style="font-size: 10px; font-weight: 500; opacity: 0.7; letter-spacing: 0.5px">EMPLOYEE PORTAL</div>
+        <div class="login-brand-name">Lyceum Connect</div>
+        <div class="login-brand-sub">EMPLOYEE PORTAL</div>
       </div>
-    </div>
+    </a>
 
-    <!-- Center Pitch -->
-    <div class="login-left-content">
-      <h1 class="login-left-title">Elevating Employee Engagement & Governance</h1>
-      <p class="login-left-desc">Welcome to Lyceum Connect. Access your unified workspace built to streamline HR operations, track service requests, view central directories, and manage live meeting notes.</p>
-      
-      <div class="login-features">
-        <div class="login-feature-item">
-          <div class="login-feature-icon">📁</div>
-          <span>Centralized Service & Request Catalog</span>
-        </div>
-        <div class="login-feature-item">
-          <div class="login-feature-icon">🎙️</div>
-          <span>Bilingual Live Meeting Transcription Tool</span>
-        </div>
-        <div class="login-feature-item">
-          <div class="login-feature-icon">📢</div>
-          <span>Departmental Announcements & Notifications</span>
-        </div>
-        <div class="login-feature-item">
-          <div class="login-feature-icon">👥</div>
-          <span>Interactive Employee Knowledge Directory</span>
-        </div>
-      </div>
-    </div>
+    <div class="login-form-wrap">
+      <span class="login-eyebrow"><span class="dot"></span> Secure workspace access</span>
+      <h1 class="login-title">Welcome back</h1>
+      <p class="login-subtitle">Sign in to your unified Lyceum workspace.</p>
 
-    <!-- Footer Copyright -->
-    <div class="login-left-footer">
-      © 2026 Lyceum Technologies Inc. All rights reserved.
-    </div>
-  </section>
-
-  <!-- ========= RIGHT PANEL: LOGIN CARD FORM ========= -->
-  <section class="login-right">
-    <div class="login-card">
-      <div class="login-card-header">
-        <h2 class="login-card-title">Welcome Back</h2>
-        <p class="login-card-subtitle">Please sign in to access your dashboard</p>
+      <div class="demo-autofill" onclick="autofillCreds()" title="Fill demo credentials">
+        <span>💡 <b>Demo account:</b> click to autofill credentials</span>
       </div>
 
-      <!-- One-Click Quick Login Banner -->
-      <div class="demo-autofill" onclick="autofillCreds()" title="Click to fill developer mock account credentials">
-        <span>💡 <b>Demo Account:</b> Click here to autofill credentials</span>
-      </div>
-
-      <!-- Form Inputs -->
       <form id="loginForm" onsubmit="handleLoginSubmit(event)">
-        
         <div class="form-group">
           <label class="form-label" for="loginEmail">Work Email Address</label>
           <input type="email" class="form-control" id="loginEmail" placeholder="sudaraka.perera@lyceum.edu" required>
         </div>
 
-        <div class="form-group" style="margin-top: var(--space-4)">
+        <div class="form-group" style="margin-top: 14px">
           <label class="form-label" for="loginPassword">Account Password</label>
           <input type="password" class="form-control" id="loginPassword" placeholder="••••••••••••" required>
         </div>
 
-        <div class="form-group" style="margin-top: var(--space-4)">
+        <div class="form-group" style="margin-top: 14px">
           <label class="form-label" for="loginRole">Sign in as (demo role)</label>
           <select class="form-control" id="loginRole">
             <option value="employee">Employee</option>
@@ -408,53 +300,236 @@
           <a href="#" class="forgot-link" onclick="handleForgotPassword(event)">Forgot Password?</a>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="signInBtn" style="width: 100%; height: 44px; justify-content: center; font-weight: 700">
+        <button type="submit" class="btn btn-primary" id="signInBtn" style="width:100%;height:46px;justify-content:center;font-weight:700">
           <span class="btn-label">Sign In</span>
         </button>
 
-        <div style="display:flex;align-items:center;gap:12px;margin:18px 0 14px;color:var(--text-tertiary);font-size:12px">
-          <span style="flex:1;height:1px;background:var(--border)"></span>OR<span style="flex:1;height:1px;background:var(--border)"></span>
-        </div>
+        <div class="login-or"><span class="line"></span>OR<span class="line"></span></div>
 
-        <button type="button" class="btn btn-secondary" id="ssoBtn" onclick="handleEntraLogin()" style="width:100%;height:44px;justify-content:center;gap:10px;font-weight:600">
+        <button type="button" class="btn btn-secondary" id="ssoBtn" onclick="handleEntraLogin()" style="width:100%;height:46px;justify-content:center;gap:10px;font-weight:600">
           <svg width="18" height="18" viewBox="0 0 21 21" aria-hidden="true"><rect x="1" y="1" width="9" height="9" fill="#F25022"/><rect x="11" y="1" width="9" height="9" fill="#7FBA00"/><rect x="1" y="11" width="9" height="9" fill="#00A4EF"/><rect x="11" y="11" width="9" height="9" fill="#FFB900"/></svg>
           <span>Sign in with Microsoft</span>
         </button>
-
       </form>
     </div>
+
+    <div class="login-foot">© 2026 Lyceum Technologies Inc. All rights reserved.</div>
   </section>
-  
+
+  <!-- ========= RIGHT: MOTION INTEGRATION GRID ========= -->
+  <section class="login-visual" id="loginVisual" aria-hidden="true">
+    <div class="int-scene" id="intScene">
+      <div class="int-glow"></div>
+      <div class="int-grid" id="intGrid"></div>
+    </div>
+  </section>
+
 </div>
 
 <!-- ========= TOAST CONTAINER ========= -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- ========= SCRIPTS ========= -->
+<!-- ========= INTEGRATION GRID (motion + pop-in) ========= -->
+<script>
+'use strict';
+(function () {
+  var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Full-colour brand marks (inline SVG so it works offline, no external calls).
+  var LOGOS = [
+    '<svg viewBox="0 0 24 24"><rect x="2" y="2" width="9" height="9" fill="#F25022"/><rect x="13" y="2" width="9" height="9" fill="#7FBA00"/><rect x="2" y="13" width="9" height="9" fill="#00A4EF"/><rect x="13" y="13" width="9" height="9" fill="#FFB900"/></svg>',
+    '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.2c0-.7-.06-1.3-.17-1.9H12v3.6h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.2z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 .95-3.4.95-2.6 0-4.8-1.75-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.4 13.95a6 6 0 0 1 0-3.9V7.45H3.1a10 10 0 0 0 0 9z"/><path fill="#EA4335" d="M12 6.05c1.5 0 2.8.5 3.8 1.5l2.85-2.85A10 10 0 0 0 3.1 7.45l3.3 2.6C7.2 7.8 9.4 6.05 12 6.05z"/></svg>',
+    '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#fff"/><path d="M4 8v9h3v-5.6l5 3.6 5-3.6V17h3V8l-8 5.7z" fill="#EA4335"/></svg>',
+    '<svg viewBox="0 0 24 24"><path fill="#EA4335" d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.6" fill="#fff"/></svg>',
+    '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#fff"/><path fill="#111" d="M7.2 6.4h2.3l5 6.7V6.4h1.9v11.2h-2.2l-5.1-6.9v6.9H7.2z"/></svg>',
+    '<svg viewBox="0 0 24 24"><rect x="11" y="3" width="3" height="7" rx="1.5" fill="#36C5F0"/><rect x="14" y="11" width="7" height="3" rx="1.5" fill="#2EB67D"/><rect x="10" y="14" width="3" height="7" rx="1.5" fill="#ECB22E"/><rect x="3" y="10" width="7" height="3" rx="1.5" fill="#E01E5A"/></svg>',
+    '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#2D8CFF"/><path fill="#fff" d="M5 9.6A1.6 1.6 0 0 1 6.6 8h6a1.6 1.6 0 0 1 1.6 1.6v4.8A1.6 1.6 0 0 1 12.6 16h-6A1.6 1.6 0 0 1 5 14.4zm10 1.1 3.2-2a.6.6 0 0 1 1 .5v5.6a.6.6 0 0 1-1 .5l-3.2-2z"/></svg>',
+    '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#0079BF"/><rect x="4.5" y="4.5" width="6" height="15" rx="1.5" fill="#fff"/><rect x="13.5" y="4.5" width="6" height="9" rx="1.5" fill="#fff"/></svg>',
+    '<svg viewBox="0 0 24 24"><g fill="#0061FF"><path d="M7 4 2 7.2l5 3.2 5-3.2z"/><path d="M17 4l-5 3.2 5 3.2 5-3.2z"/><path d="M2 13.6l5 3.2 5-3.2-5-3.2z"/><path d="M17 10.4l-5 3.2 5 3.2 5-3.2z"/><path d="M7 17.8l5-3.2 5 3.2-5 3.1z"/></g></svg>',
+    '<svg viewBox="0 0 24 24"><path fill="#F24E1E" d="M9 3h3v6H9a3 3 0 1 1 0-6z"/><path fill="#FF7262" d="M12 3h3a3 3 0 0 1 0 6h-3z"/><path fill="#A259FF" d="M12.5 9a3 3 0 1 1-.5 5.95V9z"/><path fill="#1ABCFE" d="M9 9h3v6H9a3 3 0 1 1 0-6z"/><path fill="#0ACF83" d="M9 15h3v3a3 3 0 1 1-3-3z"/></svg>',
+    '<svg viewBox="0 0 24 24"><path fill="#FBAD41" d="M18.6 16H12l.8-6.6a5 5 0 0 1 4.6 3.1 3.2 3.2 0 0 1 1.2 3.5z"/><path fill="#F6821F" d="M16.8 16H7a4 4 0 1 1 .8-7.9A5 5 0 0 1 17 9.6a3.2 3.2 0 0 1-.2 6.4z"/></svg>',
+    '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="5" fill="#fff"/><path fill="#1A73E8" d="M16 8H8v8h8z"/><path fill="#EA4335" d="M8 8V5.5A1.5 1.5 0 0 1 9.5 4H16V8z"/><path fill="#34A853" d="M16 16v3.5A1.5 1.5 0 0 1 14.5 21H8v-5z" opacity=".9"/><text x="12" y="15" font-size="6" font-weight="700" text-anchor="middle" fill="#1A73E8" font-family="Arial">31</text></svg>'
+  ];
+
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.random() * (i + 1) | 0; var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function rand(min, max) { return min + Math.random() * (max - min); }
+
+  // Prefer the real Lyceum group company logos (from the hierarchy data);
+  // fall back to the generic SaaS marks if the data script didn't load.
+  var ITEMS = [];
+  try {
+    if (typeof SECTORS_DATA !== 'undefined' && Array.isArray(SECTORS_DATA)) {
+      var seen = {};
+      SECTORS_DATA.forEach(function (sec) {
+        (sec.companies || []).forEach(function (co) {
+          if (co && co.logo && !seen[co.name]) { seen[co.name] = 1; ITEMS.push({ logo: co.logo, name: co.name }); }
+        });
+      });
+    }
+  } catch (e) {}
+  if (!ITEMS.length) ITEMS = LOGOS.map(function (svg) { return { svg: svg }; });
+  shuffle(ITEMS);
+
+  var FALLBACK_COLORS = ['#4F6EF7', '#22C55E', '#F59E0B', '#EC4899', '#06B6D4', '#8B5CF6', '#EF4444', '#14B8A6'];
+  function initials(name) {
+    var w = (name || '?').trim().split(/\s+/).filter(Boolean);
+    var s = w.length >= 2 ? w[0][0] + w[1][0] : (w[0] || '?').slice(0, 2);
+    return s.toUpperCase();
+  }
+  function colorFor(name) { var h = 0, s = name || ''; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return FALLBACK_COLORS[h % FALLBACK_COLORS.length]; }
+  // Render a brand mark (logo image with initials fallback, or inline SVG).
+  function renderItem(span, item) {
+    span.title = item.name || '';
+    if (item.logo) {
+      var img = new Image();
+      img.alt = item.name || '';
+      img.decoding = 'async'; img.loading = 'eager';
+      img.onerror = function () { span.innerHTML = '<span class="int-fallback" style="background:' + colorFor(item.name) + '">' + initials(item.name) + '</span>'; };
+      span.innerHTML = ''; span.appendChild(img);
+      img.src = item.logo;
+    } else {
+      span.innerHTML = item.svg || '';
+    }
+  }
+  var itemPtr = 0;
+  function nextItem() { var it = ITEMS[itemPtr % ITEMS.length]; itemPtr++; return it; }
+
+  var grid = document.getElementById('intGrid');
+  if (!grid) return;
+  var cells = [];
+
+  // Apple-Watch-style honeycomb: hex-packed circular icons with a fisheye scale
+  // (biggest in the middle, shrinking toward the edges), all filled — with
+  // Lyceum Global Holdings dead centre as the largest icon.
+  var LGH_LOGO = 'https://lyceumglobal.co/wp-content/uploads/2024/05/LGH-2-2.png';
+  var W = 1080, H = 760, CX = W / 2, CY = H / 2;
+  grid.style.width = W + 'px';
+  grid.style.height = H + 'px';
+
+  function place(el, x, y, size) { el.style.left = (x - size / 2) + 'px'; el.style.top = (y - size / 2) + 'px'; }
+  function makeCell(size) {
+    var cell = document.createElement('div');
+    cell.className = 'int-cell';
+    cell.style.width = size + 'px'; cell.style.height = size + 'px';
+    cell.style.setProperty('--tz', Math.round(rand(-26, 26)) + 'px');
+    cell.style.setProperty('--dur', rand(5.5, 9).toFixed(2) + 's');
+    cell.style.setProperty('--del', rand(0, 4).toFixed(2) + 's');
+    var logo = document.createElement('span'); logo.className = 'int-logo';
+    cell.appendChild(logo); grid.appendChild(cell);
+    return { cell: cell, logo: logo };
+  }
+
+  // Hexagonal lattice (odd rows offset by half a step); keep the N points
+  // nearest the centre so the cluster forms a rounded, tightly-packed blob.
+  var GX = 108, GY = 94, AX = 560, AY = 330;
+  var pts = [];
+  for (var row = -6; row <= 6; row++) {
+    var yy = CY + row * GY, xoff = (row & 1) ? GX / 2 : 0;
+    for (var col = -8; col <= 8; col++) {
+      var xx = CX + col * GX + xoff, dx = xx - CX, dy = yy - CY;
+      pts.push({ x: xx, y: yy, nd: Math.sqrt((dx / AX) * (dx / AX) + (dy / AY) * (dy / AY)) });
+    }
+  }
+  pts.sort(function (a, b) { return a.nd - b.nd; });
+  var N = Math.min(pts.length, ITEMS.length + 1);
+  var taken = pts.slice(0, N);
+  var ndMax = taken[N - 1].nd || 1;
+
+  // Fisheye size falloff from the centre outward.
+  var BASE = 100, MAXS = 1.06, MINS = 0.48;
+  function sizeFor(nd) { var t = Math.min(1, nd / ndMax); return Math.round(BASE * (MAXS - (MAXS - MINS) * Math.pow(t, 1.3))); }
+
+  shuffle(ITEMS);
+  var ci = 0;
+  taken.forEach(function (pt, i) {
+    var size = sizeFor(pt.nd);
+    var o = makeCell(size);
+    place(o.cell, pt.x, pt.y, size);
+    var item = (i === 0) ? { logo: LGH_LOGO, name: 'Lyceum Global Holdings' } : ITEMS[ci++ % ITEMS.length];
+    renderItem(o.logo, item);
+    o.cell.classList.add(i === 0 ? 'int-hero' : 'lit');
+    (function (lg, d) { setTimeout(function () { lg.classList.add('show'); }, d); })(o.logo, 120 + i * 40); // ripple out from centre
+    cells.push(o);
+  });
+
+  // Scale the whole board to fill the visual pane on any screen size.
+  var visualEl = document.getElementById('loginVisual');
+  function fitScale() {
+    if (!visualEl) return;
+    var p = visualEl.getBoundingClientRect();
+    if (p.width < 2 || p.height < 2) return;
+    var k = Math.min((p.width - 40) / W, (p.height - 40) / H, 1.25);
+    grid.style.transform = 'scale(' + Math.max(0.4, k).toFixed(3) + ')';
+  }
+  fitScale();
+  window.addEventListener('resize', fitScale);
+  try { new ResizeObserver(fitScale).observe(visualEl); } catch (e) {}
+
+  // Keep the bubbles popping — a random icon (never the centre hero) springs
+  // every ~0.9s, so the board stays alive like the original.
+  if (!REDUCE) {
+    setInterval(function () {
+      if (cells.length < 2) return;
+      var pops = 1 + (Math.random() < 0.4 ? 1 : 0);
+      for (var k = 0; k < pops; k++) {
+        var o = cells[1 + (Math.random() * (cells.length - 1) | 0)]; // skip hero at index 0
+        if (!o) continue;
+        o.logo.classList.remove('pop');
+        void o.logo.offsetWidth;   // reflow so the animation restarts every time
+        o.logo.classList.add('pop');
+      }
+    }, 900);
+  }
+
+  // ---- Motion sensor: parallax tilt on pointer move + device orientation ----
+  // The CSS transition on .int-scene does the smoothing, so we just set the
+  // target transform on each event — works even when rAF is throttled.
+  var scene = document.getElementById('intScene');
+  var visual = document.getElementById('loginVisual');
+
+  function applyTilt(x, y) {
+    if (!scene) return;
+    x = Math.max(-1, Math.min(1, x)); y = Math.max(-1, Math.min(1, y));
+    scene.style.transform = 'rotateY(' + (x * 9) + 'deg) rotateX(' + (-y * 9) + 'deg) translate3d(' + (x * 16) + 'px,' + (y * 16) + 'px,0)';
+  }
+
+  if (visual && scene && !REDUCE) {
+    visual.addEventListener('pointermove', function (e) {
+      var b = visual.getBoundingClientRect();
+      applyTilt(((e.clientX - b.left) / b.width) * 2 - 1, ((e.clientY - b.top) / b.height) * 2 - 1);
+    });
+    visual.addEventListener('pointerleave', function () { applyTilt(0, 0); });
+
+    window.addEventListener('deviceorientation', function (e) {
+      if (e.gamma == null || e.beta == null) return;
+      applyTilt(e.gamma / 28, (e.beta - 45) / 28);
+    }, true);
+  }
+})();
+</script>
+
+<!-- ========= AUTH SCRIPTS ========= -->
 <script>
   'use strict';
 
   // Kick off Microsoft Entra ID SSO by navigating to the backend, which
   // redirects to Microsoft. Falls back with a message if SSO isn't configured.
   async function handleEntraLogin() {
-    const btn = document.getElementById('ssoBtn');
     if (!(await LC.health())) {
       showToast('Backend offline', 'Start the API to use Microsoft sign-in.', 'error');
       return;
     }
-    // Probe whether SSO is configured (501 when not) before redirecting.
     try {
       const res = await fetch(LC.base + '/api/auth/login', { redirect: 'manual' });
       if (res.status === 501) {
-        showToast('SSO not configured', 'Entra ID isn’t set up yet — use email + role sign-in below.', 'error');
+        showToast('SSO not configured', 'Entra ID isn’t set up yet — use email + role sign-in.', 'error');
         return;
       }
     } catch (e) { /* opaqueredirect is expected when configured */ }
     window.location.href = LC.base + '/api/auth/login';
   }
 
-  // Complete an SSO redirect: the backend returns the session token in the URL
-  // fragment (#token=...). Store it and enter the portal.
+  // Complete an SSO redirect: token arrives in the URL fragment (#token=...).
   (function completeSSO() {
     const m = /[#&]token=([^&]+)/.exec(window.location.hash);
     if (!m) return;
@@ -464,50 +539,29 @@
     window.location.href = 'index.html';
   })();
 
-  // Toggle Dark Mode Theme
-  function toggleTheme() {
-    const html = document.documentElement;
-    const isDark = html.getAttribute('data-theme') === 'dark';
-    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-    localStorage.setItem('lc-theme', isDark ? 'light' : 'dark');
-  }
-
-  // Init Theme
-  (function initTheme() {
-    const saved = localStorage.getItem('lc-theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (saved === 'dark' || (!saved && prefersDark)) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
-  })();
-
-  // Autofill Demo account details
   function autofillCreds() {
     document.getElementById('loginEmail').value = 'sudaraka.perera@lyceum.edu';
     document.getElementById('loginPassword').value = 'password123';
     showToast('Credentials Filled', 'Demo account details are loaded into the form.', 'info');
   }
 
-  // Handle forgot password mock trigger
   function handleForgotPassword(e) {
     e.preventDefault();
     showToast('Reset Link Requested', 'If the account exists, a password recovery circular has been queued.', 'info');
   }
 
-  // Handle submission & authentication logic
   function handleLoginSubmit(event) {
     event.preventDefault();
-    
+
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     const btn = document.getElementById('signInBtn');
-    
+
     if (!email || !password) {
       showToast('Validation Error', 'Please fill in both email and password fields.', 'error');
       return;
     }
 
-    // Disable button & show loading status
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner"></span><span>Verifying Credentials...</span>`;
 
@@ -517,7 +571,6 @@
     (async () => {
       const online = await LC.health();
       if (online) {
-        // Real authentication against the backend (dev-login until Entra ID SSO).
         try {
           await LC.devLogin(email, role, name);
           showToast('Login Successful', `Signed in as ${role.replace(/_/g, ' ')}. Redirecting…`, 'success');
@@ -542,13 +595,11 @@
     })();
   }
 
-  // Toast Alerts Generator
   function showToast(title, message, type = 'info') {
     const container = document.getElementById('toastContainer') || document.body;
-    
     const toast = document.createElement('div');
     toast.className = 'toast';
-    
+
     let iconHtml = '';
     if (type === 'success') {
       iconHtml = '<div class="toast-icon" style="background:var(--success-light);color:var(--success-dark);font-size:14px;font-weight:700">✓</div>';
@@ -557,18 +608,15 @@
     } else {
       iconHtml = '<div class="toast-icon" style="background:var(--primary-50);color:var(--primary);font-size:14px;font-weight:700">ℹ️</div>';
     }
-    
+
     toast.innerHTML = `
       ${iconHtml}
       <div class="toast-content">
         <div class="toast-title" style="font-size: 13px; font-weight: 600; color: var(--text-primary);">${title}</div>
         <div class="toast-msg" style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">${message}</div>
-      </div>
-    `;
-    
+      </div>`;
+
     container.appendChild(toast);
-    
-    // Auto remove with fade
     setTimeout(() => {
       toast.style.transition = 'all 0.4s ease';
       toast.style.opacity = '0';

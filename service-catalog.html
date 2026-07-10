@@ -9,472 +9,132 @@
   <title>Service Catalog — Lyceum Connect</title>
   <link rel="stylesheet" href="css/styles.css">
   <style>
-    /* Service Catalog Custom Styling */
-    .catalog-tabs {
-      display: flex;
-      gap: var(--space-2);
-      border-bottom: 1px solid var(--border);
-      margin-bottom: var(--space-6);
-      overflow-x: auto;
-      padding-bottom: 2px;
-      scrollbar-width: none;
-    }
-    .catalog-tabs::-webkit-scrollbar { display: none; }
-    
-    .catalog-tab {
-      padding: 10px 18px;
-      border-radius: var(--radius-md) var(--radius-md) 0 0;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      border-bottom: 2px solid transparent;
-      white-space: nowrap;
-      transition: all var(--transition-fast);
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-    .catalog-tab:hover {
-      color: var(--primary);
-      background: var(--bg-tertiary);
-    }
-    .catalog-tab.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-    }
+    /* ============================================================
+       SERVICE CATALOG — modern bento catalog
+       ============================================================ */
+    .cat-head { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; flex-wrap:wrap; margin:4px 0 18px; }
+    .cat-title { font-family:var(--font-display); font-size:28px; font-weight:800; letter-spacing:-.02em; color:var(--text-primary); display:flex; align-items:center; gap:13px; }
+    .cat-title .ic { width:46px; height:46px; border-radius:14px; display:grid; place-items:center; color:#fff; background:linear-gradient(135deg,var(--primary),#6D86FF); box-shadow:0 10px 26px -8px rgba(79,110,247,.6); }
+    .cat-title .ic svg { width:23px; height:23px; }
+    .cat-sub { font-size:13.5px; color:var(--text-secondary); margin-top:6px; max-width:560px; }
+    .cat-stats { display:flex; gap:10px; flex-wrap:wrap; }
+    .cat-stat { background:var(--surface); border:1px solid var(--glass-border); border-radius:14px; padding:9px 16px; box-shadow:var(--shadow-card); text-align:center; min-width:88px;
+      opacity:0; transform:translateY(10px); animation:catIn .5s ease forwards; }
+    .cat-stat:nth-child(2){ animation-delay:.06s; } .cat-stat:nth-child(3){ animation-delay:.12s; }
+    .cat-stat b { font-family:var(--font-display); font-size:22px; font-weight:800; color:var(--text-primary); display:block; line-height:1; font-variant-numeric:tabular-nums; }
+    .cat-stat span { font-size:11px; color:var(--text-tertiary); font-weight:600; }
 
-    .catalog-search-bar {
-      margin-bottom: var(--space-6);
-    }
-    
-    .catalog-search-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-    .catalog-search-icon {
-      position: absolute;
-      left: 16px;
-      color: var(--text-tertiary);
-      pointer-events: none;
-    }
-    .catalog-search-input {
-      width: 100%;
-      height: 48px;
-      padding: 0 16px 0 46px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      font-size: 15px;
-      color: var(--text-primary);
-      outline: none;
-      transition: all var(--transition-fast);
-      box-shadow: var(--shadow-sm);
-    }
-    .catalog-search-input:focus {
-      border-color: var(--primary);
-      box-shadow: var(--shadow-glow);
-    }
+    /* search */
+    .cat-search { position:relative; margin-bottom:16px; }
+    .cat-search .si { position:absolute; left:18px; top:50%; transform:translateY(-50%); color:var(--text-tertiary); pointer-events:none; transition:color .2s; }
+    .cat-search input { width:100%; height:54px; padding:0 18px 0 50px; border-radius:16px; border:1px solid var(--border); background:var(--surface); color:var(--text-primary); font-size:15px; outline:none; box-shadow:var(--shadow-sm); transition:all .2s; }
+    .cat-search input:focus { border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-50), var(--shadow-md); }
+    .cat-search:focus-within .si { color:var(--primary); }
 
-    .categories-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-bottom: var(--space-8);
-    }
+    /* filter row */
+    .cat-filter { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:24px; }
+    .catalog-tabs { display:flex; gap:5px; overflow-x:auto; scrollbar-width:none; padding:5px; background:var(--bg-tertiary); border:1px solid var(--border); border-radius:14px; }
+    .catalog-tabs::-webkit-scrollbar { display:none; }
+    .catalog-tab { border:none; background:none; white-space:nowrap; font-size:13px; font-weight:700; color:var(--text-secondary); padding:8px 15px; border-radius:10px; cursor:pointer; transition:all .18s ease; }
+    .catalog-tab:hover { color:var(--primary); background:var(--surface); }
+    .catalog-tab.active { color:#fff; background:linear-gradient(135deg,var(--primary),#6D86FF); box-shadow:var(--shadow-sm); }
+    .company-filter-wrap { display:flex; align-items:center; gap:9px; background:var(--surface); border:1px solid var(--border); padding:8px 14px; border-radius:12px; box-shadow:var(--shadow-sm); }
+    .company-filter-wrap .cf-lbl { font-size:11px; font-weight:800; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.5px; display:flex; align-items:center; gap:5px; }
+    .company-filter-wrap select { border:none; background:none; font-size:13px; font-weight:600; color:var(--text-primary); cursor:pointer; outline:none; max-width:220px; }
 
-    @media (max-width: 1024px) and (min-width: 641px) {
-      .categories-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
+    @keyframes catIn { to { opacity:1; transform:none; } }
 
-    @media (max-width: 640px) {
-      .categories-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+    /* category grid */
+    .categories-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:var(--space-8); }
+    @media (max-width:1024px) and (min-width:641px) { .categories-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:640px) { .categories-grid { grid-template-columns:1fr; } }
 
-    /* Bento Premium Aesthetic styling - Symmetrical equal-sized tiles */
     .service-category-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-top: 4px solid var(--category-border-color, var(--border));
-      border-radius: 18px;
-      padding: var(--space-5);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: var(--space-4);
-      height: 180px;
-      cursor: pointer;
-      transition: all var(--transition-spring);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-      text-decoration: none;
-      color: inherit;
+      position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--glass-border);
+      border-top:4px solid var(--category-border-color, var(--border)); border-radius:20px; padding:22px;
+      display:flex; flex-direction:column; align-items:stretch; gap:12px; min-height:196px; cursor:pointer; text-decoration:none; color:inherit;
+      box-shadow:var(--shadow-card);
+      transition:transform .3s cubic-bezier(.34,1.2,.5,1), box-shadow .3s ease, border-color .3s ease;
+      opacity:0; transform:translateY(16px); animation:catIn .55s cubic-bezier(.34,1.1,.5,1) forwards; animation-delay:calc(var(--i,0)*70ms);
     }
+    .service-category-card::after { content:""; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:0; transition:opacity .3s ease;
+      background:radial-gradient(240px circle at var(--mx,50%) var(--my,0%), var(--card-bg-gradient, rgba(79,110,247,.06)), transparent 68%); }
+    .service-category-card:hover { transform:translateY(-6px); border-color:var(--category-border-color); box-shadow:0 22px 46px -20px var(--category-glow-color, rgba(0,0,0,.15)), var(--shadow-lg); }
+    .service-category-card:hover::after { opacity:1; }
+    .service-category-card > * { position:relative; z-index:1; }
 
-    /* Sub-Services grid & tiles */
-    .sub-services-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-      margin-bottom: var(--space-8);
-      animation: fadeIn var(--transition-base);
-    }
-    
-    @media (max-width: 1200px) and (min-width: 901px) {
-      .sub-services-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-    
-    @media (max-width: 900px) and (min-width: 601px) {
-      .sub-services-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    
-    @media (max-width: 600px) {
-      .sub-services-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+    .sc-header { display:flex; align-items:center; justify-content:space-between; }
+    .sc-icon { width:60px; height:60px; border-radius:16px; background:var(--icon-bg); color:var(--icon-color); display:grid; place-items:center; font-size:30px; flex-shrink:0; transition:transform .3s ease; }
+    .service-category-card:hover .sc-icon { transform:scale(1.08) rotate(-4deg); }
+    .sc-count-badge { font-size:10px; font-weight:800; color:var(--icon-color); background:var(--icon-bg); padding:4px 9px; border-radius:99px; letter-spacing:.3px; text-transform:uppercase; }
+    .sc-text-wrap { display:flex; flex-direction:column; gap:4px; }
+    .sc-title { font-size:17px; font-weight:800; color:var(--text-primary); font-family:var(--font-display); letter-spacing:-.3px; transition:color .2s; }
+    .service-category-card:hover .sc-title { color:var(--category-border-color); }
+    .sc-desc { font-size:12.5px; color:var(--text-secondary); line-height:1.45; }
+    .sc-cta { margin-top:auto; display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; color:var(--icon-color); }
+    .sc-cta svg { width:15px; height:15px; transition:transform .25s ease; }
+    .service-category-card:hover .sc-cta svg { transform:translateX(5px); }
+
+    /* Category colour themes */
+    .border-hr    { --category-border-color:var(--primary); --category-glow-color:rgba(59,123,248,.28); --card-bg-gradient:rgba(59,123,248,.10); --icon-bg:rgba(59,123,248,.10); --icon-color:var(--primary); }
+    .border-it    { --category-border-color:#7C3AED; --category-glow-color:rgba(124,58,237,.28); --card-bg-gradient:rgba(124,58,237,.10); --icon-bg:rgba(124,58,237,.10); --icon-color:#7C3AED; }
+    .border-fm    { --category-border-color:#0D9488; --category-glow-color:rgba(13,148,136,.28); --card-bg-gradient:rgba(13,148,136,.10); --icon-bg:rgba(13,148,136,.10); --icon-color:#0D9488; }
+    .border-admin { --category-border-color:#F59E0B; --category-glow-color:rgba(245,158,11,.28); --card-bg-gradient:rgba(245,158,11,.10); --icon-bg:rgba(245,158,11,.10); --icon-color:#D97706; }
+    .border-know  { --category-border-color:#10B981; --category-glow-color:rgba(16,185,129,.28); --card-bg-gradient:rgba(16,185,129,.10); --icon-bg:rgba(16,185,129,.10); --icon-color:#059669; }
+    .border-comm  { --category-border-color:#EF4444; --category-glow-color:rgba(239,68,68,.28); --card-bg-gradient:rgba(239,68,68,.10); --icon-bg:rgba(239,68,68,.10); --icon-color:#EF4444; }
+
+    /* Sub-services */
+    .cat-hero { position:relative; overflow:hidden; border-radius:20px; padding:24px 26px; color:#fff; display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; box-shadow:var(--shadow-lg); background:var(--primary-gradient); animation:catIn .45s ease both; }
+    .cat-hero::after { content:""; position:absolute; top:-40px; right:-30px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.12); }
+    .cat-hero-title { font-family:var(--font-display); font-size:24px; font-weight:800; letter-spacing:-.02em; position:relative; z-index:1; }
+    .cat-hero-desc { font-size:13.5px; color:rgba(255,255,255,.86); margin-top:4px; position:relative; z-index:1; }
+    .cat-back { position:relative; z-index:1; display:inline-flex; align-items:center; gap:7px; height:40px; padding:0 16px; border-radius:12px; font-size:13px; font-weight:700; cursor:pointer; flex-shrink:0;
+      background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28); color:#fff; transition:all .16s ease; }
+    .cat-back:hover { background:rgba(255,255,255,.28); transform:translateX(-2px); }
+
+    .sub-services-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:var(--space-8); }
+    @media (max-width:1200px) and (min-width:901px) { .sub-services-grid { grid-template-columns:repeat(3,1fr); } }
+    @media (max-width:900px) and (min-width:601px) { .sub-services-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:600px) { .sub-services-grid { grid-template-columns:1fr; } }
 
     .sub-service-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: var(--space-5);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: var(--space-4);
-      height: 200px;
-      cursor: pointer;
-      transition: all var(--transition-spring);
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-      text-decoration: none;
-      color: inherit;
+      position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--glass-border); border-radius:18px; padding:18px;
+      min-height:196px; display:flex; flex-direction:column; gap:12px; text-decoration:none; color:inherit; box-shadow:var(--shadow-card);
+      transition:transform .28s cubic-bezier(.34,1.2,.5,1), box-shadow .28s ease, border-color .28s ease;
+      opacity:0; transform:translateY(14px); animation:catIn .5s cubic-bezier(.34,1.1,.5,1) forwards; animation-delay:calc(var(--i,0)*45ms);
     }
-    .sub-service-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--sub-hover-border, var(--primary));
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--sub-hover-border, var(--primary));
-    }
-    .sub-service-card .sc-title {
-      transition: color var(--transition-fast);
-    }
-    .sub-service-card:hover .sc-title {
-      color: var(--sub-hover-border, var(--primary));
-    }
-    .sub-service-icon-wrap {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: var(--sub-icon-bg, var(--primary-50));
-      color: var(--sub-icon-color, var(--primary));
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-    }
-    .sub-service-sla {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text-tertiary);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    
-    .service-category-card::before {
-      content: '';
-      position: absolute;
-      bottom: -30px;
-      right: -30px;
-      width: 150px;
-      height: 150px;
-      background: radial-gradient(circle, var(--card-bg-gradient) 0%, transparent 70%);
-      z-index: 1;
-      pointer-events: none;
-    }
+    .sub-service-card::after { content:""; position:absolute; inset:0; z-index:0; pointer-events:none; opacity:0; transition:opacity .3s ease;
+      background:radial-gradient(200px circle at var(--mx,50%) var(--my,0%), var(--sub-icon-bg, rgba(79,110,247,.1)), transparent 66%); }
+    .sub-service-card:hover { transform:translateY(-5px); border-color:var(--sub-hover-border,var(--primary)); box-shadow:0 20px 42px -20px var(--sub-hover-border,rgba(0,0,0,.2)), var(--shadow-lg); }
+    .sub-service-card:hover::after { opacity:.8; }
+    .sub-service-card > * { position:relative; z-index:1; }
+    .sub-service-icon-wrap { width:50px; height:50px; border-radius:14px; background:var(--sub-icon-bg,var(--primary-50)); color:var(--sub-icon-color,var(--primary)); display:grid; place-items:center; font-size:24px; flex-shrink:0; transition:transform .3s ease; }
+    .sub-service-card:hover .sub-service-icon-wrap { transform:scale(1.08) rotate(-4deg); }
+    .sub-service-card .sc-title { font-size:14.5px; font-weight:800; transition:color .2s; }
+    .sub-service-card:hover .sc-title { color:var(--sub-hover-border); }
+    .sub-service-card .sc-desc { font-size:12px; line-height:1.45; display:-webkit-box; -webkit-line-clamp:3; line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+    .sub-bottom { margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .sub-service-sla { display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800; color:var(--sub-icon-color); background:var(--sub-icon-bg); padding:4px 9px; border-radius:99px; }
+    .sub-req { display:inline-flex; align-items:center; gap:4px; font-size:11.5px; font-weight:800; color:var(--sub-hover-border); opacity:0; transform:translateX(-4px); transition:all .25s ease; }
+    .sub-req svg { width:13px; height:13px; }
+    .sub-service-card:hover .sub-req { opacity:1; transform:none; }
 
-    .service-category-card:hover {
-      transform: translateY(-4px);
-      border-color: var(--category-border-color);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--category-border-color);
-    }
-    
-    /* Category Specific Borders/Colors mapped to CSS variables */
-    .border-hr {
-      --category-border-color: var(--primary-500);
-      --category-glow-color: rgba(59, 123, 248, 0.15);
-      --card-bg-gradient: rgba(59, 123, 248, 0.05);
-      --icon-bg: rgba(59, 123, 248, 0.08);
-      --icon-color: var(--primary);
-    }
-    .border-it {
-      --category-border-color: #7C3AED;
-      --category-glow-color: rgba(124, 58, 237, 0.15);
-      --card-bg-gradient: rgba(124, 58, 237, 0.05);
-      --icon-bg: rgba(124, 58, 237, 0.08);
-      --icon-color: #7C3AED;
-    }
-    .border-fm {
-      --category-border-color: #0D9488;
-      --category-glow-color: rgba(13, 148, 136, 0.15);
-      --card-bg-gradient: rgba(13, 148, 136, 0.05);
-      --icon-bg: rgba(13, 148, 136, 0.08);
-      --icon-color: #0D9488;
-    }
-    .border-admin {
-      --category-border-color: #F59E0B;
-      --category-glow-color: rgba(245, 158, 11, 0.15);
-      --card-bg-gradient: rgba(245, 158, 11, 0.05);
-      --icon-bg: rgba(245, 158, 11, 0.08);
-      --icon-color: #F59E0B;
-    }
-    .border-know {
-      --category-border-color: #10B981;
-      --category-glow-color: rgba(16, 185, 129, 0.15);
-      --card-bg-gradient: rgba(16, 185, 129, 0.05);
-      --icon-bg: rgba(16, 185, 129, 0.08);
-      --icon-color: #10B981;
-    }
-    .border-comm {
-      --category-border-color: #EF4444;
-      --category-glow-color: rgba(239, 68, 68, 0.15);
-      --card-bg-gradient: rgba(239, 68, 68, 0.05);
-      --icon-bg: rgba(239, 68, 68, 0.08);
-      --icon-color: #EF4444;
-    }
+    .sub-empty { grid-column:1/-1; padding:44px; text-align:center; color:var(--text-tertiary); font-size:13.5px; }
 
-    .sc-content-left {
-      flex: 1.15;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      z-index: 2;
-    }
-    .sc-content-right {
-      flex: 0.85;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      z-index: 2;
-      border-left: 1px solid var(--border);
-      padding-left: var(--space-4);
-    }
-
-    .sc-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-    }
-
-    .sc-icon {
-      width: 64px;
-      height: 64px;
-      border-radius: 16px;
-      background: var(--icon-bg);
-      color: var(--icon-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-      flex-shrink: 0;
-    }
-
-    .sc-count-badge {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--icon-color);
-      background: var(--icon-bg);
-      padding: 3px 8px;
-      border-radius: var(--radius-full);
-      letter-spacing: 0.2px;
-      text-transform: uppercase;
-    }
-
-    .sc-text-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-top: 10px;
-    }
-
-    .sc-title {
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--text-primary);
-      font-family: var(--font-display);
-      letter-spacing: -0.3px;
-    }
-
-    .sc-desc {
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    /* List Previews inside cards */
-    .sc-list-preview {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      width: 100%;
-    }
-    
-    .sc-list-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12.5px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      padding: 4px 6px;
-      border-radius: var(--radius-sm);
-      transition: all var(--transition-fast);
-      cursor: pointer;
-    }
-    
-    .sc-list-item:hover {
-      color: var(--icon-color);
-      background: var(--icon-bg);
-      transform: translateX(3px);
-    }
-    
-    .sc-list-bullet {
-      font-size: 13px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    
-    .sc-list-text {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Mobile overrides */
-    @media (max-width: 640px) {
-      .service-category-card {
-        flex-direction: column !important;
-        gap: var(--space-4) !important;
-        height: auto !important;
-      }
-      .sc-content-left, .sc-content-right {
-        flex: none !important;
-        width: 100% !important;
-      }
-      .sc-content-right {
-        border-left: none !important;
-        padding-left: 0 !important;
-        margin-top: var(--space-2);
-      }
-    }
-
-    .service-list-section {
-      display: none;
-      animation: slideUp var(--transition-base);
-    }
-    .service-list-section.active {
-      display: block;
-    }
-
-    .service-rows-card {
-      background: var(--surface);
-      border-radius: var(--radius-xl);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-    }
-
-    .service-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--space-4) var(--space-6);
-      border-bottom: 1px solid var(--border-light);
-      transition: background var(--transition-fast);
-    }
-    .service-row:last-child {
-      border-bottom: none;
-    }
-    .service-row:hover {
-      background: var(--bg-primary);
-    }
-    .service-row-info {
-      flex: 1;
-      padding-right: var(--space-4);
-    }
-    .service-row-name {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-    }
-    .service-row-desc {
-      font-size: 13px;
-      color: var(--text-secondary);
-      margin-top: 2px;
-    }
-    .service-row-actions {
-      display: flex;
-      align-items: center;
-      gap: var(--space-4);
-    }
-    
-    .sla-badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .sla-badge-blue { background: var(--primary-50); color: var(--primary); }
-    .sla-badge-amber { background: var(--warning-light); color: var(--warning); }
-    .sla-badge-green { background: var(--success-light); color: var(--success); }
-
-    /* Clickable service details animations */
-    .service-category-card.selected {
-      border-color: var(--category-border-color) !important;
-      box-shadow: 0 12px 32px var(--category-glow-color, rgba(0,0,0,0.05));
-      transform: scale(1.01);
-      background: var(--surface);
-    }
-
-    /* Flashing highlight animation for row selection */
-    @keyframes highlightFlash {
-      0% { background-color: var(--icon-bg); box-shadow: inset 0 0 0 2px var(--category-border-color); }
-      100% { background-color: transparent; box-shadow: none; }
-    }
-    .service-row.highlight-row {
-      animation: highlightFlash 1.5s ease-out;
-    }
-
-    /* Pulse highlight animation for sub-service card selection */
+    /* selection highlight */
     @keyframes pulseHighlight {
-      0% { border-color: var(--sub-hover-border); box-shadow: 0 0 0 4px var(--sub-icon-bg); }
-      50% { border-color: var(--sub-hover-border); box-shadow: 0 0 0 8px var(--sub-icon-bg); }
-      100% { border-color: var(--border); box-shadow: none; }
+      0% { box-shadow:0 0 0 0 var(--sub-hover-border); }
+      40% { box-shadow:0 0 0 6px color-mix(in srgb, var(--sub-hover-border) 22%, transparent); }
+      100% { box-shadow:var(--shadow-card); }
     }
-    .sub-service-card.pulse-highlight {
-      animation: pulseHighlight 2s ease-in-out;
+    .sub-service-card.pulse-highlight { border-color:var(--sub-hover-border); animation:pulseHighlight 1.8s ease-out, catIn .5s cubic-bezier(.34,1.1,.5,1) forwards; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .service-category-card, .sub-service-card, .cat-stat, .cat-hero { animation:none !important; opacity:1 !important; transform:none !important; }
+      .service-category-card::after, .sub-service-card::after { display:none; }
+    }
+    @media (max-width:640px) {
+      .cat-head { flex-direction:column; align-items:flex-start; }
     }
   </style>
 </head>
@@ -496,51 +156,43 @@
 
     <nav class="sidebar-nav">
       <div class="sidebar-section-label">Main Menu</div>
-
       <a href="index.html" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span class="nav-item-text">Dashboard</span>
       </a>
-
+      <a href="dashboards.html" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-item-text">Dashboards &amp; Reports</span>
+      </a>
       <a href="service-catalog.html" class="nav-item active">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         <span class="nav-item-text">Service Catalog</span>
       </a>
-
       <a href="request-tracking.html" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        <span class="nav-item-text">My Requests</span>
-        <span class="nav-badge">3</span>
+        <span class="nav-item-text">My Requests</span><span class="nav-badge">3</span>
       </a>
-
       <div class="sidebar-section-label">Resources</div>
-
       <a href="knowledge-center.html" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         <span class="nav-item-text">Knowledge Center</span>
       </a>
-
       <a href="announcements.html" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        <span class="nav-item-text">Announcements</span>
-        <span class="nav-badge">5</span>
+        <span class="nav-item-text">Announcements</span><span class="nav-badge">5</span>
       </a>
-
       <a href="employee-directory.html" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span class="nav-item-text">Employee Directory</span>
       </a>
-
       <a href="meeting-transcription.html" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
         <span class="nav-item-text">Meeting Transcriber</span>
       </a>
-
       <a href="tasks.html" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         <span class="nav-item-text">Tasks Manager</span>
       </a>
-
       <a href="sectors.html" class="nav-item">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="12" y="2" width="8" height="5" rx="1"/><rect x="3" y="17" width="8" height="5" rx="1"/><rect x="13" y="17" width="8" height="5" rx="1"/><path d="M8 17V12h8v5M12 7v5"/></svg>
         <span class="nav-item-text">Company Hierarchy</span>
@@ -560,14 +212,10 @@
 
   <!-- ========= MAIN CONTENT ========= -->
   <div class="main-content">
-
-    <!-- TOPBAR -->
     <header class="topbar">
       <button class="topbar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-
-      <!-- Global Search -->
       <div class="topbar-search relative">
         <div class="search-input-wrap">
           <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -576,240 +224,130 @@
         </div>
         <div class="search-results" id="searchResults"></div>
       </div>
-
       <div class="topbar-actions">
-        <!-- Notifications -->
         <div class="relative">
           <button class="topbar-btn" id="notifBtn" onclick="toggleNotifications()" aria-label="Notifications">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
             <span class="topbar-notif-dot"></span>
           </button>
-
-          <!-- Notification Dropdown -->
           <div class="notif-dropdown" id="notifDropdown">
-            <div class="notif-header">
-              <span class="notif-title">Notifications</span>
-              <span class="notif-count">5</span>
-            </div>
+            <div class="notif-header"><span class="notif-title">Notifications</span><span class="notif-count">5</span></div>
             <div class="notif-list">
-              <div class="notif-item unread">
-                <div class="notif-icon" style="background:var(--primary-100);color:var(--primary)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
-                </div>
-                <div class="notif-content">
-                  <div class="notif-text">Your IT Support request (REQ-2025-047) is now In Progress</div>
-                  <div class="notif-time">2 minutes ago</div>
-                </div>
-                <div class="notif-unread-dot"></div>
-              </div>
-              <div class="notif-item unread">
-                <div class="notif-icon" style="background:#D1FAE5;color:#059669">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                </div>
-                <div class="notif-content">
-                  <div class="notif-text">Service Letter Request (REQ-2025-046) has been approved</div>
-                  <div class="notif-time">1 hour ago</div>
-                </div>
-                <div class="notif-unread-dot"></div>
-              </div>
+              <div class="notif-item unread"><div class="notif-icon" style="background:var(--primary-100);color:var(--primary)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div><div class="notif-content"><div class="notif-text">Your IT Support request (REQ-2025-047) is now In Progress</div><div class="notif-time">2 minutes ago</div></div><div class="notif-unread-dot"></div></div>
+              <div class="notif-item unread"><div class="notif-icon" style="background:#D1FAE5;color:#059669"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="notif-content"><div class="notif-text">Service Letter Request (REQ-2025-046) has been approved</div><div class="notif-time">1 hour ago</div></div><div class="notif-unread-dot"></div></div>
             </div>
-            <div class="notif-footer">
-              <a href="announcements.html">View all notifications</a>
-            </div>
+            <div class="notif-footer"><a href="announcements.html">View all notifications</a></div>
           </div>
         </div>
-
-        <!-- Dark Mode -->
         <button class="topbar-btn" onclick="toggleDarkMode()" aria-label="Toggle Dark Mode" title="Toggle Dark Mode">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
-
         <a href="profile.html" class="topbar-user" id="topbarUser">
           <div class="topbar-avatar">LT</div>
-          <div class="topbar-user-info">
-            <div class="topbar-user-name">LGH IT Test</div>
-            <div class="topbar-user-dept">IT Governance</div>
-          </div>
+          <div class="topbar-user-info"><div class="topbar-user-name">LGH IT Test</div><div class="topbar-user-dept">IT Governance</div></div>
         </a>
       </div>
     </header>
 
     <!-- PAGE CONTENT -->
     <main class="page-content">
-
-      <!-- Breadcrumbs -->
       <nav class="breadcrumb">
         <a href="index.html">Home</a>
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">Service Catalog</span>
       </nav>
 
-      <!-- ===== WELCOME BANNER ===== -->
-      <div class="welcome-banner animate-fadeIn" style="margin-bottom:var(--space-6)">
-        <div class="welcome-content">
-          <div class="welcome-greeting">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="currentDateTime">Loading...</span>
-          </div>
-          <h1 class="welcome-name">Good <span id="greeting">morning</span>, LGH IT! 👋</h1>
-          <p class="welcome-dept">IT Governance Lead &nbsp;·&nbsp; IT Governance</p>
-          <p class="welcome-message">"Great things in business are never done by one person. They're done by a team of people." — Lyceum Group</p>
+      <!-- Header -->
+      <div class="cat-head">
+        <div>
+          <div class="cat-title"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span> Service Catalog</div>
+          <div class="cat-sub">Browse and request services across HR, IT, Facilities, Administration, Knowledge and Communications — all in one place.</div>
+        </div>
+        <div class="cat-stats">
+          <div class="cat-stat"><b class="cnt" data-to="33">0</b><span>Services</span></div>
+          <div class="cat-stat"><b class="cnt" data-to="6">0</b><span>Categories</span></div>
+          <div class="cat-stat"><b>24/7</b><span>Support</span></div>
         </div>
       </div>
 
-      <!-- Catalog Search -->
-      <div class="catalog-search-bar">
-        <div class="catalog-search-wrap">
-          <svg class="catalog-search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" class="catalog-search-input" placeholder="Search catalog services (e.g. WiFi, leave, repairs...)" id="catalogSearch" oninput="searchCatalog(this.value)">
-        </div>
+      <!-- Search -->
+      <div class="cat-search">
+        <svg class="si" xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search catalog services (e.g. WiFi, leave, repairs…)" id="catalogSearch" autocomplete="off" oninput="searchCatalog(this.value)">
       </div>
 
-      <!-- Filter Bar (Tabs & Company dropdown) -->
-      <div class="filter-bar-row" style="display:flex; flex-direction:column; gap:10px; margin-bottom:var(--space-6);">
-        <!-- Catalog Tabs -->
-        <div class="catalog-tabs" style="margin-bottom:0; border-bottom:none; display:flex; gap:var(--space-2); overflow-x:auto; padding-bottom:2px; scrollbar-width:none;">
+      <!-- Filter row -->
+      <div class="cat-filter">
+        <div class="catalog-tabs">
           <button class="catalog-tab active" onclick="filterCatalog('all', this)">All Services</button>
           <button class="catalog-tab" onclick="filterCatalog('hr', this)">Human Resources</button>
           <button class="catalog-tab" onclick="filterCatalog('it', this)">Information Technology</button>
-          <button class="catalog-tab" onclick="filterCatalog('facility', this)">Group Facility Management</button>
+          <button class="catalog-tab" onclick="filterCatalog('facility', this)">Facility Management</button>
           <button class="catalog-tab" onclick="filterCatalog('admin', this)">Administration</button>
           <button class="catalog-tab" onclick="filterCatalog('knowledge', this)">Knowledge Center</button>
           <button class="catalog-tab" onclick="filterCatalog('comm', this)">Communications</button>
         </div>
-
-        <!-- Company Dropdown Selector -->
-        <div style="display:flex; align-items:center;">
-          <div class="company-filter-wrap" style="display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); padding:6px 12px; border-radius:var(--radius-lg); box-shadow:var(--shadow-sm)">
-            <span style="font-size:12px; font-weight:700; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px">🏢 Company:</span>
-            <select id="catalogCompanyFilter" onchange="onCompanyFilterChange(this.value)" style="border:none; background:none; font-size:13px; font-weight:600; color:var(--text-primary); cursor:pointer; outline:none; padding-right:20px; max-width:240px">
-              <option value="all">All Companies</option>
-            </select>
-          </div>
+        <div class="company-filter-wrap">
+          <span class="cf-lbl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg> Company</span>
+          <select id="catalogCompanyFilter" onchange="onCompanyFilterChange(this.value)"><option value="all">All Companies</option></select>
         </div>
       </div>
 
       <!-- Category Cards Grid -->
       <div class="categories-grid" id="categoriesGrid">
-        
-        <!-- HR Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-hr" data-category="hr" onclick="showSubServices('hr')">
-          <div class="sc-content-left">
-            <div class="sc-header">
-              <div class="sc-icon">👥</div>
-              <span class="sc-count-badge">10 Services</span>
-            </div>
-            <div class="sc-text-wrap">
-              <h3 class="sc-title">Human Resources</h3>
-              <p class="sc-desc">Manage your HR needs, personnel info, and employee services.</p>
-            </div>
-          </div>
+        <div class="service-category-card border-hr" data-category="hr" onclick="showSubServices('hr')" style="--i:0" role="button" tabindex="0">
+          <div class="sc-header"><div class="sc-icon">👥</div><span class="sc-count-badge">10 Services</span></div>
+          <div class="sc-text-wrap"><h3 class="sc-title">Human Resources</h3><p class="sc-desc">Manage your HR needs, personnel info, and employee services.</p></div>
+          <div class="sc-cta">Explore services <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
         </div>
-
-        <!-- IT Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-it" data-category="it" onclick="showSubServices('it')">
-          <div class="sc-content-left">
-            <div class="sc-header">
-              <div class="sc-icon">💻</div>
-              <span class="sc-count-badge">7 Services</span>
-            </div>
-            <div class="sc-text-wrap">
-              <h3 class="sc-title">Information Technology</h3>
-              <p class="sc-desc">Technical support, hardware, software, and IT infrastructure.</p>
-            </div>
-          </div>
+        <div class="service-category-card border-it" data-category="it" onclick="showSubServices('it')" style="--i:1" role="button" tabindex="0">
+          <div class="sc-header"><div class="sc-icon">💻</div><span class="sc-count-badge">7 Services</span></div>
+          <div class="sc-text-wrap"><h3 class="sc-title">Information Technology</h3><p class="sc-desc">Technical support, hardware, software, and IT infrastructure.</p></div>
+          <div class="sc-cta">Explore services <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
         </div>
-
-        <!-- Facility Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-fm" data-category="facility" onclick="showSubServices('facility')">
-          <div class="sc-content-left">
-            <div class="sc-header">
-              <div class="sc-icon">🏢</div>
-              <span class="sc-count-badge">6 Services</span>
-            </div>
-            <div class="sc-text-wrap">
-              <h3 class="sc-title">Facility Management</h3>
-              <p class="sc-desc">Building maintenance, facilities, and physical repairs.</p>
-            </div>
-          </div>
+        <div class="service-category-card border-fm" data-category="facility" onclick="showSubServices('facility')" style="--i:2" role="button" tabindex="0">
+          <div class="sc-header"><div class="sc-icon">🏢</div><span class="sc-count-badge">6 Services</span></div>
+          <div class="sc-text-wrap"><h3 class="sc-title">Facility Management</h3><p class="sc-desc">Building maintenance, facilities, and physical repairs.</p></div>
+          <div class="sc-cta">Explore services <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
         </div>
-
-        <!-- Administration Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-admin" data-category="admin" onclick="showSubServices('admin')">
-          <div class="sc-content-left">
-            <div class="sc-header">
-              <div class="sc-icon">📋</div>
-              <span class="sc-count-badge">4 Services</span>
-            </div>
-            <div class="sc-text-wrap">
-              <h3 class="sc-title">Administration</h3>
-              <p class="sc-desc">Administrative support, bookings, and logistics.</p>
-            </div>
-          </div>
+        <div class="service-category-card border-admin" data-category="admin" onclick="showSubServices('admin')" style="--i:3" role="button" tabindex="0">
+          <div class="sc-header"><div class="sc-icon">📋</div><span class="sc-count-badge">4 Services</span></div>
+          <div class="sc-text-wrap"><h3 class="sc-title">Administration</h3><p class="sc-desc">Administrative support, bookings, and logistics.</p></div>
+          <div class="sc-cta">Explore services <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
         </div>
-
-        <!-- Knowledge Center Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-know" data-category="knowledge" onclick="showSubServices('knowledge')">
-          <div class="sc-content-left">
-            <div class="sc-header">
-              <div class="sc-icon">📚</div>
-              <span class="sc-count-badge">3 Services</span>
-            </div>
-            <div class="sc-text-wrap">
-              <h3 class="sc-title">Knowledge Center</h3>
-              <p class="sc-desc">Access policies, SOP procedures, and templates.</p>
-            </div>
-          </div>
+        <div class="service-category-card border-know" data-category="knowledge" onclick="showSubServices('knowledge')" style="--i:4" role="button" tabindex="0">
+          <div class="sc-header"><div class="sc-icon">📚</div><span class="sc-count-badge">3 Services</span></div>
+          <div class="sc-text-wrap"><h3 class="sc-title">Knowledge Center</h3><p class="sc-desc">Access policies, SOP procedures, and templates.</p></div>
+          <div class="sc-cta">Explore services <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
         </div>
-
-        <!-- Communications Category Card (Bento Standard - Uniform size) -->
-        <div class="service-category-card border-comm" data-category="comm" onclick="showSubServices('comm')">
-          <div class="sc-content-left">
-            <div class="sc-header">
-              <div class="sc-icon">📣</div>
-              <span class="sc-count-badge">3 Services</span>
-            </div>
-            <div class="sc-text-wrap">
-              <h3 class="sc-title">Communications</h3>
-              <p class="sc-desc">Latest company circulars, events, and awards postings.</p>
-            </div>
-          </div>
+        <div class="service-category-card border-comm" data-category="comm" onclick="showSubServices('comm')" style="--i:5" role="button" tabindex="0">
+          <div class="sc-header"><div class="sc-icon">📣</div><span class="sc-count-badge">3 Services</span></div>
+          <div class="sc-text-wrap"><h3 class="sc-title">Communications</h3><p class="sc-desc">Latest company circulars, events, and awards postings.</p></div>
+          <div class="sc-cta">Explore services <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
         </div>
-
       </div>
 
       <!-- SUB-SERVICES SCREEN (Hidden by default) -->
-      <div id="subServicesScreen" style="display:none; animation: fadeIn var(--transition-base)">
-        <!-- Category Title & Info -->
-        <div class="welcome-banner" id="subCategoryBanner" style="margin-bottom: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4)">
-          <div class="welcome-content">
-            <h1 class="welcome-name" id="subCategoryTitle">Human Resources Services</h1>
-            <p class="welcome-dept" id="subCategoryDesc">Manage your HR needs, personnel info, and employee services.</p>
+      <div id="subServicesScreen" style="display:none">
+        <div class="cat-hero" id="subCategoryBanner">
+          <div>
+            <h1 class="cat-hero-title" id="subCategoryTitle">Human Resources Services</h1>
+            <p class="cat-hero-desc" id="subCategoryDesc">Manage your HR needs, personnel info, and employee services.</p>
           </div>
-          <button class="btn btn-secondary" onclick="showCategoriesList()" 
-                  onmouseover="this.style.background='rgba(255,255,255,0.25)'" 
-                  onmouseout="this.style.background='rgba(255,255,255,0.15)'"
-                  style="padding: 10px 18px; border-radius: var(--radius-lg); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; flex-shrink: 0; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); color: #fff; transition: all var(--transition-fast); cursor: pointer">
-            ← Back to Categories
+          <button class="cat-back" onclick="showCategoriesList()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to Categories
           </button>
         </div>
-
-        <!-- Sub-Services Bento Grid -->
-        <div class="sub-services-grid" id="subServicesGrid">
-          <!-- Populated dynamically via JavaScript -->
-        </div>
+        <div class="sub-services-grid" id="subServicesGrid"></div>
       </div>
 
     </main>
-  </div><!-- /MAIN CONTENT -->
-</div><!-- /APP LAYOUT -->
+  </div>
+</div>
 
-
-
-<!-- ========= TOAST CONTAINER ========= -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- ========= SCRIPTS ========= -->
 <script src="js/main.js"></script>
 <script>
   // Services DB
@@ -873,49 +411,49 @@
   // Sub-service Tech Icons & Colors Themes Map
   const subServiceThemes = {
     // HR
-    'service-letter': { icon: '📄', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
-    'emp-confirm': { icon: '💼', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
-    'bcard': { icon: '💳', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
-    'personnel-change': { icon: '👤', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
-    'bank-update': { icon: '🏦', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
-    'emergency-contact': { icon: '🚨', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
-    'idcard': { icon: '🆔', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
-    'leave-welfare': { icon: '🎁', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
-    'internal-transfer': { icon: '🔄', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
-    'exit-clearance': { icon: '🚪', border: 'var(--primary-500)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'service-letter': { icon: '📄', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'emp-confirm': { icon: '💼', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'bcard': { icon: '💳', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'personnel-change': { icon: '👤', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'bank-update': { icon: '🏦', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'emergency-contact': { icon: '🚨', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'idcard': { icon: '🆔', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'leave-welfare': { icon: '🎁', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'internal-transfer': { icon: '🔄', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
+    'exit-clearance': { icon: '🚪', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' },
 
     // IT
-    'it-support': { icon: '🛠️', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
-    'it-asset': { icon: '💻', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
-    'software-install': { icon: '📥', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
-    'email-setup': { icon: '✉️', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
-    'sys-access': { icon: '🔑', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
-    'password-reset': { icon: '🔒', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
-    'vpn-access': { icon: '🌐', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.08)', iconColor: '#7C3AED' },
+    'it-support': { icon: '🛠️', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.10)', iconColor: '#7C3AED' },
+    'it-asset': { icon: '💻', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.10)', iconColor: '#7C3AED' },
+    'software-install': { icon: '📥', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.10)', iconColor: '#7C3AED' },
+    'email-setup': { icon: '✉️', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.10)', iconColor: '#7C3AED' },
+    'sys-access': { icon: '🔑', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.10)', iconColor: '#7C3AED' },
+    'password-reset': { icon: '🔒', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.10)', iconColor: '#7C3AED' },
+    'vpn-access': { icon: '🌐', border: '#7C3AED', iconBg: 'rgba(124, 58, 237, 0.10)', iconColor: '#7C3AED' },
 
     // Facility
-    'maintenance': { icon: '🔧', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
-    'electrical': { icon: '⚡', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
-    'ac-issues': { icon: '❄️', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
-    'plumbing': { icon: '🚰', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
-    'cleaning': { icon: '🧹', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
-    'furniture': { icon: '🪑', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.08)', iconColor: '#0D9488' },
+    'maintenance': { icon: '🔧', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.10)', iconColor: '#0D9488' },
+    'electrical': { icon: '⚡', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.10)', iconColor: '#0D9488' },
+    'ac-issues': { icon: '❄️', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.10)', iconColor: '#0D9488' },
+    'plumbing': { icon: '🚰', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.10)', iconColor: '#0D9488' },
+    'cleaning': { icon: '🧹', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.10)', iconColor: '#0D9488' },
+    'furniture': { icon: '🪑', border: '#0D9488', iconBg: 'rgba(13, 148, 136, 0.10)', iconColor: '#0D9488' },
 
     // Admin
-    'stationery': { icon: '✏️', border: '#F59E0B', iconBg: 'rgba(245, 158, 11, 0.08)', iconColor: '#F59E0B' },
-    'courier': { icon: '📦', border: '#F59E0B', iconBg: 'rgba(245, 158, 11, 0.08)', iconColor: '#F59E0B' },
-    'vehicle-booking': { icon: '🚗', border: '#F59E0B', iconBg: 'rgba(245, 158, 11, 0.08)', iconColor: '#F59E0B' },
-    'driver-request': { icon: '🧑‍✈️', border: '#F59E0B', iconBg: 'rgba(245, 158, 11, 0.08)', iconColor: '#F59E0B' },
+    'stationery': { icon: '✏️', border: '#D97706', iconBg: 'rgba(245, 158, 11, 0.12)', iconColor: '#D97706' },
+    'courier': { icon: '📦', border: '#D97706', iconBg: 'rgba(245, 158, 11, 0.12)', iconColor: '#D97706' },
+    'vehicle-booking': { icon: '🚗', border: '#D97706', iconBg: 'rgba(245, 158, 11, 0.12)', iconColor: '#D97706' },
+    'driver-request': { icon: '🧑‍✈️', border: '#D97706', iconBg: 'rgba(245, 158, 11, 0.12)', iconColor: '#D97706' },
 
     // Knowledge
-    'policies-doc': { icon: '📖', border: '#10B981', iconBg: 'rgba(16, 185, 129, 0.08)', iconColor: '#10B981' },
-    'sops': { icon: '📋', border: '#10B981', iconBg: 'rgba(16, 185, 129, 0.08)', iconColor: '#10B981' },
-    'templates': { icon: '📐', border: '#10B981', iconBg: 'rgba(16, 185, 129, 0.08)', iconColor: '#10B981' },
+    'policies-doc': { icon: '📖', border: '#059669', iconBg: 'rgba(16, 185, 129, 0.12)', iconColor: '#059669' },
+    'sops': { icon: '📋', border: '#059669', iconBg: 'rgba(16, 185, 129, 0.12)', iconColor: '#059669' },
+    'templates': { icon: '📐', border: '#059669', iconBg: 'rgba(16, 185, 129, 0.12)', iconColor: '#059669' },
 
     // Comm
-    'announce-detail': { icon: '📢', border: '#EF4444', iconBg: 'rgba(239, 68, 68, 0.08)', iconColor: '#EF4444' },
-    'events-list': { icon: '📅', border: '#EF4444', iconBg: 'rgba(239, 68, 68, 0.08)', iconColor: '#EF4444' },
-    'achievements': { icon: '🏆', border: '#EF4444', iconBg: 'rgba(239, 68, 68, 0.08)', iconColor: '#EF4444' },
+    'announce-detail': { icon: '📢', border: '#EF4444', iconBg: 'rgba(239, 68, 68, 0.10)', iconColor: '#EF4444' },
+    'events-list': { icon: '📅', border: '#EF4444', iconBg: 'rgba(239, 68, 68, 0.10)', iconColor: '#EF4444' },
+    'achievements': { icon: '🏆', border: '#EF4444', iconBg: 'rgba(239, 68, 68, 0.10)', iconColor: '#EF4444' },
   };
 
   // Maps from the home page (index.html) quick links hash to category and service card
@@ -937,36 +475,25 @@
   function isServiceApplicable(service, companyName) {
     if (companyName === 'all') return true;
     const nameLower = companyName.toLowerCase();
-    
-    // Zuse Technologies (IT/Consulting) gets IT, Knowledge docs, and Comm
+
     if (nameLower.includes('zuse')) {
       return service.id.startsWith('it-') || service.id === 'password-reset' || service.id === 'policies-doc' || service.id === 'sops' || service.id === 'announce-detail' || service.id === 'events-list';
     }
-    
-    // NCG Speed/Fleet/Automotive gets logistics, vehicle bookings, driver support
     if (nameLower.includes('speed') || nameLower.includes('automotive') || nameLower.includes('fleet') || nameLower.includes('journey')) {
       return service.id === 'vehicle-booking' || service.id === 'driver-request' || service.id === 'maintenance' || service.id === 'policies-doc' || service.id === 'announce-detail';
     }
-
-    // Nextgen Facility / Property management gets Facility services
     if (nameLower.includes('facility') || nameLower.includes('vebuild') || nameLower.includes('property') || nameLower.includes('warehouse')) {
       return service.id === 'cleaning' || service.id === 'maintenance' || service.id === 'electrical' || service.id === 'ac-issues' || service.id === 'plumbing' || service.id === 'furniture';
     }
-
-    // Ledgerwall (Finance/Audit) gets HR, admin tasks, corporate policies
     if (nameLower.includes('ledgerwall')) {
       return service.id.startsWith('hr-') || service.id === 'service-letter' || service.id === 'stationery' || service.id === 'courier' || service.id === 'policies-doc' || service.id === 'sops';
     }
-
-    // Default universal services allowed for any group employee
     const universalServices = [
-      'service-letter', 'emp-confirm', 'bcard', 'personnel-change', 'bank-update', 
-      'emergency-contact', 'idcard', 'leave-welfare', 'policies-doc', 'sops', 
+      'service-letter', 'emp-confirm', 'bcard', 'personnel-change', 'bank-update',
+      'emergency-contact', 'idcard', 'leave-welfare', 'policies-doc', 'sops',
       'announce-detail', 'events-list', 'achievements'
     ];
     if (universalServices.includes(service.id)) return true;
-
-    // Default fallback (allow general admin/IT services)
     return service.id === 'it-support' || service.id === 'password-reset' || service.id === 'stationery';
   }
 
@@ -974,7 +501,6 @@
   function initCompanyFilter() {
     const select = document.getElementById('catalogCompanyFilter');
     if (!select || typeof SECTORS_DATA === 'undefined') return;
-
     let optionsHtml = '<option value="all">All Companies</option>';
     SECTORS_DATA.forEach(sector => {
       optionsHtml += `<optgroup label="${sector.name}">`;
@@ -993,11 +519,7 @@
       if (cat && services[cat]) {
         const applicable = services[cat].filter(s => isServiceApplicable(s, selectedCompany));
         const badge = card.querySelector('.sc-count-badge');
-        if (badge) {
-          badge.textContent = `${applicable.length} Service${applicable.length === 1 ? '' : 's'}`;
-        }
-        
-        // Dim card if no services are applicable to this company
+        if (badge) badge.textContent = `${applicable.length} Service${applicable.length === 1 ? '' : 's'}`;
         if (applicable.length === 0 && selectedCompany !== 'all') {
           card.style.opacity = '0.4';
           card.style.pointerEvents = 'none';
@@ -1009,110 +531,58 @@
     });
   }
 
-  // Triggered when selected company changes
   window.onCompanyFilterChange = function(val) {
     selectedCompany = val;
     updateCategoryCardCounts();
-
     const searchVal = document.getElementById('catalogSearch')?.value.trim() || '';
     if (searchVal) {
       searchCatalog(searchVal);
     } else {
-      if (activeCategory === 'all') {
-        showCategoriesList();
-      } else {
-        showSubServices(activeCategory);
-      }
+      if (activeCategory === 'all') showCategoriesList();
+      else showSubServices(activeCategory);
     }
   };
 
-  // Main navigation / tab controller
   window.filterCatalog = function(category, tabBtn) {
     document.querySelectorAll('.catalog-tab').forEach(btn => btn.classList.remove('active'));
     if (tabBtn) tabBtn.classList.add('active');
-
     activeCategory = category;
-    
-    if (category === 'all') {
-      showCategoriesList();
-    } else {
-      showSubServices(category);
-    }
+    if (category === 'all') showCategoriesList();
+    else showSubServices(category);
   };
 
-  // Render the categories screen
   window.showCategoriesList = function() {
     activeCategory = 'all';
-    
-    // Show categories list grid & main welcome banner
-    const welcomeBanner = document.getElementById('catalogWelcomeBanner');
-    if (welcomeBanner) welcomeBanner.style.display = 'flex';
     document.getElementById('categoriesGrid').style.display = 'grid';
-    
-    // Hide sub-services screen
     const subScreen = document.getElementById('subServicesScreen');
     if (subScreen) subScreen.style.display = 'none';
-    
-    // Clear search input if present
     const searchInput = document.getElementById('catalogSearch');
     if (searchInput) searchInput.value = '';
-    
-    // Update tab bar selected state to "All Services"
     document.querySelectorAll('.catalog-tab').forEach(btn => {
       const onclickAttr = btn.getAttribute('onclick') || '';
-      if (onclickAttr.includes("'all'")) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
+      btn.classList.toggle('active', onclickAttr.includes("'all'"));
     });
-    
-    // Hide catalog tabs initially
-    const catalogTabs = document.getElementById('catalogTabs');
-    if (catalogTabs) catalogTabs.style.display = 'none';
-    
     updateCategoryCardCounts();
   };
 
-  // Render sub-services for a chosen category as tiles/cards
   window.showSubServices = function(category, highlightServiceId = null) {
     activeCategory = category;
-    
-    // Hide welcome banner and categories grid
-    const welcomeBanner = document.getElementById('catalogWelcomeBanner');
-    if (welcomeBanner) welcomeBanner.style.display = 'none';
     document.getElementById('categoriesGrid').style.display = 'none';
-    
-    // Show sub-services screen
     const subScreen = document.getElementById('subServicesScreen');
     if (subScreen) subScreen.style.display = 'block';
-    
-    // Synchronize tab highlights
     document.querySelectorAll('.catalog-tab').forEach(btn => {
       const onclickAttr = btn.getAttribute('onclick') || '';
-      if (onclickAttr.includes(`'${category}'`)) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
+      btn.classList.toggle('active', onclickAttr.includes(`'${category}'`));
     });
-    
-    // Show catalog tabs when active category is clicked
-    const catalogTabs = document.getElementById('catalogTabs');
-    if (catalogTabs) catalogTabs.style.display = 'flex';
-    
-    // Set banner titles and details
-    const banner = document.getElementById('subCategoryBanner');
     const title = document.getElementById('subCategoryTitle');
     const desc = document.getElementById('subCategoryDesc');
-    
+    const banner = document.getElementById('subCategoryBanner');
     if (title) title.textContent = categoryTitles[category] || '';
     if (desc) {
       const card = document.querySelector(`.service-category-card[data-category="${category}"]`);
       const cardDesc = card ? card.querySelector('.sc-desc')?.textContent : '';
       desc.textContent = cardDesc || '';
     }
-    
     if (banner) {
       const gradients = {
         hr: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
@@ -1124,8 +594,6 @@
       };
       banner.style.background = gradients[category] || 'var(--primary-gradient)';
     }
-    
-    // Render the tiles
     populateSubServices(services[category] || [], highlightServiceId);
   };
 
@@ -1133,113 +601,75 @@
   function populateSubServices(list, highlightServiceId = null) {
     const grid = document.getElementById('subServicesGrid');
     if (!grid) return;
-    
+
     if (!list || list.length === 0) {
-      grid.innerHTML = '<div style="grid-column: 1/-1; padding:40px; text-align:center; color:var(--text-tertiary)">No services found.</div>';
+      grid.innerHTML = '<div class="sub-empty">No services found.</div>';
       return;
     }
-    
     const filteredList = list.filter(item => isServiceApplicable(item, selectedCompany));
-    
     if (filteredList.length === 0) {
-      grid.innerHTML = `
-        <div style="grid-column: 1/-1; padding:40px; text-align:center; color:var(--text-tertiary)">
-          🏢 No services available for <b>${selectedCompany}</b> in this category.
-        </div>`;
+      grid.innerHTML = `<div class="sub-empty">🏢 No services available for <b>${selectedCompany}</b> in this category.</div>`;
       return;
     }
-    
-    grid.innerHTML = filteredList.map(item => {
+
+    grid.innerHTML = filteredList.map((item, i) => {
       const theme = subServiceThemes[item.id] || { icon: '🔧', border: 'var(--primary)', iconBg: 'var(--primary-50)', iconColor: 'var(--primary)' };
       const isHighlighted = item.id === highlightServiceId ? 'pulse-highlight' : '';
-      
       return `
-        <a href="${item.formUrl}" class="sub-service-card ${isHighlighted}" id="sub-service-${item.id}" 
-           style="--sub-hover-border: ${theme.border}; --sub-icon-bg: ${theme.iconBg}; --sub-icon-color: ${theme.iconColor}">
-          <div>
-            <div class="sub-service-icon-wrap">
-              ${theme.icon}
-            </div>
-            <div style="margin-top: 14px">
-              <h4 class="sc-title" style="margin-bottom: 4px">${item.name}</h4>
-              <p class="sc-desc" style="line-height: 1.4">${item.desc}</p>
-            </div>
+        <a href="${item.formUrl}" class="sub-service-card ${isHighlighted}" id="sub-service-${item.id}"
+           style="--i:${i}; --sub-hover-border:${theme.border}; --sub-icon-bg:${theme.iconBg}; --sub-icon-color:${theme.iconColor}">
+          <div class="sub-service-icon-wrap">${theme.icon}</div>
+          <div class="sc-text-wrap">
+            <h4 class="sc-title">${item.name}</h4>
+            <p class="sc-desc">${item.desc}</p>
           </div>
-          <div class="sub-service-sla">
-            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            SLA: ${item.sla}
+          <div class="sub-bottom">
+            <span class="sub-service-sla">
+              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              SLA · ${item.sla}
+            </span>
+            <span class="sub-req">Request <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
           </div>
         </a>
       `;
     }).join('');
-    
+
     if (highlightServiceId) {
       setTimeout(() => {
         const el = document.getElementById(`sub-service-${highlightServiceId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 300);
     }
   }
 
-  // Helper to find category hosting a specific service
   function findCategoryByServiceId(serviceId) {
     for (const [cat, list] of Object.entries(services)) {
-      if (list.some(s => s.id === serviceId)) {
-        return cat;
-      }
+      if (list.some(s => s.id === serviceId)) return cat;
     }
     return null;
   }
 
-  // Main hash deep linking router
   function handleHashRouting() {
     const hash = window.location.hash.substring(1);
-    if (!hash) {
-      showCategoriesList();
-      return;
-    }
-    
-    // Check if category key
-    if (services[hash]) {
-      showSubServices(hash);
-      return;
-    }
-    
-    // Check if it's an index hash mapping
-    if (indexHashMaps[hash]) {
-      const map = indexHashMaps[hash];
-      showSubServices(map.category, map.serviceId);
-      return;
-    }
-    
-    // Check if it's directly a service ID
+    if (!hash) { showCategoriesList(); return; }
+    if (services[hash]) { showSubServices(hash); return; }
+    if (indexHashMaps[hash]) { const map = indexHashMaps[hash]; showSubServices(map.category, map.serviceId); return; }
     const cat = findCategoryByServiceId(hash);
-    if (cat) {
-      showSubServices(cat, hash);
-    }
+    if (cat) showSubServices(cat, hash);
   }
 
-  // Search input processing
   window.searchCatalog = function(q) {
     q = q.trim().toLowerCase();
-    
     if (!q) {
       const activeTab = document.querySelector('.catalog-tab.active');
       const activeTabOnclick = activeTab ? activeTab.getAttribute('onclick') || '' : '';
-      
-      if (activeTabOnclick.includes("'all'") || !activeTab) {
-        showCategoriesList();
-      } else {
+      if (activeTabOnclick.includes("'all'") || !activeTab) showCategoriesList();
+      else {
         const match = activeTabOnclick.match(/'([^']+)'/);
-        const cat = match ? match[1] : 'hr';
-        showSubServices(cat);
+        showSubServices(match ? match[1] : 'hr');
       }
       return;
     }
-
-    // Filter services across all categories
     let matchingServices = [];
     Object.keys(services).forEach(cat => {
       services[cat].forEach(s => {
@@ -1248,59 +678,46 @@
         }
       });
     });
-
-    // Hide categories grid & welcome banner
-    const welcomeBanner = document.getElementById('catalogWelcomeBanner');
-    if (welcomeBanner) welcomeBanner.style.display = 'none';
     document.getElementById('categoriesGrid').style.display = 'none';
-    
-    // Show sub-services grid with search results details
     const subScreen = document.getElementById('subServicesScreen');
     if (subScreen) subScreen.style.display = 'block';
-
-    const banner = document.getElementById('subCategoryBanner');
     const title = document.getElementById('subCategoryTitle');
     const desc = document.getElementById('subCategoryDesc');
-    
+    const banner = document.getElementById('subCategoryBanner');
     if (title) title.textContent = `Search Results`;
-    if (desc) desc.textContent = `Showing ${matchingServices.length} matching services for "${q}"`;
-    if (banner) {
-      banner.style.background = 'var(--primary-gradient)';
-    }
-
-    // Deactivate tabs since we are search filtering globally
+    if (desc) desc.textContent = `Showing ${matchingServices.length} matching service${matchingServices.length === 1 ? '' : 's'} for "${q}"`;
+    if (banner) banner.style.background = 'var(--primary-gradient)';
     document.querySelectorAll('.catalog-tab').forEach(btn => btn.classList.remove('active'));
-
-    // Hide catalog tabs in search mode
-    const catalogTabs = document.getElementById('catalogTabs');
-    if (catalogTabs) catalogTabs.style.display = 'none';
-
     populateSubServices(matchingServices);
   };
 
-  // Initial load hook
   document.addEventListener('DOMContentLoaded', () => {
-    // ---- Set Time-based Greeting ----
-    (function() {
-      const hour = new Date().getHours();
-      const greetEl = document.getElementById('greeting');
-      if (greetEl) {
-        if (hour < 12) greetEl.textContent = 'morning';
-        else if (hour < 17) greetEl.textContent = 'afternoon';
-        else greetEl.textContent = 'evening';
-      }
-    })();
-
-    // Initialize company filter dropdown
     initCompanyFilter();
     updateCategoryCardCounts();
-
-    // Route hash or default list
     handleHashRouting();
+
+    // ---- count-up header stats ----
+    document.querySelectorAll('.cnt[data-to]').forEach(function (el) {
+      var to = +el.dataset.to, s = performance.now(), dur = 800;
+      var iv = setInterval(function () {
+        var p = Math.min(1, (performance.now() - s) / dur);
+        el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+        if (p >= 1) { clearInterval(iv); el.textContent = to; }
+      }, 30);
+    });
+
+    // ---- spotlight glow follows the cursor across cards ----
+    document.addEventListener('pointermove', function (e) {
+      var c = e.target.closest('.service-category-card, .sub-service-card');
+      if (!c) return;
+      var r = c.getBoundingClientRect();
+      c.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+      c.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+    });
   });
 
-  // Listen for hash changes to navigate smoothly
   window.addEventListener('hashchange', handleHashRouting);
 </script>
+<script src="js/bot.js"></script>
 </body>
 </html>

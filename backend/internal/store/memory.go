@@ -25,10 +25,12 @@ type Memory struct {
 	anns     map[string]*models.Announcement // keyed by id
 	meetings map[string]*models.Meeting      // keyed by id
 	tasks    map[string]*models.Task         // keyed by id
+	botLogs  []models.BotConversationLog
 	refSeq   int
 	annSeq   int
 	mtgSeq   int
 	taskSeq  int
+	botSeq   int
 }
 
 func NewMemory() *Memory {
@@ -397,6 +399,37 @@ func (m *Memory) UpdateTask(_ context.Context, t *models.Task) error {
 	cp := *t
 	m.tasks[t.ID] = &cp
 	return nil
+}
+
+// --- Portal Bot conversation logs (spec §13.5) ---
+
+func (m *Memory) CreateBotLog(_ context.Context, l *models.BotConversationLog) (*models.BotConversationLog, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.botSeq++
+	l.ID = fmt.Sprintf("bot_%04d", m.botSeq)
+	if l.CreatedAt.IsZero() {
+		l.CreatedAt = time.Now().UTC()
+	}
+	m.botLogs = append(m.botLogs, *l)
+	out := *l
+	return &out, nil
+}
+
+func (m *Memory) ListBotLogs(_ context.Context, tenantID string, limit int) ([]models.BotConversationLog, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	var out []models.BotConversationLog
+	for _, l := range m.botLogs {
+		if tenantID == "" || l.TenantID == tenantID {
+			out = append(out, l)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.After(out[j].CreatedAt) })
+	if limit > 0 && len(out) > limit {
+		out = out[:limit]
+	}
+	return out, nil
 }
 
 func seedAnnouncements() []models.Announcement {

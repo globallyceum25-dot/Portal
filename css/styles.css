@@ -88,7 +88,7 @@
   --sidebar-width: 256px;
   --sidebar-collapsed: 72px;
   --topbar-height: 64px;
-  --content-max: 1400px;
+  --content-max: 1800px;
 
   /* Spacing */
   --space-1:  4px;
@@ -751,6 +751,7 @@ ul { list-style: none; }
   padding: var(--space-6);
   max-width: var(--content-max);
   width: 100%;
+  margin-inline: auto;   /* centre on wide/ultrawide instead of left-jamming */
 }
 
 /* ============================================================
@@ -2875,5 +2876,256 @@ ul { list-style: none; }
 @keyframes orbPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.14); } }
 @media (prefers-reduced-motion: reduce) {
   .hero-orb, .hero-orb span { animation: none !important; }
+}
+
+/* ============================================================
+   SHELL REDESIGN v3 — Floating icon rail + floating glass header
+   Inspired by the smart-home dashboard reference. Pure-CSS reskin
+   of the existing shell markup (.sidebar / .topbar / .nav-item)
+   so every page transforms with no HTML changes. The yellow accent
+   is scoped to the shell via local variables, leaving the rest of
+   the app's blue brand (buttons, charts) untouched.
+   ============================================================ */
+:root {
+  --rail-w:      74px;   /* width of the floating rail pill        */
+  --shell-gap:   18px;   /* float margin from the viewport edges   */
+  --shell-accent:     #FFD400;
+  --shell-accent-2:   #FFC400;
+  --shell-accent-ink: #16192b;
+  --shell-accent-glow: rgba(255, 212, 0, 0.42);
+}
+[data-theme="dark"] {
+  --shell-accent:      #FFDE3D;
+  --shell-accent-2:    #FFD100;
+  --shell-accent-glow: rgba(255, 216, 61, 0.34);
+}
+
+/* ---------- Left: floating glass icon rail ---------- */
+.sidebar {
+  width: var(--rail-w);
+  top: var(--shell-gap);
+  left: var(--shell-gap);
+  bottom: var(--shell-gap);
+  height: auto;
+  padding: 12px 0 14px;
+  align-items: center;
+  gap: 2px;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: var(--shadow-xl), inset 0 1px 0 rgba(255,255,255,0.10);
+  overflow: visible;            /* let hover tooltips escape       */
+  transition: transform var(--transition-base), width var(--transition-base);
+}
+
+/* Compact logo mark at the top of the rail */
+.sidebar-logo {
+  min-height: 0;
+  padding: 4px 0 10px;
+  margin-bottom: 4px;
+  border-bottom: none;
+  justify-content: center;
+}
+.sidebar-logo img { height: 38px; width: 38px; object-fit: cover; border-radius: 12px; }
+.sidebar-logo-text { display: none; }
+
+/* Nav column */
+.sidebar-nav {
+  flex: 1;
+  width: 100%;
+  overflow: visible;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.sidebar-section-label { display: none; }
+
+/* Icon buttons */
+.nav-item {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  margin: 0 auto;
+  gap: 0;
+  justify-content: center;
+  border-radius: 15px;
+  color: var(--text-secondary);
+}
+.nav-item svg { width: 21px; height: 21px; opacity: 1; }
+
+.nav-item:hover:not(.active) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+/* Active = signature yellow rounded square with dark glyph + glow */
+.nav-item.active,
+.nav-item.active:hover {
+  background: linear-gradient(160deg, var(--shell-accent) 0%, var(--shell-accent-2) 100%);
+  color: var(--shell-accent-ink);
+  box-shadow: 0 8px 20px -4px var(--shell-accent-glow), 0 0 0 1px var(--shell-accent-glow);
+}
+.nav-item.active svg { color: var(--shell-accent-ink); opacity: 1; }
+
+/* Text label → floating hover tooltip to the right of the icon */
+.nav-item .nav-item-text {
+  position: absolute;
+  left: calc(100% + 14px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  padding: 7px 12px;
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: var(--glass-blur-sm);
+  -webkit-backdrop-filter: var(--glass-blur-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  z-index: var(--z-overlay);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+.nav-item .nav-item-text::before {   /* little pointer */
+  content: '';
+  position: absolute;
+  left: -5px; top: 50%;
+  width: 9px; height: 9px;
+  transform: translateY(-50%) rotate(45deg);
+  background: var(--surface-raised);
+  border-left: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+}
+.nav-item:hover .nav-item-text {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* Badges → small accent corner dot on the icon */
+.nav-badge,
+.nav-item.active .nav-badge {
+  position: absolute;
+  top: 7px; right: 7px;
+  margin: 0;
+  min-width: 0;
+  width: 9px; height: 9px;
+  padding: 0;
+  font-size: 0;
+  line-height: 0;
+  color: transparent;
+  background: var(--shell-accent);
+  border: 2px solid var(--sidebar-bg);
+  border-radius: 50%;
+}
+
+/* Footer avatar pinned at the bottom of the rail */
+.sidebar-footer {
+  padding: 8px 0 0;
+  border-top: none;
+  display: flex;
+  justify-content: center;
+}
+.sidebar-user { padding: 0; gap: 0; justify-content: center; }
+.sidebar-user:hover { background: transparent; }
+.sidebar-user-info { display: none; }
+.sidebar-avatar {
+  width: 40px; height: 40px;
+  border: 2px solid var(--glass-border);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---------- Content shifts to clear the floating rail ---------- */
+.main-content {
+  margin-left: calc(var(--rail-w) + var(--shell-gap) * 2);
+  min-width: 0;   /* allow the flex column to shrink below content width */
+}
+
+/* Hamburger hides the rail on desktop: it slides off, content reclaims space.
+   Sibling selector keeps this in CSS so no inline styles fight the layout. */
+.sidebar.collapsed {
+  width: var(--rail-w);
+  transform: translateX(calc(-100% - var(--shell-gap) - 8px));
+}
+.sidebar.collapsed ~ .main-content {
+  margin-left: var(--shell-gap);
+}
+
+/* ---------- Top: floating glass pill header ---------- */
+.topbar {
+  height: 58px;
+  margin: var(--shell-gap) var(--shell-gap) var(--space-2);
+  padding: 0 10px 0 12px;
+  gap: var(--space-3);
+  background: var(--surface-raised);
+  border: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.10);
+  top: var(--shell-gap);
+}
+
+/* Hamburger becomes the reference's round yellow accent button */
+.topbar-toggle {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(160deg, var(--shell-accent) 0%, var(--shell-accent-2) 100%);
+  color: var(--shell-accent-ink);
+  box-shadow: 0 6px 16px -4px var(--shell-accent-glow);
+}
+.topbar-toggle:hover {
+  background: linear-gradient(160deg, var(--shell-accent) 0%, var(--shell-accent-2) 100%);
+  color: var(--shell-accent-ink);
+  transform: translateY(-1px) rotate(90deg);
+}
+
+/* Pill search + pill action buttons */
+.topbar .search-input {
+  background: var(--bg-tertiary);
+  height: 40px;
+}
+.topbar-actions { gap: var(--space-1); }
+.topbar-btn {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+}
+.topbar-btn:hover {
+  background: var(--shell-accent);
+  color: var(--shell-accent-ink);
+  transform: translateY(-1px);
+}
+.topbar-notif-dot { background: var(--shell-accent); }
+
+/* ---------- Off-canvas behaviour on small screens ---------- */
+@media (max-width: 1024px) {
+  .sidebar { width: var(--rail-w); }
+  .sidebar .nav-item { justify-content: center; padding: 0; }
+  .sidebar .nav-item-text { display: block; }   /* keep tooltip */
+  .sidebar .sidebar-user { justify-content: center; }
+  .main-content { margin-left: calc(var(--rail-w) + var(--shell-gap) * 2); }
+}
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(calc(-100% - var(--shell-gap) - 8px));
+    transition: transform var(--transition-base);
+  }
+  .sidebar.mobile-open { transform: translateX(0); }
+  .main-content { margin-left: 0; }
+  .topbar {
+    margin-left: var(--shell-gap);
+    margin-right: var(--shell-gap);
+    overflow: hidden;         /* never let dense actions force page scroll */
+  }
+  /* Trim the topbar so its contents fit narrow screens */
+  .topbar-user-info,
+  .topbar-divider { display: none; }
+  .topbar-actions { gap: 4px; }
 }
 
