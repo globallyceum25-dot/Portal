@@ -1,0 +1,68 @@
+name: Deploy to portal.lgh.lk
+
+# Auto-deploys every push to `main`:
+#   1. SSH into the production server
+#   2. Pull the new commit and rebuild the Docker container
+#   3. Purge the Cloudflare cache so visitors see the update immediately
+#
+# Nothing runs until the repository secrets below are configured
+# (Settings -> Secrets and variables -> Actions). See DEPLOY.md.
+#   Required:  SSH_HOST  SSH_USER  SSH_KEY  DEPLOY_PATH
+#              CLOUDFLARE_ZONE_ID  CLOUDFLARE_API_TOKEN
+#   Optional:  SSH_PORT (default 22)  DOCKER_SERVICE (default lyceum-portal-production)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}   # allows a manual "Run workflow" from the Actions tab
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Skip everything (green, no-op) until the core secrets are set,
+      # so the first push after adding this file doesn't fail loudly.
+      READY: ${{ secrets.SSH_HOST != '' && secrets.DEPLOY_PATH != '' && secrets.CLOUDFLARE_ZONE_ID != '' }}
+    steps:
+      - name: Check configuration
+        run: |
+          if [ "$READY" != "true" ]; then
+            echo "::warning::Deploy secrets not configured yet — skipping. See DEPLOY.md for setup."
+          fi
+
+      - name: Deploy over SSH (pull + docker compose)
+        if: env.READY == 'true'
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true          # abort on the first failing command
+          command_timeout: 15m
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.DEPLOY_PATH }}"
+            echo "Deploying $GITHUB_SHA to $(hostname):$(pwd)"
+            git fetch --all --prune
+            git reset --hard origin/main       # match the pushed commit exactly
+            docker compose up -d --build "${{ secrets.DOCKER_SERVICE || 'lyceum-portal-production' }}"
+            docker image prune -f              # drop the now-dangling old image
+            echo "Now serving commit: $(git rev-parse --short HEAD)"
+
+      - name: Purge Cloudflare cache
+        if: env.READY == 'true'
+        run: |
+          set -e
+          resp=$(curl -sS -X POST \
+            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+          echo "$resp"
+          echo "$resp" | grep -q '"success":true' || { echo "::error::Cloudflare purge failed"; exit 1; }
+          echo "Cloudflare cache purged."
