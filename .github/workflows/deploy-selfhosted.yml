@@ -1,0 +1,67 @@
+name: Deploy (self-hosted runner)
+
+# Runs ON the production server via a self-hosted GitHub Actions runner
+# (labelled "lyceum-prod"). The runner dials OUT to GitHub, so this works
+# even though the server is only reachable through the Cloudflare Tunnel —
+# no inbound SSH needed.
+#
+# Dormant until the admin enables it (so no jobs queue before the runner
+# exists). To turn on, once the runner is installed:
+#   Settings → Secrets and variables → Actions → Variables:
+#     SELFHOSTED_DEPLOY = true
+#     DEPLOY_PATH       = /abs/path/on/server/with/docker-compose.yml+checkout
+#     DOCKER_SERVICE    = lyceum-portal-production   (optional; this is the default)
+#   Settings → Secrets and variables → Actions → Secrets (optional, for auto cache purge):
+#     CLOUDFLARE_ZONE_ID, CLOUDFLARE_API_TOKEN
+# Full runner-install steps are in DEPLOY_ADMIN.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-selfhosted
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Skipped (green, no queued jobs) until the admin sets SELFHOSTED_DEPLOY=true.
+    if: vars.SELFHOSTED_DEPLOY == 'true'
+    runs-on: [self-hosted, lyceum-prod]
+    steps:
+      - name: Pull latest & rebuild the container
+        env:
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DOCKER_SERVICE: ${{ vars.DOCKER_SERVICE || 'lyceum-portal-production' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_PATH:-}" ]; then
+            echo "::error::Set repo variable DEPLOY_PATH to the server dir that holds docker-compose.yml + the git checkout."
+            exit 1
+          fi
+          cd "$DEPLOY_PATH"
+          echo "Deploying $GITHUB_SHA in $(pwd) on $(hostname)"
+          git fetch --all --prune
+          git reset --hard origin/main          # take the pushed commit exactly
+          docker compose up -d --build "$DOCKER_SERVICE"
+          docker image prune -f
+          echo "Now serving commit: $(git rev-parse --short HEAD)"
+
+      - name: Purge Cloudflare cache
+        env:
+          ZONE: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -e
+          if [ -z "${ZONE:-}" ] || [ -z "${TOKEN:-}" ]; then
+            echo "::warning::Cloudflare secrets not set — skipping cache purge. Purge lgh.lk manually in the Cloudflare dashboard."
+            exit 0
+          fi
+          resp=$(curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/${ZONE}/purge_cache" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}')
+          echo "$resp"
+          echo "$resp" | grep -q '"success":true' || { echo "::error::Cloudflare purge failed"; exit 1; }
+          echo "Cloudflare cache purged."

@@ -41,15 +41,32 @@ Cloudflare caches the HTML/JS, so visitors keep seeing the old build until you p
 
 Because the server is behind the Cloudflare Tunnel (no inbound SSH), the cleanest
 way to automate is a **self-hosted GitHub Actions runner installed on this server**
-(it connects *outbound* to GitHub, so the tunnel isn't a problem):
+(it connects *outbound* to GitHub, so the tunnel isn't a problem). The workflow is
+already committed — [`.github/workflows/deploy-selfhosted.yml`](.github/workflows/deploy-selfhosted.yml) —
+and stays dormant until you enable it.
+
+**1. Install the runner on the server** (follow the exact download + token steps from
+GitHub → repo → **Settings → Actions → Runners → New self-hosted runner**, then):
 
 ```bash
-# On the server, in a working dir — follow the exact download/token steps from
-# GitHub → repo → Settings → Actions → Runners → New self-hosted runner
 ./config.sh --url https://github.com/globallyceum25-dot/Portal --token <RUNNER_TOKEN> --labels lyceum-prod
 sudo ./svc.sh install && sudo ./svc.sh start
 ```
 
-Once a runner exists, ping the repo owner — a `runs-on: [self-hosted, lyceum-prod]`
-workflow can run the deploy + cache-purge steps above on every push to `main`.
-```
+The runner's OS user must be able to run `git` and `docker compose` (add it to the
+`docker` group). It does **not** deploy its own checkout — it `cd`s into `DEPLOY_PATH`
+(below) and pulls there.
+
+**2. Enable + configure the workflow** in GitHub → **Settings → Secrets and variables → Actions**:
+
+| Type | Name | Value |
+|---|---|---|
+| Variable | `SELFHOSTED_DEPLOY` | `true` (flips the workflow on) |
+| Variable | `DEPLOY_PATH` | absolute path on the server with `docker-compose.yml` + the checkout |
+| Variable | `DOCKER_SERVICE` | optional; defaults to `lyceum-portal-production` |
+| Secret | `CLOUDFLARE_ZONE_ID` | optional — enables automatic cache purge |
+| Secret | `CLOUDFLARE_API_TOKEN` | optional — token with **Zone → Cache Purge** |
+
+That's it — every push to `main` (and the **Actions → Run workflow** button) then runs
+`git reset --hard origin/main` + `docker compose up -d --build` + Cloudflare purge on the
+server. If the Cloudflare secrets are omitted, deploys still run; just purge the cache manually.
