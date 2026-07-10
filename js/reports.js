@@ -96,9 +96,10 @@
     }
     // An empty backend overview (no activity logged yet) must not blank the
     // dashboard — fall back to the sample dataset so the page stays meaningful.
-    if (live && !live.total_requests && !live.open_requests &&
-        (!live.request_volume || !live.request_volume.length)) {
-      live = null;
+    // A zero-filled request_volume array still counts as "no data".
+    if (live) {
+      var volTotal = (live.request_volume || []).reduce(function (a, d) { return a + ((d && d.value) || 0); }, 0);
+      if (!live.total_requests && !live.open_requests && !volTotal) live = null;
     }
     if (live) {
       state.mode = 'live'; state.data = normalize(live);
