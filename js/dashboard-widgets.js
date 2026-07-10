@@ -12,7 +12,7 @@
 
   /* ---------------- Data (deterministic demo data) ---------------- */
   var DATA = {
-    user: { name: 'LGH IT Test', first: 'Sudaraka', role: 'IT Governance Lead', dept: 'Information Technology', avatar: 'LT', photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=640&h=760&q=80&crop=faces', company: 'Lyceum Global Holdings', companyLogo: 'assets/logo.png' },
+    user: { name: 'LGH IT Test', first: 'LGH IT Test', role: 'IT Governance Lead', dept: 'Information Technology', avatar: 'LT', photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=640&h=760&q=80&crop=faces', company: 'Lyceum Global Holdings', companyLogo: 'assets/logo.png' },
     tasks: [
       { t: 'Review Q3 access audit findings', due: 'Today', prio: 'High', done: false, progress: 70 },
       { t: 'Approve laptop procurement batch', due: 'Tomorrow', prio: 'Medium', done: false, progress: 40 },
@@ -455,15 +455,26 @@
   };
 
   var DEFAULT = {
-    s1: ['welcome', 'tasks', 'weekly', 'perf', 'timeline', 'kpi', 'appraisal', 'inquiries', 'devices', 'leaveatt', 'leaveelig'],
-    s2: ['quick', 'services', 'apps', 'empsearch', 'announce', 'sla']
+    // Single unified grid (no sections) — order kept from the old s1 then s2.
+    s1: ['welcome', 'tasks', 'weekly', 'perf', 'timeline', 'kpi', 'appraisal', 'inquiries', 'devices', 'leaveatt', 'leaveelig',
+         'quick', 'services', 'apps', 'empsearch', 'announce', 'sla'],
+    s2: []
   };
   var KEY = 'lc-dash-v2';
   var COLS = 6;
 
   function loadLayout() {
-    try { var s = JSON.parse(localStorage.getItem(KEY)); if (s && s.s1 && s.s2) { s.sizes = s.sizes || {}; return s; } } catch (e) {}
-    return { s1: DEFAULT.s1.slice(), s2: DEFAULT.s2.slice(), sizes: {} };
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY));
+      if (s && s.s1) {
+        // Migrate older two-section layouts into the single grid.
+        if (s.s2 && s.s2.length) { s.s1 = s.s1.concat(s.s2); }
+        s.s2 = [];
+        s.sizes = s.sizes || {};
+        return s;
+      }
+    } catch (e) {}
+    return { s1: DEFAULT.s1.slice(), s2: [], sizes: {} };
   }
   function saveLayout(l) { try { localStorage.setItem(KEY, JSON.stringify(l)); } catch (e) {} }
   var layout = loadLayout();
@@ -484,9 +495,7 @@
     SEEDED.forEach(function (id) {
       if (layout._seen.indexOf(id) > -1) return;
       layout._seen.push(id); changed = true;
-      if (layout.s1.indexOf(id) === -1 && layout.s2.indexOf(id) === -1) {
-        var sec = W[id] && W[id].section === 2 ? 's2' : 's1'; layout[sec].push(id);
-      }
+      if (layout.s1.indexOf(id) === -1) { layout.s1.push(id); }
     });
     if (changed) saveLayout(layout);
   }
@@ -518,16 +527,14 @@
   }
 
   function render() {
-    ['s1', 's2'].forEach(function (sec) {
-      var grid = $(sec === 's1' ? 'grid1' : 'grid2');
-      grid.innerHTML = '';
-      ensureGuides(grid);
-      layout[sec].forEach(function (id, i) {
-        var el = tileEl(id, i);
-        if (el) grid.appendChild(el);
-      });
-      wireGrid(grid, sec);
+    var grid = $('grid1');
+    grid.innerHTML = '';
+    ensureGuides(grid);
+    layout.s1.forEach(function (id, i) {
+      var el = tileEl(id, i);
+      if (el) grid.appendChild(el);
     });
+    wireGrid(grid, 's1');
     postRender();
   }
 
@@ -728,7 +735,7 @@
   }
   function persistFromDom() {
     layout.s1 = Array.prototype.map.call($('grid1').querySelectorAll('.tile'), function (t) { return t.dataset.id; });
-    layout.s2 = Array.prototype.map.call($('grid2').querySelectorAll('.tile'), function (t) { return t.dataset.id; });
+    layout.s2 = [];
     saveLayout(layout);
   }
 
@@ -739,8 +746,7 @@
   }
   function addWidget(id) {
     var w = W[id]; if (!w) return;
-    var s = w.section === 2 ? 's2' : 's1';
-    if (layout[s].indexOf(id) === -1) layout[s].push(id);
+    if (layout.s1.indexOf(id) === -1) layout.s1.push(id);
     saveLayout(layout); render();
     closeModal();
     if (window.showToast) showToast('Widget added', esc(w.title) + ' added to your dashboard.', 'success');
@@ -813,7 +819,7 @@
     $('wmOverlay').addEventListener('click', function (e) { if (e.target === $('wmOverlay')) closeModal(); });
     $('wmGrid').addEventListener('click', function (e) { var c = e.target.closest('.wm-card[data-add]'); if (c) addWidget(c.dataset.add); });
     $('resetBtn').addEventListener('click', function () {
-      layout = { s1: DEFAULT.s1.slice(), s2: DEFAULT.s2.slice(), sizes: {} }; saveLayout(layout); render();
+      layout = { s1: DEFAULT.s1.slice(), s2: [], sizes: {} }; saveLayout(layout); render();
       if (window.showToast) showToast('Layout reset', 'Widget sizes and arrangement restored to default.', 'info');
     });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeSizePop(); closeBooking(); } });
