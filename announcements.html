@@ -257,6 +257,173 @@
       text-overflow: ellipsis;
       width: 100%;
     }
+    /* ================================================================
+       MODERN ANNOUNCEMENTS — image cards, motion, responsive
+       (later rules intentionally override the legacy styles above)
+       ================================================================ */
+    .annc-head {
+      display:flex; align-items:flex-end; justify-content:space-between;
+      flex-wrap:wrap; gap:16px; margin-bottom:20px;
+    }
+    .annc-head .page-title {
+      font-size:30px; font-weight:800; letter-spacing:-.02em; margin:0;
+      background:linear-gradient(90deg, var(--text-primary), var(--primary));
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .annc-head .page-subtitle { margin:4px 0 0; font-size:13.5px; color:var(--text-secondary); }
+
+    /* Tabs — pill chips */
+    .annc-tabs { border-bottom:none !important; gap:8px; margin-bottom:18px; padding-bottom:4px; }
+    .annc-tab {
+      background:var(--surface); border:1px solid var(--border);
+      box-shadow:0 1px 2px rgba(2,8,23,.04);
+    }
+    .annc-tab:hover { transform:translateY(-1px); border-color:var(--primary-300); background:var(--surface); }
+    .annc-tab.active {
+      background:var(--primary); color:#fff; border-color:var(--primary);
+      box-shadow:0 8px 18px -8px var(--primary);
+    }
+
+    /* Feed = responsive card grid */
+    .feed-container {
+      display:grid !important;
+      grid-template-columns:repeat(auto-fill, minmax(290px, 1fr));
+      gap:20px;
+    }
+
+    /* ---- News card with image ---- */
+    .acard {
+      position:relative; display:flex; flex-direction:column;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:18px; overflow:hidden;
+      box-shadow:0 1px 2px rgba(2,8,23,.05);
+      opacity:0; transform:translateY(16px);
+      animation:acardIn .5s cubic-bezier(.2,.7,.3,1) forwards; animation-delay:var(--d,0ms);
+      transition:transform .35s cubic-bezier(.2,.7,.3,1), box-shadow .35s, border-color .35s;
+    }
+    @keyframes acardIn { to { opacity:1; transform:none; } }
+    .acard:hover {
+      transform:translateY(-6px);
+      box-shadow:0 24px 44px -24px rgba(2,8,23,.55);
+      border-color:var(--accent, var(--primary));
+    }
+    .acard-media {
+      position:relative; height:170px; overflow:hidden; flex-shrink:0;
+      background:linear-gradient(135deg, var(--accent, #4F6EF7), #0b1020);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .acard-media img {
+      position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+      transition:transform .6s cubic-bezier(.2,.7,.3,1);
+    }
+    .acard:hover .acard-media img { transform:scale(1.08); }
+    .acard-media::after {
+      content:""; position:absolute; inset:0;
+      background:linear-gradient(180deg, rgba(2,6,23,0) 40%, rgba(2,6,23,.6));
+    }
+    .acard-fallback { font-size:46px; filter:drop-shadow(0 6px 14px rgba(0,0,0,.35)); opacity:.92; z-index:1; }
+    .acard-chip {
+      position:absolute; top:12px; left:12px; z-index:2;
+      font-size:11px; font-weight:800; letter-spacing:.02em;
+      padding:5px 11px; border-radius:99px;
+      background:rgba(255,255,255,.94); color:#0b1020;
+      box-shadow:0 6px 16px rgba(0,0,0,.2); backdrop-filter:blur(6px);
+    }
+    .acard .unread-dot {
+      position:absolute; top:14px; right:14px; z-index:2;
+      width:10px; height:10px; background:#22C55E;
+      animation:anncPulse 1.8s ease-in-out infinite;
+    }
+    @keyframes anncPulse {
+      0%,100% { box-shadow:0 0 0 3px rgba(34,197,94,.4); }
+      50%     { box-shadow:0 0 0 8px rgba(34,197,94,0); }
+    }
+    .acard-body { padding:14px 16px 4px; flex:1; }
+    .acard .feed-title { font-size:16px; font-weight:800; line-height:1.3; margin:0 0 6px; color:var(--text-primary); }
+    .acard .feed-preview {
+      font-size:12.5px; color:var(--text-secondary); line-height:1.55; margin:0;
+      display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    .acard-foot {
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      padding:12px 16px; margin-top:12px; border-top:1px solid var(--border-light);
+    }
+    .acard-by { display:flex; align-items:center; gap:9px; min-width:0; }
+    .acard-ava {
+      width:30px; height:30px; border-radius:50%; flex-shrink:0;
+      display:grid; place-items:center; font-size:10.5px; font-weight:800; color:#fff;
+      background:var(--accent, #4F6EF7);
+    }
+    .acard-by .an { display:block; font-size:11.5px; font-weight:700; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px; }
+    .acard-by .ad { display:block; font-size:10.5px; color:var(--text-tertiary); }
+    .acard-actions { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+    .acard .social-btn { padding:5px 7px; border-radius:8px; transition:background .18s, color .18s, transform .18s; }
+    .acard .social-btn:hover { background:var(--bg-tertiary); transform:translateY(-1px); }
+    .acard .social-btn.liked { animation:likePop .35s ease; }
+    @keyframes likePop { 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1);} }
+    .acard .bookmark-btn { font-size:16px; padding:4px; }
+    .acard-readmore {
+      width:100%; text-align:left; padding:12px 16px; background:none;
+      border:none; border-top:1px solid var(--border-light);
+      color:var(--primary); font-weight:700; font-size:12.5px; cursor:pointer;
+      display:flex; align-items:center; gap:6px; transition:gap .2s, background .2s;
+    }
+    .acard-readmore:hover { gap:10px; background:rgba(79,110,247,.07); }
+
+    /* ---- Featured / pinned hero ---- */
+    .pinned-card {
+      display:grid !important; grid-template-columns:1.05fr 1fr; gap:0;
+      padding:0 !important; overflow:hidden; border-radius:22px;
+      border:1px solid var(--border) !important;
+      background:var(--surface) !important;
+      box-shadow:0 20px 44px -30px rgba(2,8,23,.5) !important;
+      animation:acardIn .5s cubic-bezier(.2,.7,.3,1) both;
+    }
+    [data-theme="dark"] .pinned-card { background:var(--surface) !important; }
+    .pinned-media {
+      position:relative; min-height:260px; overflow:hidden;
+      background:linear-gradient(135deg, var(--primary), #0b1020);
+    }
+    .pinned-media img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .7s cubic-bezier(.2,.7,.3,1); }
+    .pinned-card:hover .pinned-media img { transform:scale(1.05); }
+    .pinned-media::after { content:""; position:absolute; inset:0; background:linear-gradient(120deg, rgba(2,6,23,.15), rgba(2,6,23,.5)); }
+    .pinned-content { padding:26px 28px; display:flex; flex-direction:column; justify-content:center; }
+    .pinned-badge {
+      position:static !important; align-self:flex-start; margin-bottom:12px;
+      background:linear-gradient(90deg,#EAB308,#F59E0B); color:#3b2f00 !important;
+      font-weight:800; padding:5px 12px; border-radius:99px; box-shadow:0 6px 16px -6px rgba(234,179,8,.6);
+    }
+    .pinned-content .feed-title { font-size:24px !important; line-height:1.2; margin:6px 0 10px !important; }
+    .pinned-content .feed-preview { -webkit-line-clamp:4; display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; }
+    .pinned-content .feed-meta { border-top:1px solid var(--border-light); margin-top:16px; padding-top:14px; flex-wrap:wrap; }
+
+    /* ---- Right rail cards ---- */
+    .event-widget-item { align-items:center; transition:transform .2s; padding:10px 0; }
+    .event-widget-item:hover { transform:translateX(3px); }
+    .event-date-box { width:50px; height:50px; box-shadow:inset 0 0 0 1px var(--border-light); }
+
+    /* Filter controls */
+    .filter-select {
+      height:44px; width:170px; padding:0 36px 0 14px;
+      background-color:var(--surface);
+      background-repeat:no-repeat !important;
+      background-position:right 13px center !important;
+      background-size:12px 12px !important;
+      border:1px solid var(--border); border-radius:12px;
+      color:var(--text-primary); font-weight:600; font-size:13px;
+    }
+    .filter-bar .filter-search .search-input { height:44px; border-radius:12px; }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 1024px) { .annc-layout { grid-template-columns:1fr; } }
+    @media (max-width: 680px) {
+      .pinned-card { grid-template-columns:1fr !important; }
+      .pinned-media { min-height:170px; }
+      .feed-container { grid-template-columns:1fr; gap:16px; }
+      .annc-head .page-title { font-size:24px; }
+      .filter-bar { flex-direction:column; }
+      .filter-select { width:100%; }
+    }
   </style>
 </head>
 <body>
@@ -409,9 +576,9 @@
         <span class="breadcrumb-current">Announcements & News</span>
       </nav>
 
-      <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-4)">
+      <div class="annc-head">
         <div>
-          <h1 class="page-title">Announcements & News</h1>
+          <h1 class="page-title">Announcements &amp; News</h1>
           <p class="page-subtitle">Stay up to date with the latest organization highlights, alerts, and achievements.</p>
         </div>
         <button class="btn btn-secondary" onclick="markAllAsRead()">✓ Mark all as read</button>
@@ -436,16 +603,21 @@
           
           <!-- FEATURED / PINNED ANNOUNCEMENT -->
           <div class="pinned-card" id="pinnedPost" data-cat="hr">
-            <span class="pinned-badge">📌 Pinned Announcement</span>
-            <div class="annc-tag" style="color:var(--primary); font-weight:700">HR Notice</div>
-            <h2 class="feed-title" style="font-size:20px; margin-top:8px">Annual Performance Reviews — June 2025</h2>
-            <p class="feed-preview">
-              The annual performance evaluation cycle begins this June. All department leads are requested to coordinate with their team members for self-assessments. Initial scoring templates must be completed and submitted to the HR desk by June 30, 2025. Please review the performance guidelines in the Knowledge Center for further details on evaluation parameters.
-            </p>
-            <div class="feed-meta">
-              <span class="meta-item">🕒 June 2, 2025</span>
-              <span class="meta-item">👤 Posted by: HR Department</span>
-              <button class="btn btn-outline btn-sm" style="margin-left:auto" onclick="openAnnouncementModal('Annual Performance Reviews — June 2025', 'HR Notice', 'The annual performance evaluation cycle begins this June. All department leads are requested to coordinate with their team members for self-assessments. Initial scoring templates must be completed and submitted to the HR desk by June 30, 2025. Please review the performance guidelines in the Knowledge Center for further details on evaluation parameters.', 'HR Department', 'June 2, 2025')">Read Full Notice</button>
+            <div class="pinned-media">
+              <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=900&h=600&q=70" alt="" onerror="this.remove()">
+            </div>
+            <div class="pinned-content">
+              <span class="pinned-badge">📌 Pinned Announcement</span>
+              <div class="annc-tag" style="color:var(--primary); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.03em">HR Notice</div>
+              <h2 class="feed-title">Annual Performance Reviews — June 2025</h2>
+              <p class="feed-preview">
+                The annual performance evaluation cycle begins this June. All department leads are requested to coordinate with their team members for self-assessments. Initial scoring templates must be completed and submitted to the HR desk by June 30, 2025. Please review the performance guidelines in the Knowledge Center for further details on evaluation parameters.
+              </p>
+              <div class="feed-meta">
+                <span class="meta-item">🕒 June 2, 2025</span>
+                <span class="meta-item">👤 HR Department</span>
+                <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openAnnouncementModal('Annual Performance Reviews — June 2025', 'HR Notice', 'The annual performance evaluation cycle begins this June. All department leads are requested to coordinate with their team members for self-assessments. Initial scoring templates must be completed and submitted to the HR desk by June 30, 2025. Please review the performance guidelines in the Knowledge Center for further details on evaluation parameters.', 'HR Department', 'June 2, 2025')">Read Full Notice</button>
+              </div>
             </div>
           </div>
 
@@ -798,6 +970,18 @@
     renderFeed();
   }
 
+  // Per-category cover image (used when an item has no explicit image) + glyph fallback.
+  const CAT_IMAGE = {
+    hr:          'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&h=440&q=70',
+    it:          'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&h=440&q=70',
+    facility:    'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&h=440&q=70',
+    event:       'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=800&h=440&q=70',
+    achievement: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=800&h=440&q=70',
+    circular:    'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&h=440&q=70'
+  };
+  const CAT_ICON = { hr:'🧑‍💼', it:'🖥️', facility:'🏢', event:'📅', achievement:'🏆', circular:'📰' };
+  function anncInitials(name){ var p = String(name||'').trim().split(/\s+/); return (((p[0]||'')[0]||'') + ((p[1]||'')[0]||'')).toUpperCase() || '•'; }
+
   function renderFeed() {
     const container = document.getElementById('feedContainer');
     if (!container) return;
@@ -830,35 +1014,39 @@
       return;
     }
 
-    container.innerHTML = list.map(item => {
+    container.innerHTML = list.map((item, i) => {
       const isLiked = likedPosts.includes(item.id);
       const isBookmarked = bookmarkedPosts.includes(item.id);
+      const img = item.image || CAT_IMAGE[item.category] || '';
+      const icon = CAT_ICON[item.category] || '📰';
 
       return `
-        <div class="feed-card" data-id="${item.id}">
-          <div class="feed-header">
-            <div class="feed-badge-wrap">
-              <span class="badge" style="background:${item.tagBg}; color:${item.tagColor}">${item.tag}</span>
-              ${item.unread ? '<span class="unread-dot" id="unread-dot-' + item.id + '" title="Unread"></span>' : ''}
+        <article class="acard" data-id="${item.id}" style="--d:${i * 55}ms; --accent:${item.tagColor}">
+          <div class="acard-media">
+            <span class="acard-fallback">${icon}</span>
+            ${img ? `<img src="${img}" alt="" onerror="this.remove()">` : ''}
+            <span class="acard-chip">${item.tag}</span>
+            ${item.unread ? `<span class="unread-dot" id="unread-dot-${item.id}" title="Unread"></span>` : ''}
+          </div>
+          <div class="acard-body">
+            <h3 class="feed-title">${item.title}</h3>
+            <p class="feed-preview">${item.preview}</p>
+          </div>
+          <div class="acard-foot">
+            <div class="acard-by">
+              <span class="acard-ava">${anncInitials(item.author)}</span>
+              <div><span class="an">${item.author}</span><span class="ad">${item.date}</span></div>
             </div>
-            <span style="font-size:12px; color:var(--text-tertiary)">${item.date}</span>
+            <div class="acard-actions">
+              <button class="social-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${item.id}', this)" title="Like">
+                ${isLiked ? '❤️' : '🤍'} <span class="like-count">${item.likes}</span>
+              </button>
+              <button class="social-btn" onclick="openAnncComments('${item.id}')" title="Comments">💬 <span>${item.comments}</span></button>
+              <span class="bookmark-btn ${isBookmarked ? 'active' : ''}" onclick="toggleBookmark('${item.id}', this)" title="Bookmark">${isBookmarked ? '★' : '☆'}</span>
+            </div>
           </div>
-          <h3 class="feed-title">${item.title}</h3>
-          <p class="feed-preview">${item.preview}</p>
-          <div class="feed-meta">
-            <span class="meta-item">👤 By ${item.author}</span>
-            <button class="social-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike('${item.id}', this)">
-              ${isLiked ? '❤️' : '🤍'} <span class="like-count">${item.likes}</span>
-            </button>
-            <button class="social-btn" onclick="openAnncComments('${item.id}')">
-              💬 ${item.comments} Comments
-            </button>
-            <button class="social-btn" onclick="readAnnc('${item.id}')" style="color:var(--primary); font-weight:600">Read More →</button>
-            <span class="bookmark-btn ${isBookmarked ? 'active' : ''}" onclick="toggleBookmark('${item.id}', this)" title="Bookmark">
-              ${isBookmarked ? '★' : '☆'}
-            </span>
-          </div>
-        </div>
+          <button class="acard-readmore" onclick="readAnnc('${item.id}')">Read full announcement →</button>
+        </article>
       `;
     }).join('');
   }
@@ -968,12 +1156,14 @@
   };
   var fmt = function (iso) { var d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }); };
 
+  var CAT_LABEL = { hr: 'HR Notice', it: 'IT Notice', facility: 'Facility Notice', event: 'Event', achievement: 'Achievement', circular: 'Circular' };
   function map(a) {
     var cat = catKey(a.category), col = colorFor(cat, a.priority);
     return { id: a.id, title: a.title, category: cat,
-      tag: (a.priority === 'Urgent' ? '⚠ ' : '') + (a.category || 'Notice'),
+      tag: (a.priority === 'Urgent' ? '⚠ ' : '') + (CAT_LABEL[cat] || 'Notice'),
       tagColor: col[0], tagBg: col[1], preview: a.body || '', date: fmt(a.created_at),
       author: a.author_name || 'Admin', likes: 0, comments: 0, unread: !a.read,
+      image: a.image_url || '',
       timestamp: new Date(a.created_at).getTime() || 0 };
   }
 
@@ -1020,11 +1210,12 @@
       var body = prompt('Body:') || '';
       var priority = prompt('Priority: Normal / Important / Urgent', 'Normal') || 'Normal';
       var category = prompt('Category (HR / IT / Facility / Event / Achievement / Circular):', 'Event') || 'Event';
+      var image = prompt('Image URL (optional — leave blank to use a category image):', '') || '';
 
       // Prefer Supabase when signed in with a real session.
       try {
         if (window.LCData && await window.LCData.live()) {
-          var res = await window.LCData.createAnnouncement({ title: title, body: body, priority: priority, category: category, published: true });
+          var res = await window.LCData.createAnnouncement({ title: title, body: body, priority: priority, category: category, image_url: image, published: true });
           if (res.error) throw new Error(res.error.message);
           await load();
           return;
