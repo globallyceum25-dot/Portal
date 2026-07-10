@@ -94,6 +94,12 @@
     if (window.LC && LC.token && LC.token() && await safeHealth() && ADMIN_ROLES.indexOf(role) > -1) {
       try { live = await LC.get('/api/reports/overview'); } catch (e) { live = null; }
     }
+    // An empty backend overview (no activity logged yet) must not blank the
+    // dashboard — fall back to the sample dataset so the page stays meaningful.
+    if (live && !live.total_requests && !live.open_requests &&
+        (!live.request_volume || !live.request_volume.length)) {
+      live = null;
+    }
     if (live) {
       state.mode = 'live'; state.data = normalize(live);
       scope.className = 'rp-scope';
