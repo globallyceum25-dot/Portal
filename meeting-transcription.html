@@ -180,6 +180,103 @@
       border-left: 2px solid var(--primary-200);
       line-height: 1.4;
     }
+    /* ================================================================
+       MODERN MEETING TRANSCRIBER — recording studio, states, motion
+       (later rules intentionally refine the styles above)
+       ================================================================ */
+    @keyframes tmIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+
+    .studio, .tm-meta, .transcription-workspace, .history-card { animation: tmIn .5s cubic-bezier(.2,.7,.3,1) both; }
+    .tm-meta { animation-delay:.06s; }
+    .transcription-workspace { animation-delay:.12s; }
+    .history-card { animation-delay:.18s; }
+
+    /* ---- Recording studio hero ---- */
+    .studio {
+      position:relative; background:var(--surface); border:1px solid var(--border);
+      border-radius:20px; padding:22px 24px; margin-bottom:var(--space-5);
+      box-shadow:var(--shadow-sm); overflow:hidden;
+      transition:border-color .35s, box-shadow .35s;
+    }
+    .studio[data-rec="listening"] { border-color:rgba(239,68,68,.45); box-shadow:0 0 0 1px rgba(239,68,68,.2), 0 20px 44px -26px rgba(239,68,68,.55); }
+    .studio[data-rec="paused"] { border-color:rgba(245,158,11,.5); }
+
+    .studio-stage { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:22px; }
+
+    /* mic orb + concentric pulse rings */
+    .mic-orb { position:relative; width:76px; height:76px; display:grid; place-items:center; flex-shrink:0; }
+    .mic-core {
+      width:60px; height:60px; border-radius:50%; display:grid; place-items:center; position:relative; z-index:2;
+      background:linear-gradient(140deg, var(--primary), #6D5EF7); color:#fff;
+      box-shadow:0 10px 24px -8px rgba(79,110,247,.6); transition:background .3s, box-shadow .3s;
+    }
+    .mic-core svg { width:26px; height:26px; }
+    .mic-orb .ring { position:absolute; inset:0; border-radius:50%; border:2px solid rgba(239,68,68,.55); opacity:0; }
+    .studio[data-rec="listening"] .mic-core { background:linear-gradient(140deg,#EF4444,#F97316); box-shadow:0 10px 28px -8px rgba(239,68,68,.7); animation:micBeat 1.4s ease-in-out infinite; }
+    .studio[data-rec="listening"] .ring { animation:ripple 1.9s ease-out infinite; }
+    .studio[data-rec="listening"] .ring.r2 { animation-delay:.63s; }
+    .studio[data-rec="listening"] .ring.r3 { animation-delay:1.26s; }
+    .studio[data-rec="paused"] .mic-core { background:linear-gradient(140deg,#F59E0B,#F97316); }
+    @keyframes micBeat { 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.07);} }
+    @keyframes ripple { 0%{ transform:scale(.85); opacity:.7;} 100%{ transform:scale(2.2); opacity:0;} }
+
+    /* waveform panel (keeps the live canvas) */
+    .wave-panel { position:relative; min-width:180px; height:82px; border-radius:14px; background:var(--bg-secondary); border:1px solid var(--border); overflow:hidden; display:flex; align-items:center; }
+    .wave-panel canvas { width:100%; height:72px; display:block; }
+    .wave-meta { position:absolute; left:12px; top:10px; display:flex; gap:6px; align-items:center; z-index:2; }
+
+    /* status + timer readout */
+    .studio-readout { display:flex; flex-direction:column; align-items:flex-end; gap:9px; }
+    .studio-timer { font-variant-numeric:tabular-nums; font-feature-settings:"tnum"; font-family:var(--font-mono, ui-monospace, monospace); font-weight:800; font-size:30px; letter-spacing:.02em; line-height:1; color:var(--text-primary); }
+    .studio[data-rec="listening"] .studio-timer { color:#EF4444; }
+    .studio[data-rec="paused"] .studio-timer { color:#B45309; }
+    .status-badge { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:700; padding:5px 12px; border-radius:99px; background:var(--bg-tertiary); border:1px solid var(--border); color:var(--text-secondary); }
+    .status-badge.status-active { background:rgba(239,68,68,.12); color:#EF4444; border-color:rgba(239,68,68,.32); }
+    .status-badge.status-pending { background:rgba(245,158,11,.15); color:#B45309; border-color:rgba(245,158,11,.32); }
+
+    /* controls row */
+    .studio-controls { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:18px; padding-top:18px; border-top:1px solid var(--border-light); }
+    .studio-controls .form-select {
+      background-repeat:no-repeat !important; background-position:right 13px center !important;
+      background-size:12px 12px !important; padding-right:36px;
+    }
+    .studio-controls .btn { height:44px; transition:transform .2s, box-shadow .2s, background .2s, opacity .2s; }
+    .studio-controls .btn:not(:disabled):hover { transform:translateY(-2px); }
+    .studio-controls .btn:not(:disabled):active { transform:translateY(0) scale(.98); }
+    #startTransBtn { background:linear-gradient(135deg,#EF4444,#F97316) !important; border:none !important; color:#fff !important; box-shadow:0 10px 24px -10px rgba(239,68,68,.7); font-weight:700; }
+    #startTransBtn:hover { box-shadow:0 16px 32px -10px rgba(239,68,68,.8); }
+    #startTransBtn .btn-icon { animation:micBeat 1.6s ease-in-out infinite; }
+
+    /* ---- transcript + minutes panels ---- */
+    .transcript-box, .summary-preview-box { border-radius:16px; height:400px; }
+    .transcript-box:focus, .summary-preview-box:focus { border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-50); }
+    .live-badge { display:none; align-items:center; gap:6px; font-size:10.5px; font-weight:800; color:#EF4444; background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.3); padding:3px 9px; border-radius:99px; }
+    .live-badge .d { width:7px; height:7px; border-radius:50%; background:#EF4444; animation:micBeat 1s ease-in-out infinite; }
+    body[data-rec="listening"] .live-badge { display:inline-flex; }
+    body[data-rec="listening"] .editable-pill { display:none; }
+
+    /* live transcript segment reveal + speaker chips (if the JS emits them) */
+    .transcript-box p { animation:tmIn .35s ease both; }
+    .spk-chip { display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:99px; background:var(--primary-50); color:var(--primary); margin-right:8px; }
+
+    /* history rows */
+    .history-card .table tbody tr { transition:background .18s; }
+    .history-card .table tbody tr:hover { background:var(--bg-secondary); }
+
+    /* ---- responsive ---- */
+    @media (max-width:860px){
+      .studio-stage { grid-template-columns:1fr; justify-items:center; text-align:center; }
+      .studio-readout { align-items:center; }
+      .wave-panel { width:100%; }
+      .studio-controls { justify-content:center; }
+      .studio-timer { font-size:26px; }
+    }
+
+    /* ---- reduced motion ---- */
+    @media (prefers-reduced-motion: reduce){
+      .studio,.tm-meta,.transcription-workspace,.history-card,.transcript-box p,
+      .mic-core,.ring,#startTransBtn .btn-icon,.live-badge .d { animation:none !important; }
+    }
   </style>
 </head>
 <body>
@@ -355,63 +452,72 @@
       <!-- Recognition Support Alert Block -->
       <div id="recognitionSupportStatus" style="margin-bottom: var(--space-4)"></div>
 
-      <!-- ========= 1. WAVEFORM & RECORDING CONTROLS ========= -->
-      <section class="visualizer-card">
-        <div class="visualizer-container">
-          
-          <!-- Waveform Canvas -->
-          <div class="vis-wave-wrap">
+      <!-- ========= 1. RECORDING STUDIO ========= -->
+      <section class="studio" id="recStudio" data-rec="idle">
+        <div class="studio-stage">
+
+          <!-- Mic orb with pulse rings -->
+          <div class="mic-orb" aria-hidden="true">
+            <span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>
+            <span class="mic-core">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            </span>
+          </div>
+
+          <!-- Live waveform -->
+          <div class="wave-panel">
             <canvas id="visualizerCanvas"></canvas>
-            
-            <!-- Floating Timer, Active Language & Sandbox indicators -->
-            <div style="position:absolute; right:15px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:8px">
-              <span id="activeListeningLanguageLabel" style="font-size:11px; font-weight:700; color:var(--primary); background:var(--primary-50); padding:3px 8px; border-radius:4px; border:1px solid var(--primary-200)">Bilingual (EN + SI)</span>
+            <div class="wave-meta">
+              <span id="activeListeningLanguageLabel" style="font-size:10.5px; font-weight:700; color:var(--primary); background:var(--primary-50); padding:3px 8px; border-radius:6px; border:1px solid var(--primary-200)">Bilingual (EN + SI)</span>
               <span class="badge badge-amber" id="demoIndicator" style="display:none; font-size:10px; font-weight:700">DEMO RUNNING</span>
-              <div class="status-badge" id="transStatusBadge" style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700">
-                <span class="status-dot" id="transStatusDot"></span>
-                <span id="transStatusText">Ready</span>
-              </div>
-              <span id="transcriptTimer" style="font-family:monospace; font-weight:700; font-size:16px; color:var(--text-primary)">00:00:00</span>
             </div>
           </div>
 
-          <!-- Controls Actions -->
-          <div class="vis-controls">
-            <!-- Language Select & Hotkey Tip -->
-            <div style="display:flex; flex-direction:column; align-items:center">
-              <select class="form-control form-select" id="transLanguage" style="width:160px; height:42px" title="Transcription Language">
-                <option value="en-US">🇺🇸 English (US)</option>
-                <option value="si-LK">🇱🇰 Sinhalese (සිංහල)</option>
-                <option value="mixed" selected>🔀 Bilingual (EN + SI)</option>
-              </select>
-              <span style="font-size:9.5px; color:var(--text-tertiary); margin-top:3px; font-weight:600">Press <b>Alt + L</b> to switch</span>
+          <!-- Status + timer -->
+          <div class="studio-readout">
+            <div class="status-badge" id="transStatusBadge">
+              <span class="status-dot" id="transStatusDot"></span>
+              <span id="transStatusText">Ready</span>
             </div>
-            
-            <button class="btn btn-primary" id="startTransBtn" onclick="startTranscription()" style="height:42px">
-              <span class="btn-icon">🎙️</span>
-              <span class="btn-label">Start Transcribing</span>
-            </button>
-            
-            <button class="btn btn-secondary" id="pauseTransBtn" onclick="pauseTranscription()" style="height:42px; display:none">
-              <span class="btn-icon">⏸️</span>
-              <span>Pause</span>
-            </button>
-            
-            <button class="btn btn-outline" id="stopTransBtn" onclick="stopTranscription(true)" style="height:42px" disabled>
-              <span class="btn-icon">⏹️</span>
-              <span>Finish & Summarize</span>
-            </button>
-            
-            <button class="btn btn-ghost" onclick="resetTranscription()" style="height:42px; color:var(--error)" title="Clear Text & Reset">
-              <span>Clear</span>
-            </button>
+            <span id="transcriptTimer" class="studio-timer">00:00:00</span>
           </div>
 
+        </div>
+
+        <!-- Controls -->
+        <div class="studio-controls">
+          <div style="display:flex; flex-direction:column; align-items:flex-start">
+            <select class="form-control form-select" id="transLanguage" style="width:170px; height:44px" title="Transcription Language">
+              <option value="en-US">🇺🇸 English (US)</option>
+              <option value="si-LK">🇱🇰 Sinhalese (සිංහල)</option>
+              <option value="mixed" selected>🔀 Bilingual (EN + SI)</option>
+            </select>
+            <span style="font-size:9.5px; color:var(--text-tertiary); margin-top:3px; font-weight:600">Press <b>Alt + L</b> to switch</span>
+          </div>
+
+          <button class="btn btn-primary" id="startTransBtn" onclick="startTranscription()">
+            <span class="btn-icon">🎙️</span>
+            <span class="btn-label">Start Transcribing</span>
+          </button>
+
+          <button class="btn btn-secondary" id="pauseTransBtn" onclick="pauseTranscription()" style="display:none">
+            <span class="btn-icon">⏸️</span>
+            <span>Pause</span>
+          </button>
+
+          <button class="btn btn-outline" id="stopTransBtn" onclick="stopTranscription(true)" disabled>
+            <span class="btn-icon">⏹️</span>
+            <span>Finish &amp; Summarize</span>
+          </button>
+
+          <button class="btn btn-ghost" onclick="resetTranscription()" style="color:var(--error)" title="Clear Text &amp; Reset">
+            <span>Clear</span>
+          </button>
         </div>
       </section>
 
       <!-- ========= 2. MEETING METADATA ========= -->
-      <section class="card" style="margin-bottom:var(--space-5); padding:var(--space-4)">
+      <section class="card tm-meta" style="margin-bottom:var(--space-5); padding:var(--space-4)">
         <div class="form-two-col" style="margin-bottom:0">
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label" style="font-size:12px">Meeting Title</label>
@@ -434,9 +540,12 @@
               <h3 class="card-title">🎙️ Verbatim Live Transcript</h3>
               <p class="card-subtitle">Real-time speech-to-text text segments. Click inside to edit transcripts manually.</p>
             </div>
-            <span class="badge" style="font-size:10.5px">Editable Box</span>
+            <div style="display:flex; align-items:center; gap:8px">
+              <span class="live-badge"><span class="d"></span> LIVE</span>
+              <span class="badge editable-pill" style="font-size:10.5px">Editable Box</span>
+            </div>
           </div>
-          
+
           <div class="transcript-box" id="transcriptEditor" contenteditable="true">
             <p class="placeholder-text">Start speaking or click "Sandbox Demo Mode" to see transcription in action...</p>
           </div>

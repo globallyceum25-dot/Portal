@@ -373,6 +373,12 @@ function resetTranscription() {
 
 // 5. Update UI Buttons & Indicators
 function updateUIState(state) {
+  // Drive recording-state motion on the studio hero + the LIVE badge.
+  var studio = document.getElementById('recStudio');
+  var recState = state === 'listening' ? 'listening' : state === 'paused' ? 'paused' : 'idle';
+  if (studio) studio.setAttribute('data-rec', recState);
+  try { document.body.setAttribute('data-rec', recState); } catch (e) {}
+
   const statusBadge = document.getElementById('transStatusBadge');
   const statusDot = document.getElementById('transStatusDot');
   const statusText = document.getElementById('transStatusText');
