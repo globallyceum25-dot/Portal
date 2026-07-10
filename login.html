@@ -304,6 +304,10 @@
           <span class="btn-label">Sign In</span>
         </button>
 
+        <p class="login-foot" style="text-align:center;margin-top:14px">
+          New here? <a href="#" class="forgot-link" onclick="handleSignUp(event)">Create an account</a>
+        </p>
+
         <div class="login-or"><span class="line"></span>OR<span class="line"></span></div>
 
         <button type="button" class="btn btn-secondary" id="ssoBtn" onclick="handleEntraLogin()" style="width:100%;height:46px;justify-content:center;gap:10px;font-weight:600">
@@ -545,9 +549,41 @@
     showToast('Credentials Filled', 'Demo account details are loaded into the form.', 'info');
   }
 
-  function handleForgotPassword(e) {
+  async function handleForgotPassword(e) {
     e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    if (!email) { showToast('Enter your email', 'Type your work email first, then click Forgot Password.', 'error'); return; }
+    const sb = await window.LCSupabaseReady;
+    if (sb && window.LCAuth) {
+      try {
+        await window.LCAuth.reset(email);
+        showToast('Reset Link Sent', 'If that account exists, a password reset email is on its way.', 'success');
+        return;
+      } catch (err) { /* fall through to generic message */ }
+    }
     showToast('Reset Link Requested', 'If the account exists, a password recovery circular has been queued.', 'info');
+  }
+
+  // Self-service registration via Supabase (email confirmation required).
+  async function handleSignUp(e) {
+    if (e) e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { showToast('Fill the form', 'Enter an email and a password (min 6 chars) to create an account.', 'error'); return; }
+    const sb = await window.LCSupabaseReady;
+    if (!sb || !window.LCAuth) { showToast('Sign-up unavailable', 'Auth service is offline right now — try again shortly.', 'error'); return; }
+    const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    try {
+      const { data, error } = await window.LCAuth.signUp(email, password, { full_name: name });
+      if (error) { showToast('Could not create account', error.message, 'error'); return; }
+      if (data && data.session) {
+        localStorage.setItem('lc-auth-session', 'true');
+        showToast('Account Created', 'You are signed in. Redirecting…', 'success');
+        setTimeout(() => { window.location.href = 'index.html'; }, 800);
+      } else {
+        showToast('Confirm your email', 'Account created — check your inbox to confirm, then sign in.', 'success');
+      }
+    } catch (err) { showToast('Sign-up failed', err.message || 'Please try again.', 'error'); }
   }
 
   function handleLoginSubmit(event) {
@@ -568,7 +604,38 @@
     const role = (document.getElementById('loginRole') || {}).value || 'employee';
     const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
+    const resetBtn = () => {
+      btn.disabled = false;
+      btn.innerHTML = `<span class="btn-label">Sign In</span>`;
+    };
+    const isDemoCreds = email.toLowerCase() === 'sudaraka.perera@lyceum.edu' && password === 'password123';
+
     (async () => {
+      // 1) Supabase email/password (primary, real auth).
+      const sb = await window.LCSupabaseReady;
+      if (sb && window.LCAuth) {
+        try {
+          const { data, error } = await window.LCAuth.signIn(email, password);
+          if (data && data.session) {
+            localStorage.setItem('lc-auth-session', 'true');
+            localStorage.setItem('lc-user-email', email);
+            showToast('Login Successful', 'Signed in via Supabase. Redirecting…', 'success');
+            setTimeout(() => { window.location.href = 'index.html'; }, 800);
+            return;
+          }
+          // Supabase reachable but rejected the credentials. Let the demo
+          // account still work offline; otherwise surface the real error.
+          if (error && !isDemoCreds) {
+            resetBtn();
+            showToast('Sign-in failed', error.message || 'Invalid email or password.', 'error');
+            return;
+          }
+        } catch (netErr) {
+          // Network hiccup reaching Supabase — fall through to backend/demo.
+        }
+      }
+
+      // 2) Go backend (dev-login), if running.
       const online = await LC.health();
       if (online) {
         try {
@@ -576,21 +643,20 @@
           showToast('Login Successful', `Signed in as ${role.replace(/_/g, ' ')}. Redirecting…`, 'success');
           setTimeout(() => { window.location.href = 'index.html'; }, 900);
         } catch (err) {
-          btn.disabled = false;
-          btn.innerHTML = `<span class="btn-label">Sign In</span>`;
+          resetBtn();
           showToast('Sign-in failed', err.message || 'Could not sign in.', 'error');
         }
         return;
       }
-      // Offline fallback: the original static demo gate.
-      if (email.toLowerCase() === 'sudaraka.perera@lyceum.edu' && password === 'password123') {
+
+      // 3) Offline fallback: the original static demo gate.
+      if (isDemoCreds) {
         localStorage.setItem('lc-auth-session', 'true');
-        showToast('Login Successful (offline demo)', 'Backend not reachable — using demo mode.', 'success');
+        showToast('Login Successful (offline demo)', 'Signed in with the demo account.', 'success');
         setTimeout(() => { window.location.href = 'index.html'; }, 1200);
       } else {
-        btn.disabled = false;
-        btn.innerHTML = `<span class="btn-label">Sign In</span>`;
-        showToast('Authentication Failed', 'Backend offline and demo credentials did not match.', 'error');
+        resetBtn();
+        showToast('Authentication Failed', 'Invalid credentials, and no auth backend was reachable.', 'error');
       }
     })();
   }
