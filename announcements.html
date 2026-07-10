@@ -637,6 +637,7 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- ========= SCRIPTS ========= -->
+<script src="js/data.js"></script>
 <script src="js/main.js"></script>
 <script>
   // Feed Database
@@ -976,16 +977,28 @@
       timestamp: new Date(a.created_at).getTime() || 0 };
   }
 
+  function replaceFeed(mapped) {
+    if (!mapped.length || typeof announcementsData === 'undefined') return false;
+    announcementsData.length = 0;
+    Array.prototype.push.apply(announcementsData, mapped);
+    if (typeof renderFeed === 'function') renderFeed();
+    return true;
+  }
+
   async function load() {
+    // 1) Supabase — live announcements when signed in with a real session.
+    try {
+      if (window.LCData) {
+        var d = await window.LCData.announcements();
+        if (d.source === 'supabase' && replaceFeed(d.rows.map(map))) return;
+      }
+    } catch (e) { console.warn('announcements supabase', e); }
+
+    // 2) Go backend (dev-login sessions).
     if (!LC.token() || !(await LC.health())) return;
     try {
       var r = await LC.get('/api/announcements');
-      var mapped = (r.announcements || []).map(map);
-      if (mapped.length && typeof announcementsData !== 'undefined') {
-        announcementsData.length = 0;
-        Array.prototype.push.apply(announcementsData, mapped);
-        if (typeof renderFeed === 'function') renderFeed();
-      }
+      replaceFeed((r.announcements || []).map(map));
     } catch (e) { console.warn('announcements', e); }
 
     var role = (LC.claims() || {}).role;

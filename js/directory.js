@@ -27,8 +27,36 @@
   async function init() {
     wire();
     try { useApi = !!(window.LC && LC.token() && await LC.health()); } catch (e) { useApi = false; }
-    if (!useApi) roster = generateRoster(140);
+
+    // Prefer the live Supabase directory when the user has a real session.
+    var usedSupabase = false;
+    try {
+      if (window.LCData) {
+        var d = await window.LCData.employees();
+        if (d.source === 'supabase' && d.rows.length) {
+          roster = d.rows.map(normalizeEmp);
+          useApi = false;            // search/paging run client-side over the live roster
+          usedSupabase = true;
+        }
+      }
+    } catch (e) { /* fall back to backend/local */ }
+
+    if (!usedSupabase && !useApi) roster = generateRoster(140);
     await load(true);
+  }
+
+  // Shape a Supabase employees row like the local roster (derive initials, defaults).
+  function normalizeEmp(e) {
+    var parts = String(e.name || '').trim().split(/\s+/);
+    var derived = ((parts[0] || '')[0] || '') + ((parts[parts.length - 1] || '')[0] || '');
+    return {
+      id: e.id, name: e.name, designation: e.designation, department: e.department,
+      function: e.function, category: e.category, tags: e.tags || [],
+      emp_code: e.emp_code, joining_date: e.joining_date, email: e.email, phone: e.phone,
+      location: e.location, reports_to: e.reports_to,
+      initials: (e.initials || derived || '?').toUpperCase(),
+      hue: e.hue != null ? e.hue : 220, online: !!e.online
+    };
   }
 
   function wire() {
