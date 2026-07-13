@@ -77,3 +77,58 @@ function logoutSession() {
   localStorage.removeItem('lc-token');
   window.location.href = 'login.html';
 }
+
+/* ---- PWA bootstrap (Phase 7) — register the service worker and offer install ---- */
+(function () {
+  'use strict';
+  // Register the service worker (progressive enhancement; ignored if unsupported).
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function (e) {
+        console.warn('[LC] service worker registration failed:', e && e.message);
+      });
+    });
+  }
+
+  // Installable? Capture the prompt and show a dismissable "Install app" chip.
+  var standalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+  if (standalone || localStorage.getItem('lc-install-dismissed') === '1') return;
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    var deferred = e;
+    if (document.getElementById('lc-install-chip')) return;
+
+    var chip = document.createElement('div');
+    chip.id = 'lc-install-chip';
+    chip.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2000;display:flex;align-items:center;gap:12px;' +
+      'padding:10px 12px 10px 16px;border-radius:14px;background:#161C30;color:#EAF0FF;border:1px solid rgba(255,255,255,.14);' +
+      'box-shadow:0 18px 44px -18px rgba(0,0,0,.6);font:600 13px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;' +
+      'animation:lcChipIn .35s cubic-bezier(.2,.7,.3,1) both';
+    chip.innerHTML =
+      '<span style="display:inline-flex;width:30px;height:30px;border-radius:9px;background:linear-gradient(140deg,#4F6EF7,#7C5CF0);' +
+      'align-items:center;justify-content:center;flex-shrink:0">' +
+      '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></span>' +
+      '<span>Install Lyceum Connect</span>' +
+      '<button id="lc-install-go" style="height:34px;padding:0 14px;border:none;border-radius:10px;cursor:pointer;font-weight:800;color:#fff;background:linear-gradient(135deg,#4F6EF7,#7C5CF0)">Install</button>' +
+      '<button id="lc-install-x" aria-label="Dismiss" style="width:30px;height:34px;border:none;border-radius:9px;cursor:pointer;background:transparent;color:rgba(234,240,255,.6);font-size:18px;line-height:1">&times;</button>';
+    if (!document.getElementById('lc-chip-style')) {
+      var st = document.createElement('style'); st.id = 'lc-chip-style';
+      st.textContent = '@keyframes lcChipIn{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}';
+      document.head.appendChild(st);
+    }
+    document.body.appendChild(chip);
+
+    document.getElementById('lc-install-go').addEventListener('click', function () {
+      chip.remove(); deferred.prompt();
+      deferred.userChoice && deferred.userChoice.then(function () { deferred = null; });
+    });
+    document.getElementById('lc-install-x').addEventListener('click', function () {
+      chip.remove(); try { localStorage.setItem('lc-install-dismissed', '1'); } catch (x) {}
+    });
+  });
+
+  window.addEventListener('appinstalled', function () {
+    var c = document.getElementById('lc-install-chip'); if (c) c.remove();
+  });
+})();

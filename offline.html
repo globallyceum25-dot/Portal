@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4F6EF7">
+  <title>Offline — Lyceum Connect</title>
+  <style>
+    :root { --bg:#0F1424; --card:#161C30; --border:rgba(255,255,255,.1); --primary:#4F6EF7; --text:#EAF0FF; --sub:rgba(234,240,255,.6); }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { min-height:100dvh; display:grid; place-items:center; padding:24px;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+      background:radial-gradient(1200px 600px at 50% -10%, #1c2748, var(--bg)); color:var(--text); }
+    .wrap { text-align:center; max-width:420px; animation:in .5s cubic-bezier(.2,.7,.3,1) both; }
+    @keyframes in { from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:none;} }
+    .orb { width:96px; height:96px; margin:0 auto 22px; border-radius:26px; display:grid; place-items:center;
+      background:linear-gradient(140deg,#4F6EF7,#7C5CF0); box-shadow:0 20px 44px -18px rgba(79,110,247,.7); position:relative; }
+    .orb svg { width:46px; height:46px; color:#fff; }
+    .orb::after { content:""; position:absolute; inset:-6px; border-radius:30px; border:2px solid rgba(79,110,247,.4); animation:pulse 2s ease-out infinite; }
+    @keyframes pulse { 0%{ transform:scale(.92); opacity:.7;} 100%{ transform:scale(1.15); opacity:0;} }
+    h1 { font-size:24px; font-weight:800; letter-spacing:-.02em; }
+    p { color:var(--sub); font-size:14px; line-height:1.6; margin-top:8px; }
+    .btn { margin-top:22px; display:inline-flex; align-items:center; gap:8px; height:46px; padding:0 22px; border:none; border-radius:13px;
+      font-size:14px; font-weight:800; color:#fff; cursor:pointer; background:linear-gradient(135deg,#4F6EF7,#7C5CF0);
+      box-shadow:0 12px 26px -12px rgba(79,110,247,.7); transition:transform .2s, box-shadow .2s; }
+    .btn:hover { transform:translateY(-2px); box-shadow:0 18px 32px -12px rgba(79,110,247,.85); }
+    .btn svg { width:17px; height:17px; }
+    .status { margin-top:18px; font-size:12px; color:var(--sub); display:inline-flex; align-items:center; gap:7px; }
+    .dot { width:8px; height:8px; border-radius:50%; background:#EF4444; box-shadow:0 0 0 3px rgba(239,68,68,.25); }
+    .status.online .dot { background:#22C55E; box-shadow:0 0 0 3px rgba(34,197,94,.25); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="orb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/>
+        <path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/>
+      </svg>
+    </div>
+    <h1>You're offline</h1>
+    <p>Lyceum Connect can't reach the network right now. Pages you've already opened stay available — reconnect to load fresh data.</p>
+    <button class="btn" onclick="location.reload()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.8 1 6.4 2.6L21 8"/><path d="M21 3v5h-5"/></svg>
+      Try again
+    </button>
+    <div class="status" id="status"><span class="dot"></span> <span id="statusText">No connection</span></div>
+  </div>
+  <script>
+    function upd(){ var s=document.getElementById('status'); var on=navigator.onLine;
+      s.classList.toggle('online',on); document.getElementById('statusText').textContent = on ? 'Back online — reloading…' : 'No connection';
+      if(on) setTimeout(function(){ location.reload(); }, 800); }
+    window.addEventListener('online', upd); window.addEventListener('offline', upd); upd();
+  </script>
+</body>
+</html>
