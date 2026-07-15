@@ -144,7 +144,15 @@
         var data = await src.save({ useObjectStreams: true });
         onP(1);
         var after = data.byteLength;
-        var saved = before > 0 ? Math.max(0, Math.round((1 - after / before) * 100)) : 0;
+        // Object-stream re-serialisation only helps PDFs that weren't already
+        // stream-optimised — it cannot recompress embedded images or fonts.
+        // Never hand back a file that's larger than the original while
+        // claiming a reduction happened.
+        if (after >= before) {
+          return { blob: files[0], filename: 'compressed.pdf', kind: 'PDF',
+            note: 'This PDF is already efficiently encoded — no further reduction was possible without re-encoding images, which would lose quality.' };
+        }
+        var saved = Math.round((1 - after / before) * 100);
         return { blob: new Blob([data], { type: 'application/pdf' }), filename: 'compressed.pdf', kind: 'PDF',
           note: 'Reduced by ~' + saved + '% (' + fmtSize(before) + ' → ' + fmtSize(after) + ').' };
       }
@@ -177,7 +185,7 @@
         onP(0.2);
         var res = await mammoth.convertToHtml({ arrayBuffer: await readAB(files[0]) });
         var holder = document.createElement('div');
-        holder.style.cssText = 'width:760px;padding:48px;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;position:fixed;left:-9999px;top:0';
+        holder.style.cssText = 'box-sizing:border-box;width:760px;padding:48px;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;position:fixed;left:-9999px;top:0';
         holder.innerHTML = res.value || '<p>(empty document)</p>';
         document.body.appendChild(holder);
         onP(0.5);
@@ -201,8 +209,7 @@
         for (var n = 1; n <= pdf.numPages; n++) {
           var page = await pdf.getPage(n);
           var tc = await page.getTextContent();
-          var txt = tc.items.map(function (it) { return it.str; }).join(' ').replace(/\s+/g, ' ').trim();
-          html += '<p>' + esc(txt) + '</p>';
+          html += pageTextToHtml(tc.items);
           if (n < pdf.numPages) html += '<br style="page-break-after:always">';
           onP(n / pdf.numPages);
         }
@@ -223,6 +230,45 @@
       var b64 = c.toDataURL('image/png');
       return await out.embedPng(b64);
     } finally { URL.revokeObjectURL(url); }
+  }
+
+  // Reconstruct readable line/paragraph structure from pdf.js text items
+  // (getTextContent returns a flat run of glyph strings positioned by a
+  // transform matrix — item order alone loses all line/paragraph breaks).
+  function pageTextToHtml(items) {
+    var glyphs = items.filter(function (it) { return it.str != null; });
+    if (!glyphs.length) return '';
+
+    glyphs.sort(function (a, b) {
+      var dy = b.transform[5] - a.transform[5]; // PDF y grows upward; read top → bottom
+      return Math.abs(dy) > 2 ? dy : a.transform[4] - b.transform[4]; // then left → right
+    });
+
+    var lines = [];
+    var cur = null, lastY = null;
+    glyphs.forEach(function (it) {
+      var y = it.transform[5];
+      if (cur === null || lastY === null || Math.abs(y - lastY) > 2) {
+        cur = { y: y, text: '' };
+        lines.push(cur);
+      }
+      cur.text += it.str;
+      lastY = y;
+    });
+
+    var gaps = [];
+    for (var i = 1; i < lines.length; i++) gaps.push(Math.abs(lines[i - 1].y - lines[i].y));
+    var avgGap = gaps.length ? gaps.reduce(function (a, b) { return a + b; }, 0) / gaps.length : 0;
+
+    var html = '', para = [];
+    function flush() { if (para.length) { html += '<p>' + esc(para.join(' ').replace(/\s+/g, ' ').trim()) + '</p>'; para = []; } }
+    lines.forEach(function (line, idx) {
+      var text = line.text.replace(/\s+/g, ' ').trim();
+      if (idx > 0 && avgGap > 0 && Math.abs(lines[idx - 1].y - line.y) > avgGap * 1.6) flush();
+      if (text) para.push(text);
+    });
+    flush();
+    return html;
   }
 
   function parseRange(str, total) {
