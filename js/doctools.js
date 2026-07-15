@@ -169,7 +169,7 @@
       }
     },
     word2pdf: {
-      title: 'Word → PDF', desc: 'Convert a .docx document to PDF.', color: '#2563EB', beta: true,
+      title: 'Word → PDF', desc: 'Convert a .docx document to PDF.', color: '#2563EB',
       accept: '.docx', multi: false, minFiles: 1,
       options: '',
       run: async function (files, onP) {
@@ -191,7 +191,7 @@
       }
     },
     pdf2word: {
-      title: 'PDF → Word', desc: 'Extract the text of a PDF into an editable Word (.doc) file.', color: '#0369A1', beta: true,
+      title: 'PDF → Word', desc: 'Extract the text of a PDF into an editable Word (.doc) file.', color: '#0369A1',
       accept: 'application/pdf', multi: false, minFiles: 1,
       options: '',
       run: async function (files, onP) {
