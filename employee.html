@@ -136,7 +136,8 @@
     .task-upd { font-size:10.5px; color:var(--text-tertiary); }
 
     /* Schedule */
-    .sched { display:grid; grid-template-columns:48px repeat(5,1fr); gap:0; }
+    .sched-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .sched { display:grid; grid-template-columns:48px repeat(5,1fr); gap:0; min-width:520px; }
     .sched-hour { font-size:11px; color:var(--text-tertiary); padding:14px 8px 0 0; text-align:right; }
     .sched-dayhead { text-align:center; padding-bottom:10px; border-bottom:1px solid var(--border-light); }
     .sched-dow { font-size:11px; color:var(--text-tertiary); font-weight:600; }

@@ -110,6 +110,9 @@
     .reminder-dropdown-item:hover {
       background: var(--bg-tertiary);
     }
+    @media (max-width: 480px) {
+      .task-form-2col { grid-template-columns: 1fr !important; }
+    }
   </style>
 </head>
 <body>
@@ -346,7 +349,7 @@
         <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block">Assignee Name</label>
         <input type="text" class="form-control" id="createTaskAssignee" style="width: 100%; height: 38px; font-size: 13.5px" placeholder="e.g. Lisa Thompson" required>
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4)">
+      <div class="task-form-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4)">
         <div class="form-group">
           <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block">Due Date</label>
           <input type="date" class="form-control" id="createTaskDueDate" style="width: 100%; height: 38px; font-size: 13.5px" required>
@@ -389,7 +392,7 @@
         <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block">Assignee</label>
         <input type="text" class="form-control" id="editTaskAssignee" style="width: 100%; height: 38px; font-size: 13.5px" required>
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4)">
+      <div class="task-form-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-4)">
         <div class="form-group">
           <label class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block">Due Date</label>
           <input type="date" class="form-control" id="editTaskDueDate" style="width: 100%; height: 38px; font-size: 13.5px" required>

@@ -184,7 +184,7 @@
         rows += '<div class="sched-cell">' + ev + '</div>';
       }
     });
-    return '<div class="sched">' + head + rows + '</div>';
+    return '<div class="sched-scroll"><div class="sched">' + head + rows + '</div></div>';
   }
 
   function detailsHTML(emp, a) {
