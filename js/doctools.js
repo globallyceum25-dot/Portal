@@ -180,42 +180,66 @@
       title: 'Word → PDF', desc: 'Convert a .docx document to PDF.', color: '#2563EB',
       accept: '.docx', multi: false, minFiles: 1,
       options: '',
+      // Renders text directly with jsPDF's own text APIs instead of the
+      // html2canvas/pdf.html() pipeline — that pipeline depends on the
+      // offscreen holder being laid out and painted before capture, which
+      // is unreliable across browsers and produced blank/empty PDFs.
       run: async function (files, onP) {
         if (!window.mammoth) throw new Error('Converter still loading — try again in a moment.');
-        onP(0.2);
-        var res = await mammoth.convertToHtml({ arrayBuffer: await readAB(files[0]) });
-        var holder = document.createElement('div');
-        holder.style.cssText = 'box-sizing:border-box;width:760px;padding:48px;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;position:fixed;left:-9999px;top:0';
-        holder.innerHTML = res.value || '<p>(empty document)</p>';
-        document.body.appendChild(holder);
-        onP(0.5);
-        try {
-          var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
-          var pdf = new jsPDFCtor({ unit: 'pt', format: 'a4' });
-          await pdf.html(holder, { autoPaging: 'text', margin: [40, 40, 40, 40], html2canvas: { scale: 0.85, useCORS: true }, width: 515, windowWidth: 760 });
-          onP(1);
-          return { blob: pdf.output('blob'), filename: (files[0].name.replace(/\.docx$/i, '') || 'document') + '.pdf', kind: 'PDF' };
-        } finally { holder.remove(); }
+        var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+        if (!jsPDFCtor) throw new Error('PDF renderer still loading — try again in a moment.');
+        onP(0.15);
+        var res = await mammoth.extractRawText({ arrayBuffer: await readAB(files[0]) });
+        var text = (res.value || '').trim();
+        onP(0.4);
+
+        var pdf = new jsPDFCtor({ unit: 'pt', format: 'a4' });
+        var pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
+        var margin = 54, maxW = pageW - margin * 2;
+        var fontSize = 11, lineH = fontSize * 1.4;
+        pdf.setFont('helvetica', 'normal'); pdf.setFontSize(fontSize);
+
+        var paragraphs = text ? text.split(/\r?\n+/).map(function (p) { return p.trim(); }).filter(Boolean) : [];
+        var y = margin;
+        if (!paragraphs.length) {
+          pdf.text('(empty document)', margin, y);
+        } else {
+          paragraphs.forEach(function (para, pi) {
+            var lines = pdf.splitTextToSize(para, maxW);
+            lines.forEach(function (line) {
+              if (y + lineH > pageH - margin) { pdf.addPage(); y = margin; }
+              pdf.text(line, margin, y);
+              y += lineH;
+            });
+            y += lineH * 0.6;
+            onP(0.4 + 0.55 * ((pi + 1) / paragraphs.length));
+          });
+        }
+        onP(1);
+        return { blob: pdf.output('blob'), filename: (files[0].name.replace(/\.docx$/i, '') || 'document') + '.pdf', kind: 'PDF',
+          note: 'Text-focused conversion — complex formatting, tables and images are not preserved.' };
       }
     },
     pdf2word: {
-      title: 'PDF → Word', desc: 'Extract the text of a PDF into an editable Word (.doc) file.', color: '#0369A1',
+      title: 'PDF → Word', desc: 'Extract the text of a PDF into an editable Word (.docx) file.', color: '#0369A1',
       accept: 'application/pdf', multi: false, minFiles: 1,
       options: '',
+      // Emits a genuine OOXML .docx (built with JSZip) instead of an HTML
+      // file wearing a .doc extension — the old technique made Word show
+      // a "file format doesn't match extension" warning, and in some
+      // browser/Word combinations refused to open at all.
       run: async function (files, onP) {
         ensurePdfJs();
         var pdf = await pdfjsLib.getDocument({ data: new Uint8Array(await readAB(files[0])) }).promise;
-        var html = '';
+        var pages = [];
         for (var n = 1; n <= pdf.numPages; n++) {
           var page = await pdf.getPage(n);
           var tc = await page.getTextContent();
-          html += pageTextToHtml(tc.items);
-          if (n < pdf.numPages) html += '<br style="page-break-after:always">';
+          pages.push(pageTextToParagraphs(tc.items));
           onP(n / pdf.numPages);
         }
-        var doc = '<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head>' +
-          '<body style="font-family:Calibri,Arial,sans-serif;font-size:11pt;line-height:1.5">' + (html || '<p>(no extractable text)</p>') + '</body></html>';
-        return { blob: new Blob(['﻿', doc], { type: 'application/msword' }), filename: (files[0].name.replace(/\.pdf$/i, '') || 'document') + '.doc', kind: 'DOC',
+        var blob = await buildDocx(pages);
+        return { blob: blob, filename: (files[0].name.replace(/\.pdf$/i, '') || 'document') + '.docx', kind: 'DOCX',
           note: 'Text-focused extraction — layout and images are not preserved.' };
       }
     }
@@ -235,9 +259,10 @@
   // Reconstruct readable line/paragraph structure from pdf.js text items
   // (getTextContent returns a flat run of glyph strings positioned by a
   // transform matrix — item order alone loses all line/paragraph breaks).
-  function pageTextToHtml(items) {
+  // Returns an array of paragraph strings for one PDF page.
+  function pageTextToParagraphs(items) {
     var glyphs = items.filter(function (it) { return it.str != null; });
-    if (!glyphs.length) return '';
+    if (!glyphs.length) return [];
 
     glyphs.sort(function (a, b) {
       var dy = b.transform[5] - a.transform[5]; // PDF y grows upward; read top → bottom
@@ -260,15 +285,64 @@
     for (var i = 1; i < lines.length; i++) gaps.push(Math.abs(lines[i - 1].y - lines[i].y));
     var avgGap = gaps.length ? gaps.reduce(function (a, b) { return a + b; }, 0) / gaps.length : 0;
 
-    var html = '', para = [];
-    function flush() { if (para.length) { html += '<p>' + esc(para.join(' ').replace(/\s+/g, ' ').trim()) + '</p>'; para = []; } }
+    var paragraphs = [], para = [];
+    function flush() { if (para.length) { paragraphs.push(para.join(' ').replace(/\s+/g, ' ').trim()); para = []; } }
     lines.forEach(function (line, idx) {
       var text = line.text.replace(/\s+/g, ' ').trim();
       if (idx > 0 && avgGap > 0 && Math.abs(lines[idx - 1].y - line.y) > avgGap * 1.6) flush();
       if (text) para.push(text);
     });
     flush();
-    return html;
+    return paragraphs;
+  }
+
+  function escXml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c];
+    });
+  }
+
+  // Build a minimal, valid OOXML .docx from per-page paragraph arrays.
+  function buildDocx(pagesOfParagraphs) {
+    var bodyXml = '';
+    var any = false;
+    pagesOfParagraphs.forEach(function (paras, pageIdx) {
+      if (paras.length) any = true;
+      paras.forEach(function (p) {
+        bodyXml += '<w:p><w:r><w:t xml:space="preserve">' + escXml(p) + '</w:t></w:r></w:p>';
+      });
+      if (pageIdx < pagesOfParagraphs.length - 1) {
+        bodyXml += '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+      }
+    });
+    if (!any) bodyXml = '<w:p><w:r><w:t>(no extractable text)</w:t></w:r></w:p>';
+
+    var documentXml =
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+      '<w:body>' + bodyXml +
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>' +
+      '</w:body></w:document>';
+
+    var contentTypesXml =
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+      '</Types>';
+
+    var relsXml =
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+      '</Relationships>';
+
+    var zip = new JSZip();
+    zip.file('[Content_Types].xml', contentTypesXml);
+    zip.folder('_rels').file('.rels', relsXml);
+    zip.folder('word').file('document.xml', documentXml);
+    return zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
   }
 
   function parseRange(str, total) {
@@ -444,7 +518,7 @@
     if (!state.result || !window.LCData) return;
     var title = prompt('Document title for the Knowledge Center:', state.result.filename.replace(/\.[a-z0-9]+$/i, ''));
     if (!title) return;
-    var kind = state.result.kind === 'DOC' ? 'Word' : state.result.kind === 'ZIP' ? 'Archive' : 'PDF';
+    var kind = state.result.kind === 'DOCX' ? 'Word' : state.result.kind === 'ZIP' ? 'Archive' : 'PDF';
     try {
       var row = { id: 'doc_' + Date.now(), title: title, cat: 'templates', type: kind, pages: 1,
         updated: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }), views: 0,
