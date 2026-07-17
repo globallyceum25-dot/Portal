@@ -120,6 +120,18 @@
     var i = 0;
     var html = '';
 
+    /* Row 0: identity hero + details — front and centre */
+    html += '' +
+      '<div class="hero col-4" style="--i:' + (i++) + '">' +
+        '<div class="hero-bg" style="' + av + '"><img class="hero-photo" src="' + photoURL(emp) + '" alt="" onload="this.closest(\'.hero\').classList.add(\'has-photo\')" onerror="this.remove()"></div>' +
+        '<div class="hero-mark"><span>' + esc(emp.initials) + '</span></div>' +
+        (emp.online ? '<div class="hero-chip"><span class="dot"></span> Online</div>' : '<div class="hero-chip" style="background:rgba(255,255,255,.14)">' + esc(emp.location) + '</div>') +
+        '<div class="hero-info"><div class="hero-name">' + esc(emp.name) + '</div><div class="hero-role">' + esc(emp.designation) + '</div>' +
+          (emp._co ? '<div class="hero-company">' + coTile(emp._co) + '<span class="co-cname">' + esc(tcase(emp._co.name)) + '</span></div>' : '') +
+        '</div>' +
+      '</div>';
+    html += widget('col-8', i++, detailsHTML(emp, a), 'Details', '');
+
     /* Row 1: stat tiles + KPI bars */
     html += widget('col-8', i++,
       '<div class="stat-tiles">' +
@@ -144,17 +156,7 @@
     html += widget('col-4', i++, timelineHTML(emp), 'Event / Task Timeline', "Today's schedule");
     html += widget('col-4', i++, slaHTML(emp, a), 'SLA Health', '');
 
-    /* Row 2: hero, work-time bars, ring, onboarding */
-    html += '' +
-      '<div class="hero col-3" style="--i:' + (i++) + '">' +
-        '<div class="hero-bg" style="' + av + '"><img class="hero-photo" src="' + photoURL(emp) + '" alt="" onload="this.closest(\'.hero\').classList.add(\'has-photo\')" onerror="this.remove()"></div>' +
-        '<div class="hero-mark"><span>' + esc(emp.initials) + '</span></div>' +
-        (emp.online ? '<div class="hero-chip"><span class="dot"></span> Online</div>' : '<div class="hero-chip" style="background:rgba(255,255,255,.14)">' + esc(emp.location) + '</div>') +
-        '<div class="hero-info"><div class="hero-name">' + esc(emp.name) + '</div><div class="hero-role">' + esc(emp.designation) + '</div>' +
-          (emp._co ? '<div class="hero-company">' + coTile(emp._co) + '<span class="co-cname">' + esc(tcase(emp._co.name)) + '</span></div>' : '') +
-        '</div>' +
-      '</div>';
-
+    /* Row 2: work-time bars, ring, onboarding */
     var bars = '';
     for (var d = 0; d < 7; d++) {
       var pct = Math.round((a.week[d] / 360) * 100);
@@ -164,12 +166,12 @@
         '<div class="bar' + (isPeak ? ' peak' : '') + '" data-h="' + Math.max(4, pct) + '"></div>' +
         '<div class="bar-dot"></div><div class="bar-lbl">' + days[d] + '</div></div>';
     }
-    html += widget('col-3', i++,
+    html += widget('col-4', i++,
       '<div class="wt-total" data-count="' + a.totalH.toFixed(1) + '">0.0 <small>Total Work Time</small></div>' +
       '<div class="bars">' + bars + '</div>', 'Progress', '');
 
     var C = 2 * Math.PI * 70;
-    html += widget('col-3', i++,
+    html += widget('col-4', i++,
       '<div class="ring-wrap">' +
         '<div class="ring"><svg width="170" height="170">' +
           '<circle cx="85" cy="85" r="70" fill="none" stroke="var(--bg-tertiary)" stroke-width="12"/>' +
@@ -182,7 +184,7 @@
       '</div>', 'Progress', '');
 
     var todo = 100 - a.onboarding, prog = Math.min(a.onboarding, Math.round(a.onboarding * 0.6));
-    html += widget('col-3', i++,
+    html += widget('col-4', i++,
       '<div class="ob-head"><span></span><span class="ob-pct" data-count="' + a.onboarding + '" data-suffix="%">0%</span></div>' +
       '<div class="ob-seg">' +
         '<div class="ob-block" data-basis="' + Math.max(a.onboarding, 8) + '" style="background:var(--primary)">' + (a.onboarding > 12 ? 'Done' : '') + '</div>' +
@@ -192,10 +194,9 @@
       '<div class="ob-legend"><span class="ob-leg"><i style="background:var(--primary)"></i>Completed</span><span class="ob-leg"><i style="background:var(--gray-800)"></i>In progress</span><span class="ob-leg"><i style="background:var(--bg-tertiary)"></i>To do</span></div>',
       'Onboarding', '');
 
-    /* Row 3: schedule, details, top performers */
-    html += widget('col-5', i++, scheduleHTML(emp), 'This Week', '02 – 06 March');
-    html += widget('col-4', i++, detailsHTML(emp, a), 'Details', '');
-    html += widget('col-3', i++, tasksHTML(emp), 'Tasks', '');
+    /* Row 3: schedule, tasks */
+    html += widget('col-8', i++, scheduleHTML(emp), 'This Week', '02 – 06 March');
+    html += widget('col-4', i++, tasksHTML(emp), 'Tasks', '');
 
     grid.innerHTML = html;
     document.getElementById('dashLoading').style.display = 'none';
