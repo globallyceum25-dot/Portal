@@ -52,6 +52,31 @@
     .kpi-track { height:8px; border-radius:99px; background:var(--bg-tertiary); overflow:hidden; }
     .kpi-fill { height:100%; border-radius:99px; width:0; transition:width 1.1s cubic-bezier(.22,1,.36,1); }
 
+    /* Performance Analysis tiles */
+    .perf-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; }
+    .perf-cell { background:var(--bg-tertiary); border:1px solid var(--border-light); border-radius:16px; padding:14px 15px; display:flex; flex-direction:column; gap:6px; transition:transform .18s ease; }
+    .perf-cell:hover { transform:translateY(-3px); }
+    .perf-top { display:flex; align-items:center; justify-content:space-between; }
+    .perf-ico { width:32px; height:32px; border-radius:9px; display:grid; place-items:center; }
+    .perf-val { font-size:24px; font-weight:800; letter-spacing:-.02em; color:var(--text-primary); line-height:1; }
+    .perf-lab { font-size:12px; color:var(--text-secondary); font-weight:600; }
+    .perf-spark { height:32px; margin-top:2px; }
+
+    /* Appraisal gauge + competency bars */
+    .gauge-row { display:flex; align-items:center; gap:18px; }
+    .mini-stats { display:flex; flex-direction:column; gap:9px; flex:1; }
+    .mini-stat { display:flex; align-items:center; justify-content:space-between; font-size:12.5px; }
+    .mini-stat .lbl { color:var(--text-secondary); }
+    .mini-stat b { font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums; }
+    .lc-prog { display:flex; flex-direction:column; gap:12px; }
+    .lc-prog-top { display:flex; justify-content:space-between; font-size:12px; margin-bottom:5px; }
+    .lc-prog-top span { color:var(--text-secondary); }
+    .lc-prog-top b { color:var(--text-primary); font-weight:800; }
+    .lc-prog-track { height:8px; border-radius:99px; background:var(--bg-tertiary); overflow:hidden; }
+    .lc-prog-fill { display:block; height:100%; width:0; border-radius:99px; animation:progGrow 1s cubic-bezier(.4,0,.2,1) both .25s; }
+    @keyframes progGrow { to { width:var(--w); } }
+    .lc-gauge-fill { transition:stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1); }
+
     /* Profile hero */
     .hero { position:relative; min-height:230px; border-radius:var(--radius-xl); overflow:hidden; display:flex; align-items:flex-end; padding:var(--space-5);
             border:1px solid var(--border); box-shadow:var(--shadow-sm); animation:wIn .55s cubic-bezier(.22,1,.36,1) both; }
@@ -166,7 +191,7 @@
     .kv span { color:var(--text-secondary); }
 
     @keyframes wIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-    @media (prefers-reduced-motion: reduce){ .w,.hero,.tp-item,.ev{animation:none!important} .bar,.kpi-fill,.ob-block{transition:none!important} }
+    @media (prefers-reduced-motion: reduce){ .w,.hero,.tp-item,.ev,.lc-prog-fill{animation:none!important} .bar,.kpi-fill,.ob-block,.lc-gauge-fill{transition:none!important} }
 
     /* Loading state */
     .dash-loading { display:flex; align-items:center; justify-content:center; padding:var(--space-16); color:var(--text-secondary); gap:12px; }
@@ -312,6 +337,7 @@
 <script src="js/api.js"></script>
 <script src="js/sectors-data.js"></script>
 <script src="js/photos.js"></script>
+<script src="js/charts.js"></script>
 <script src="js/employee.js"></script>
 <script src="js/bot.js"></script>
 </body>

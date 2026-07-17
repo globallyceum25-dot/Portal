@@ -145,19 +145,11 @@
     /* ---- generic bits ---- */
     .num { font-variant-numeric:tabular-nums; }
     /* internal grids reflow to the WIDGET's width (not the viewport) */
-    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; }
     .chart-slot { width:100%; min-height:120px; }
     .chart-slot svg { display:block; width:100%; height:auto; }
     .lc-donut-wrap > svg { max-width:172px; height:auto; }
-    .kpi-cell { background:var(--bg-tertiary); border:1px solid var(--border-light); border-radius:16px; padding:14px 15px; display:flex; flex-direction:column; gap:6px; transition:transform .18s ease; }
-    .kpi-cell:hover { transform:translateY(-3px); }
-    .kpi-top { display:flex; align-items:center; justify-content:space-between; }
-    .kpi-ico { width:32px; height:32px; border-radius:9px; display:grid; place-items:center; } .kpi-ico svg{ width:16px; height:16px; }
     .kpi-delta { font-size:11px; font-weight:700; padding:2px 7px; border-radius:99px; }
     .kpi-delta.up { color:#15803D; background:#DCFCE7; } .kpi-delta.down { color:#B91C1C; background:#FEE2E2; }
-    .kpi-val { font-size:26px; font-weight:800; letter-spacing:-.02em; color:var(--text-primary); line-height:1; }
-    .kpi-lab { font-size:12px; color:var(--text-secondary); font-weight:600; }
-    .kpi-spark { height:34px; margin-top:2px; }
 
     .gauge-row { display:flex; align-items:center; gap:18px; }
     .mini-stats { display:flex; flex-direction:column; gap:9px; flex:1; }
@@ -165,21 +157,6 @@
     .mini-stat .lbl { color:var(--text-secondary); display:flex; align-items:center; gap:7px; }
     .mini-stat .lbl i { width:9px; height:9px; border-radius:3px; display:inline-block; }
     .mini-stat b { font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums; }
-
-    /* task list */
-    .tk { display:flex; align-items:center; gap:11px; padding:9px 0; border-bottom:1px solid var(--border-light); }
-    .tk:last-child { border-bottom:0; }
-    .tk-check { width:20px; height:20px; border-radius:6px; border:2px solid var(--border-strong); flex-shrink:0; display:grid; place-items:center; cursor:pointer; transition:all .15s; }
-    .tk-check.done { background:var(--success); border-color:var(--success); }
-    .tk-check.done svg { color:#fff; } .tk-check svg { width:12px; height:12px; opacity:0; } .tk-check.done svg { opacity:1; }
-    .tk-mid { flex:1; min-width:0; }
-    .tk-name { font-size:13px; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .tk-name.done { text-decoration:line-through; color:var(--text-tertiary); }
-    .tk-meta { font-size:11px; color:var(--text-tertiary); display:flex; gap:8px; margin-top:2px; }
-    .tk-prio { font-size:10px; font-weight:800; padding:2px 7px; border-radius:99px; flex-shrink:0; }
-    .prio-High{ color:#B91C1C; background:#FEE2E2;} .prio-Medium{ color:#B45309; background:#FEF3C7;} .prio-Low{ color:#475569; background:#E2E8F0;}
-    .tk-bar { height:4px; border-radius:99px; background:var(--bg-tertiary); margin-top:5px; overflow:hidden; }
-    .tk-bar i { display:block; height:100%; border-radius:99px; background:var(--primary); width:0; animation:progGrow 1s ease both .3s; }
 
     /* timeline */
     .tl { position:relative; padding-left:18px; }
@@ -254,7 +231,7 @@
     .lc-vbar { transform-box:fill-box; transform-origin:bottom; animation:vbarGrow .6s cubic-bezier(.34,1.3,.5,1) both; animation-delay:calc(var(--i,0)*55ms + .15s); }
     @keyframes vbarGrow { from { transform:scaleY(0); } to { transform:scaleY(1); } }
     .lc-gauge-fill { transition:stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1); }
-    @media (prefers-reduced-motion: reduce){ .tile,.lc-vbar,.lc-prog-fill,.tk-bar i,.hero-orb{ animation:none !important; } .lc-gauge-fill{ transition:none !important; } }
+    @media (prefers-reduced-motion: reduce){ .tile,.lc-vbar,.lc-prog-fill,.hero-orb{ animation:none !important; } .lc-gauge-fill{ transition:none !important; } }
 
     /* ---- Add-widget modal ---- */
     .wm-overlay { position:fixed; inset:0; background:rgba(10,14,24,.55); backdrop-filter:blur(4px); z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; }

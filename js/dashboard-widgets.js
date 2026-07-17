@@ -13,14 +13,6 @@
   /* ---------------- Data (deterministic demo data) ---------------- */
   var DATA = {
     user: { name: 'LGH IT Test', first: 'LGH IT Test', role: 'IT Governance Lead', dept: 'Information Technology', avatar: 'LT', photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=640&h=760&q=80&crop=faces', company: 'Lyceum Global Holdings', companyLogo: 'assets/logo.png' },
-    tasks: [
-      { t: 'Review Q3 access audit findings', due: 'Today', prio: 'High', done: false, progress: 70 },
-      { t: 'Approve laptop procurement batch', due: 'Tomorrow', prio: 'Medium', done: false, progress: 40 },
-      { t: 'Patch VPN gateway (CVE-2025-118)', due: 'Sep 22', prio: 'High', done: false, progress: 20 },
-      { t: 'Onboard new hire — J. Perera', due: 'Sep 19', prio: 'Medium', done: true, progress: 100 },
-      { t: 'Update SSO policy document', due: 'Sep 18', prio: 'Low', done: true, progress: 100 },
-      { t: 'Quarterly DR drill sign-off', due: 'Sep 15', prio: 'Low', done: true, progress: 100 }
-    ],
     timeline: [
       { time: '09:30', title: 'Access Review — Interview', desc: 'Room 4B · with HR', done: true },
       { time: '11:00', title: 'IT Governance Team Sync', desc: 'Weekly · Google Meet', done: true },
@@ -29,27 +21,6 @@
       { time: '16:30', title: 'HR Policy Review', desc: 'Remote-work policy sign-off', done: false }
     ],
     weekly: [ { d: 'M', h: 7.5 }, { d: 'T', h: 8.2 }, { d: 'W', h: 6.1, hi: true }, { d: 'T', h: 8.8 }, { d: 'F', h: 5.4 }, { d: 'S', h: 2.1 }, { d: 'S', h: 0 } ],
-    perf: [
-      { lab: 'Tickets resolved', val: 128, delta: '+12%', up: true, ico: 'ticket', c: '#4F6EF7', spark: [80, 92, 88, 101, 96, 110, 128] },
-      { lab: 'Avg response', val: 1.4, suf: 'h', dec: 1, delta: '-0.3h', up: true, ico: 'clock', c: '#22C55E', spark: [2.1, 2.0, 1.9, 1.7, 1.6, 1.5, 1.4] },
-      { lab: 'CSAT score', val: 96, suf: '%', delta: '+4%', up: true, ico: 'smile', c: '#EAB308', spark: [88, 90, 89, 92, 94, 95, 96] },
-      { lab: 'System uptime', val: 99.8, suf: '%', dec: 1, delta: '+0.2%', up: true, ico: 'pulse', c: '#38BDF8', spark: [99.1, 99.3, 99.2, 99.5, 99.6, 99.7, 99.8] }
-    ],
-    kpis: [
-      { label: 'Resolution SLA', value: 98, max: 100, note: '98% / 95% target', color: '#22C55E' },
-      { label: 'First-response SLA', value: 92, max: 100, note: '92% / 90% target', color: '#4F6EF7' },
-      { label: 'Change success rate', value: 95, max: 100, note: '95% / 98% target', color: '#EAB308' },
-      { label: 'Backlog reduction', value: 78, max: 100, note: '78% / 80% target', color: '#F472B6' }
-    ],
-    appraisal: {
-      overall: 4.6, prev: 4.3, cycle: 'H1 2025', last: 'Mar 2025', next: 'Sep 2025',
-      competencies: [
-        { label: 'Technical delivery', value: 4.8, max: 5, color: '#4F6EF7', note: '4.8' },
-        { label: 'Leadership', value: 4.4, max: 5, color: '#22C55E', note: '4.4' },
-        { label: 'Communication', value: 4.5, max: 5, color: '#EAB308', note: '4.5' },
-        { label: 'Innovation', value: 4.2, max: 5, color: '#F472B6', note: '4.2' }
-      ]
-    },
     devices: [
       { name: 'MacBook Pro 16" (M3)', meta: 'Asset LGH-IT-2043 · macOS 15', ico: 'laptop', status: 'Active', c: '#22C55E' },
       { name: 'iPhone 14 Pro', meta: 'Asset LGH-MB-1187 · iOS 18', ico: 'phone', status: 'Active', c: '#22C55E' },
@@ -176,27 +147,6 @@
     '</div>';
   }
 
-  function rTasks() {
-    var done = DATA.tasks.filter(function (t) { return t.done; }).length, total = DATA.tasks.length;
-    var pct = Math.round(done / total * 100);
-    var list = DATA.tasks.map(function (t) {
-      return '<div class="tk">' +
-        '<div class="tk-check ' + (t.done ? 'done' : '') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>' +
-        '<div class="tk-mid"><div class="tk-name ' + (t.done ? 'done' : '') + '">' + esc(t.t) + '</div>' +
-          (t.done ? '' : '<div class="tk-bar"><i style="width:' + t.progress + '%"></i></div>') +
-          '<div class="tk-meta"><span>Due ' + esc(t.due) + '</span></div></div>' +
-        '<span class="tk-prio prio-' + t.prio + '">' + t.prio + '</span></div>';
-    }).join('');
-    return '<div class="gauge-row" style="margin-bottom:14px">' +
-      C.gauge(pct, { size: 108, color: '#4F6EF7', sub: 'complete' }) +
-      '<div class="mini-stats">' +
-        '<div class="mini-stat"><span class="lbl"><i style="background:#22C55E"></i>Completed</span><b>' + done + '</b></div>' +
-        '<div class="mini-stat"><span class="lbl"><i style="background:#EAB308"></i>In progress</span><b>' + (total - done) + '</b></div>' +
-        '<div class="mini-stat"><span class="lbl"><i style="background:#94A3B8"></i>Total assigned</span><b>' + total + '</b></div>' +
-      '</div></div>' + list +
-      '<div class="tile-foot"><a class="tile-link-all" href="tasks.html">Open Tasks Manager →</a></div>';
-  }
-
   function rTimeline() {
     return '<div class="tl">' + DATA.timeline.map(function (e) {
       return '<div class="tl-item ' + (e.done ? 'done' : '') + '"><div class="tl-time">' + esc(e.time) + '</div>' +
@@ -211,35 +161,6 @@
       '<div style="font-size:12px;color:var(--success-dark);font-weight:700">▲ 8% vs last week</div></div>' +
       '<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px">Hours logged this week</div>' +
       '<div class="chart-slot" data-chart="weekly"></div>';
-  }
-
-  function rPerf() {
-    return '<div class="kpi-grid">' + DATA.perf.map(function (p) {
-      return '<div class="kpi-cell">' +
-        '<div class="kpi-top"><span class="kpi-ico" style="background:' + p.c + '22;color:' + p.c + '">' + ic(p.ico) + '</span>' +
-          '<span class="kpi-delta ' + (p.up ? 'up' : 'down') + '">' + esc(p.delta) + '</span></div>' +
-        '<div class="kpi-val">' + num(p.val, { dec: p.dec || 0, suf: p.suf || '' }) + '</div>' +
-        '<div class="kpi-lab">' + esc(p.lab) + '</div>' +
-        '<div class="kpi-spark">' + C.sparkline(p.spark, { color: p.c, h: 34 }) + '</div></div>';
-    }).join('') + '</div>';
-  }
-
-  function rKpi() {
-    return C.progressRows(DATA.kpis) +
-      '<div class="tile-foot" style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--text-secondary)">' +
-      '<span class="kpi-delta up">3 / 4 on target</span> KPIs meeting or exceeding target this quarter.</div>';
-  }
-
-  function rAppraisal() {
-    var a = DATA.appraisal, pct = Math.round(a.overall / 5 * 100);
-    return '<div class="gauge-row" style="margin-bottom:14px">' +
-      C.gauge(pct, { size: 104, color: '#EAB308', label: a.overall.toFixed(1), sub: 'of 5.0' }) +
-      '<div class="mini-stats">' +
-        '<div class="mini-stat"><span class="lbl">Cycle</span><b>' + esc(a.cycle) + '</b></div>' +
-        '<div class="mini-stat"><span class="lbl">Last review</span><b>' + esc(a.last) + '</b></div>' +
-        '<div class="mini-stat"><span class="lbl">Next review</span><b style="color:var(--primary)">' + esc(a.next) + '</b></div>' +
-        '<div class="mini-stat"><span class="lbl">Trend</span><b style="color:var(--success-dark)">▲ +' + (a.overall - a.prev).toFixed(1) + '</b></div>' +
-      '</div></div>' + C.progressRows(a.competencies, {});
   }
 
   function rDevices() {
@@ -427,12 +348,8 @@
   /* ---------------- Registry ---------------- */
   var W = {
     welcome:   { title: 'Welcome', section: 1, span: 12, ico: 'star',    color: '#EAB308', render: rWelcome, klass: 'hero', desc: 'Personalised greeting & headline stats.' },
-    tasks:     { title: 'My Tasks & Completion', section: 1, span: 6, ico: 'tasks', color: '#4F6EF7', render: rTasks, desc: 'Assigned tasks and completion rate.' },
     weekly:    { title: 'Weekly Progress', section: 1, span: 6, ico: 'chart', color: '#EAB308', render: rWeekly, desc: 'Hours logged across the week.' },
-    perf:      { title: 'Performance Analysis', section: 1, span: 12, ico: 'pulse', color: '#38BDF8', render: rPerf, desc: 'Key performance numbers in tiles.' },
     timeline:  { title: 'Event / Task Timeline', section: 1, span: 4, ico: 'timeline', color: '#7C3AED', render: rTimeline, desc: "Today's schedule of events." },
-    kpi:       { title: 'KPI Achievements', section: 1, span: 4, ico: 'target', color: '#22C55E', render: rKpi, desc: 'Progress against KPI targets.' },
-    appraisal: { title: 'Appraisal', section: 1, span: 4, ico: 'award', color: '#EAB308', render: rAppraisal, desc: 'Rating & competency breakdown.' },
     inquiries: { title: 'My Inquiries', section: 1, span: 6, ico: 'help', color: '#38BDF8', render: rInquiries, desc: 'Inquiries made and their status.' },
     devices:   { title: 'Assigned Devices', section: 1, span: 6, ico: 'laptop', color: '#4F6EF7', render: rDevices, desc: 'Company assets allocated to you.' },
     leaveatt:  { title: 'Leave & Attendance', section: 1, span: 6, ico: 'cal', color: '#22C55E', render: rLeaveAtt, desc: 'Attendance summary & trend.' },
@@ -456,7 +373,7 @@
 
   var DEFAULT = {
     // Single unified grid (no sections) — order kept from the old s1 then s2.
-    s1: ['welcome', 'tasks', 'weekly', 'perf', 'timeline', 'kpi', 'appraisal', 'inquiries', 'devices', 'leaveatt', 'leaveelig',
+    s1: ['welcome', 'weekly', 'timeline', 'inquiries', 'devices', 'leaveatt', 'leaveelig',
          'quick', 'services', 'apps', 'empsearch', 'announce', 'sla'],
     s2: []
   };
@@ -609,7 +526,6 @@
     });
     wireEmpSearch();
     wireApps();
-    wireTasks();
     wireNotes();
     sizeCharts();     // size chart SVGs to their slot width first…
     fitHeights();     // …then fit tile heights to the resulting content
@@ -787,14 +703,6 @@
   function wireApps() {
     Array.prototype.forEach.call(document.querySelectorAll('.app[data-app]'), function (a) {
       a.addEventListener('click', function () { if (window.showToast) showToast('Opening ' + a.dataset.app, 'Signing you in securely via SSO…', 'info'); });
-    });
-  }
-  function wireTasks() {
-    Array.prototype.forEach.call(document.querySelectorAll('.tk-check'), function (c) {
-      c.addEventListener('click', function () {
-        c.classList.toggle('done');
-        var name = c.parentElement.querySelector('.tk-name'); if (name) name.classList.toggle('done');
-      });
     });
   }
   function wireNotes() {

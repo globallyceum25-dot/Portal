@@ -44,6 +44,23 @@
     }
     var ringMin = rnd(2, 150, 320);
     var onboard = senior ? 100 : rnd(5, 18, 92);
+
+    // 7-point trend series for the Performance Analysis tiles — a gentle
+    // deterministic upward drift so every employee gets a plausible-looking
+    // sparkline instead of flat/random noise.
+    function trend(shift, base, span) {
+      var out = [], v = base;
+      for (var k = 0; k < 7; k++) { v += (rnd(shift + k, -span, span) / 3); out.push(Math.round(v * 10) / 10); }
+      return out;
+    }
+    var qualityScore = rnd(23, 82, 99);
+    var turnaroundH = rnd(26, 4, 28) / 10 + 0.8;
+
+    var overall = 3.4 + (rnd(29, 0, 16) / 10);           // 3.4 – 5.0
+    var prevRating = Math.max(3, overall - (rnd(31, 1, 6) / 10));
+    var reviewCycles = ['H1 2025', 'H2 2025', 'H1 2026'];
+    var cycle = reviewCycles[h % reviewCycles.length];
+
     return {
       week: week, peak: peak, peakVal: peakVal,
       totalH: (totalMin / 60),
@@ -57,7 +74,26 @@
       tenure: tenure(emp.joining_date),
       device: ['MacBook Air · M4', 'MacBook Pro · M3', 'Dell XPS 15', 'ThinkPad X1'][h % 4],
       salaryBand: ['B3', 'B4', 'M1', 'M2'][h % 4],
-      leave: rnd(9, 4, 18)
+      leave: rnd(9, 4, 18),
+      perf: {
+        quality: qualityScore, qualityTrend: trend(33, qualityScore - 4, 3),
+        turnaround: turnaroundH, turnaroundTrend: trend(37, turnaroundH + 0.5, 0.6),
+        tasksTrend: trend(41, rnd(11, 18, 60) - 6, 4),
+        utilTrend: trend(45, rnd(20, 62, 95) - 5, 4)
+      },
+      appraisal: {
+        overall: overall, prev: prevRating, cycle: cycle, last: 'Mar 2025', next: 'Sep 2025',
+        competencies: (function () {
+          var raw = [
+            { label: 'Technical delivery', value: 3.4 + (rnd(51, 0, 16) / 10), max: 5, color: '#4F6EF7' },
+            { label: 'Leadership', value: 3.4 + (rnd(55, 0, 16) / 10), max: 5, color: '#22C55E' },
+            { label: 'Communication', value: 3.4 + (rnd(59, 0, 16) / 10), max: 5, color: '#EAB308' },
+            { label: 'Innovation', value: 3.4 + (rnd(63, 0, 16) / 10), max: 5, color: '#F472B6' }
+          ];
+          raw.forEach(function (c) { c.note = c.value.toFixed(1); });
+          return raw;
+        })()
+      }
     };
   }
 
@@ -88,6 +124,10 @@
         kpi('On-time', a.onTime, 'var(--primary)') +
         kpi('Utilization', a.utilization, 'var(--primary-light)') +
       '</div>', 'Performance', 'This month');
+
+    /* Row 1b: performance analysis tiles + appraisal */
+    html += widget('col-8', i++, perfAnalysisHTML(emp, a), 'Performance Analysis', 'Last 7 weeks');
+    html += widget('col-4', i++, appraisalHTML(emp, a), 'Appraisal', a.appraisal.cycle);
 
     /* Row 2: hero, work-time bars, ring, onboarding */
     html += '' +
@@ -166,6 +206,38 @@
   function kpi(name, pct, color) {
     return '<div class="kpi"><div class="kpi-top"><span class="kpi-name">' + name + '</span><span class="kpi-pct">' + pct + '%</span></div>' +
       '<div class="kpi-track"><div class="kpi-fill" data-w="' + pct + '" style="background:' + color + '"></div></div></div>';
+  }
+
+  function perfAnalysisHTML(emp, a) {
+    var C = window.LCCharts || {};
+    var p = a.perf;
+    var cells = [
+      { lab: 'Tasks completed', val: a.tasksDone, ico: '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>', c: '#4F6EF7', spark: p.tasksTrend },
+      { lab: 'Avg turnaround', val: p.turnaround, suf: 'h', dec: 1, ico: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>', c: '#22C55E', spark: p.turnaroundTrend },
+      { lab: 'Quality score', val: p.quality, suf: '%', ico: '<path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/>', c: '#EAB308', spark: p.qualityTrend },
+      { lab: 'Utilization', val: a.utilization, suf: '%', ico: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>', c: '#38BDF8', spark: p.utilTrend }
+    ];
+    return '<div class="perf-grid">' + cells.map(function (cell) {
+      return '<div class="perf-cell">' +
+        '<div class="perf-top"><span class="perf-ico" style="background:' + cell.c + '22;color:' + cell.c + '"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + cell.ico + '</svg></span></div>' +
+        '<div class="perf-val">' + (cell.dec ? cell.val.toFixed(cell.dec) : Math.round(cell.val)) + (cell.suf || '') + '</div>' +
+        '<div class="perf-lab">' + esc(cell.lab) + '</div>' +
+        '<div class="perf-spark">' + (C.sparkline ? C.sparkline(cell.spark, { color: cell.c, h: 32 }) : '') + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  function appraisalHTML(emp, a) {
+    var C = window.LCCharts || {};
+    var ap = a.appraisal, pct = Math.round(ap.overall / 5 * 100);
+    var gauge = C.gauge ? C.gauge(pct, { size: 104, color: '#EAB308', label: ap.overall.toFixed(1), sub: 'of 5.0' }) : '';
+    var rows = C.progressRows ? C.progressRows(ap.competencies, {}) : '';
+    return '<div class="gauge-row" style="margin-bottom:14px">' + gauge +
+      '<div class="mini-stats">' +
+        '<div class="mini-stat"><span class="lbl">Cycle</span><b>' + esc(ap.cycle) + '</b></div>' +
+        '<div class="mini-stat"><span class="lbl">Last review</span><b>' + esc(ap.last) + '</b></div>' +
+        '<div class="mini-stat"><span class="lbl">Next review</span><b style="color:var(--primary)">' + esc(ap.next) + '</b></div>' +
+        '<div class="mini-stat"><span class="lbl">Trend</span><b style="color:var(--success-dark)">▲ +' + (ap.overall - ap.prev).toFixed(1) + '</b></div>' +
+      '</div></div>' + rows;
   }
 
   function scheduleHTML(emp) {
@@ -282,6 +354,15 @@
       document.querySelectorAll('.task-bar-fill').forEach(function (f) { f.style.width = f.getAttribute('data-w') + '%'; });
       var arc = document.getElementById('ringArc');
       if (arc) arc.style.transition = 'stroke-dashoffset 1.2s cubic-bezier(.22,1,.36,1)', arc.style.strokeDashoffset = arc.getAttribute('data-off');
+      // Appraisal gauge (LCCharts.gauge draws its final offset immediately —
+      // reset to empty first so the CSS transition can draw it in).
+      document.querySelectorAll('.lc-gauge-fill').forEach(function (el) {
+        var final = el.getAttribute('stroke-dashoffset');
+        var full = el.getAttribute('stroke-dasharray');
+        el.setAttribute('stroke-dashoffset', full);
+        void el.getBoundingClientRect();
+        setTimeout(function () { el.setAttribute('stroke-dashoffset', final); }, 60);
+      });
     }, reduce ? 0 : 80);
     // count-ups
     document.querySelectorAll('[data-count]').forEach(function (el) {
