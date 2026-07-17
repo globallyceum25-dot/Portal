@@ -148,8 +148,6 @@
     .chart-slot { width:100%; min-height:120px; }
     .chart-slot svg { display:block; width:100%; height:auto; }
     .lc-donut-wrap > svg { max-width:172px; height:auto; }
-    .kpi-delta { font-size:11px; font-weight:700; padding:2px 7px; border-radius:99px; }
-    .kpi-delta.up { color:#15803D; background:#DCFCE7; } .kpi-delta.down { color:#B91C1C; background:#FEE2E2; }
 
     .gauge-row { display:flex; align-items:center; gap:18px; }
     .mini-stats { display:flex; flex-direction:column; gap:9px; flex:1; }
@@ -157,17 +155,6 @@
     .mini-stat .lbl { color:var(--text-secondary); display:flex; align-items:center; gap:7px; }
     .mini-stat .lbl i { width:9px; height:9px; border-radius:3px; display:inline-block; }
     .mini-stat b { font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums; }
-
-    /* timeline */
-    .tl { position:relative; padding-left:18px; }
-    .tl::before { content:""; position:absolute; left:5px; top:4px; bottom:4px; width:2px; background:var(--border); }
-    .tl-item { position:relative; padding:0 0 15px 12px; }
-    .tl-item:last-child { padding-bottom:0; }
-    .tl-item::before { content:""; position:absolute; left:-16px; top:3px; width:11px; height:11px; border-radius:50%; background:var(--surface); border:2px solid var(--primary); }
-    .tl-item.done::before { background:var(--success); border-color:var(--success); }
-    .tl-time { font-size:11px; font-weight:700; color:var(--primary); }
-    .tl-title { font-size:13px; font-weight:600; color:var(--text-primary); }
-    .tl-desc { font-size:11.5px; color:var(--text-tertiary); }
 
     /* devices */
     .dev { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-light); }

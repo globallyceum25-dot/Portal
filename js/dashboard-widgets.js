@@ -13,14 +13,6 @@
   /* ---------------- Data (deterministic demo data) ---------------- */
   var DATA = {
     user: { name: 'LGH IT Test', first: 'LGH IT Test', role: 'IT Governance Lead', dept: 'Information Technology', avatar: 'LT', photo: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=640&h=760&q=80&crop=faces', company: 'Lyceum Global Holdings', companyLogo: 'assets/logo.png' },
-    timeline: [
-      { time: '09:30', title: 'Access Review — Interview', desc: 'Room 4B · with HR', done: true },
-      { time: '11:00', title: 'IT Governance Team Sync', desc: 'Weekly · Google Meet', done: true },
-      { time: '13:30', title: 'Project Update — Portal v2', desc: 'Present sprint demo', done: false },
-      { time: '15:00', title: 'Discuss Q3 Goals', desc: 'With Line Manager', done: false },
-      { time: '16:30', title: 'HR Policy Review', desc: 'Remote-work policy sign-off', done: false }
-    ],
-    weekly: [ { d: 'M', h: 7.5 }, { d: 'T', h: 8.2 }, { d: 'W', h: 6.1, hi: true }, { d: 'T', h: 8.8 }, { d: 'F', h: 5.4 }, { d: 'S', h: 2.1 }, { d: 'S', h: 0 } ],
     devices: [
       { name: 'MacBook Pro 16" (M3)', meta: 'Asset LGH-IT-2043 · macOS 15', ico: 'laptop', status: 'Active', c: '#22C55E' },
       { name: 'iPhone 14 Pro', meta: 'Asset LGH-MB-1187 · iOS 18', ico: 'phone', status: 'Active', c: '#22C55E' },
@@ -48,7 +40,6 @@
       { t: 'Town Hall Meeting — Friday 2PM', s: 'Main auditorium & livestream', time: '1d ago', c: '#22C55E', bg: '#DCFCE7', ic: 'cal' },
       { t: 'Payroll processed for September', s: 'Slips available in ESS', time: '2d ago', c: '#38BDF8', bg: '#E0F2FE', ic: 'cash' }
     ],
-    sla: [ 92, 93.5, 94, 93, 95.5, 96, 97, 96.5, 98, 97.5, 98.5, 99 ],
     apps: [
       { n: 'Microsoft 365', k: 'M', c: '#D83B01' }, { n: 'Slack', k: 'S', c: '#611f69' },
       { n: 'Zoom', k: 'Z', c: '#2D8CFF' }, { n: 'Jira', k: 'J', c: '#0052CC' },
@@ -80,9 +71,6 @@
   /* ---------------- small icon set ---------------- */
   function ic(name) {
     var p = {
-      tasks: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
-      timeline: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-      chart: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
       target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
       star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
       laptop: '<rect x="2" y="4" width="20" height="13" rx="2"/><line x1="1" y1="21" x2="23" y2="21"/>',
@@ -94,7 +82,6 @@
       leaf: '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
       bolt: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
       mega: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
-      shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
       search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
       grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
       ticket: '<path d="M3 7v4a1 1 0 0 0 0 2v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4a1 1 0 0 0 0-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>',
@@ -147,21 +134,6 @@
     '</div>';
   }
 
-  function rTimeline() {
-    return '<div class="tl">' + DATA.timeline.map(function (e) {
-      return '<div class="tl-item ' + (e.done ? 'done' : '') + '"><div class="tl-time">' + esc(e.time) + '</div>' +
-        '<div class="tl-title">' + esc(e.title) + '</div><div class="tl-desc">' + esc(e.desc) + '</div></div>';
-    }).join('') + '</div>';
-  }
-
-  function rWeekly() {
-    var total = DATA.weekly.reduce(function (a, d) { return a + d.h; }, 0);
-    return '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px">' +
-      '<div style="font-size:28px;font-weight:800;letter-spacing:-.02em;color:var(--text-primary)">' + num(total, { dec: 1, suf: 'h' }) + '</div>' +
-      '<div style="font-size:12px;color:var(--success-dark);font-weight:700">▲ 8% vs last week</div></div>' +
-      '<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px">Hours logged this week</div>' +
-      '<div class="chart-slot" data-chart="weekly"></div>';
-  }
 
   function rDevices() {
     return DATA.devices.map(function (d) {
@@ -228,15 +200,6 @@
       return '<a class="an" href="announcements.html"><span class="an-ic" style="background:' + a.bg + ';color:' + a.c + '">' + ic(a.ic) + '</span>' +
         '<span style="flex:1"><span class="an-tx"><b>' + esc(a.t) + '</b> — ' + esc(a.s) + '</span><div class="an-time">' + esc(a.time) + '</div></span></a>';
     }).join('') + '<div class="tile-foot"><a class="tile-link-all" href="announcements.html">All announcements →</a></div>';
-  }
-
-  function rSla() {
-    var last = DATA.sla[DATA.sla.length - 1];
-    return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
-      '<div style="font-size:24px;font-weight:800;color:var(--text-primary)">' + num(last, { dec: 1, suf: '%' }) + '</div>' +
-      '<span class="kpi-delta up">Excellent ↗</span></div>' +
-      '<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px">SLA compliance — 12 weeks</div>' +
-      '<div class="chart-slot" data-chart="sla"></div>';
   }
 
   function rSearch() {
@@ -348,8 +311,6 @@
   /* ---------------- Registry ---------------- */
   var W = {
     welcome:   { title: 'Welcome', section: 1, span: 12, ico: 'star',    color: '#EAB308', render: rWelcome, klass: 'hero', desc: 'Personalised greeting & headline stats.' },
-    weekly:    { title: 'Weekly Progress', section: 1, span: 6, ico: 'chart', color: '#EAB308', render: rWeekly, desc: 'Hours logged across the week.' },
-    timeline:  { title: 'Event / Task Timeline', section: 1, span: 4, ico: 'timeline', color: '#7C3AED', render: rTimeline, desc: "Today's schedule of events." },
     inquiries: { title: 'My Inquiries', section: 1, span: 6, ico: 'help', color: '#38BDF8', render: rInquiries, desc: 'Inquiries made and their status.' },
     devices:   { title: 'Assigned Devices', section: 1, span: 6, ico: 'laptop', color: '#4F6EF7', render: rDevices, desc: 'Company assets allocated to you.' },
     leaveatt:  { title: 'Leave & Attendance', section: 1, span: 6, ico: 'cal', color: '#22C55E', render: rLeaveAtt, desc: 'Attendance summary & trend.' },
@@ -362,7 +323,6 @@
     apps:      { title: 'My Applications (SSO)', section: 2, span: 4, ico: 'grid', color: '#0369A1', render: rApps, desc: 'Launch allocated apps via SSO.' },
     empsearch: { title: 'Find an Employee', section: 2, span: 4, ico: 'search', color: '#E11D48', render: rSearch, desc: 'Quick employee directory search.' },
     announce:  { title: 'Announcements', section: 2, span: 6, ico: 'mega', color: '#4F6EF7', render: rAnnounce, desc: 'Latest company announcements.' },
-    sla:       { title: 'SLA Health', section: 2, span: 6, ico: 'shield', color: '#22C55E', render: rSla, desc: 'Service-level compliance trend.' },
 
     /* optional extras */
     goals:     { title: 'My Goals', section: 1, span: 4, ico: 'target', color: '#4F6EF7', render: rGoals, optional: true, desc: 'Personal development goals.' },
@@ -373,8 +333,8 @@
 
   var DEFAULT = {
     // Single unified grid (no sections) — order kept from the old s1 then s2.
-    s1: ['welcome', 'weekly', 'timeline', 'inquiries', 'devices', 'leaveatt', 'leaveelig',
-         'quick', 'services', 'apps', 'empsearch', 'announce', 'sla'],
+    s1: ['welcome', 'inquiries', 'devices', 'leaveatt', 'leaveelig',
+         'quick', 'services', 'apps', 'empsearch', 'announce'],
     s2: []
   };
   var KEY = 'lc-dash-v2';
@@ -482,17 +442,9 @@
      (re)generated at the slot's actual pixel size, so they scale with the
      widget instead of ballooning. */
   var CHART = {
-    weekly: function (w, h) {
-      var d = DATA.weekly.map(function (x) { return { label: x.d, value: x.h, top: x.h ? x.h.toFixed(1) : '', highlight: x.hi }; });
-      return C.vbars(d, { w: w, h: h, accent: '#EAB308' });
-    },
     leaveatt: function (w, h) {
       var d = DATA.attendance.monthly.map(function (m) { return { label: m.d, value: m.h, highlight: m.hi }; });
       return C.vbars(d, { w: w, h: h, max: 100, color: '#22C55E', accent: '#16A34A' });
-    },
-    sla: function (w, h) {
-      var s = DATA.sla.map(function (v, i) { return { date: '2025-' + String(i + 1).padStart(2, '0'), value: v }; });
-      return C.line(s, { w: w, h: h });
     }
   };
   function sizeCharts() {
@@ -500,8 +452,7 @@
       var type = slot.dataset.chart; if (!CHART[type]) return;
       var w = Math.max(160, Math.round(slot.clientWidth || slot.getBoundingClientRect().width));
       if (!w) return;
-      var h = type === 'sla' ? Math.max(120, Math.min(200, Math.round(w * 0.32)))
-                             : Math.max(120, Math.min(210, Math.round(w * 0.42)));
+      var h = Math.max(120, Math.min(210, Math.round(w * 0.42)));
       slot.innerHTML = CHART[type](w, h);
     });
   }

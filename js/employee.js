@@ -61,6 +61,14 @@
     var reviewCycles = ['H1 2025', 'H2 2025', 'H1 2026'];
     var cycle = reviewCycles[h % reviewCycles.length];
 
+    var weekDeltaPct = rnd(67, -6, 14);                  // -6% .. +14% vs last week
+    var slaBase = rnd(71, 91, 97);
+    var slaTrend = [];
+    (function () {
+      var v = slaBase;
+      for (var k = 0; k < 12; k++) { v += (rnd(73 + k, -4, 6) / 10); v = Math.min(99.5, Math.max(88, v)); slaTrend.push(Math.round(v * 10) / 10); }
+    })();
+
     return {
       week: week, peak: peak, peakVal: peakVal,
       totalH: (totalMin / 60),
@@ -75,6 +83,8 @@
       device: ['MacBook Air · M4', 'MacBook Pro · M3', 'Dell XPS 15', 'ThinkPad X1'][h % 4],
       salaryBand: ['B3', 'B4', 'M1', 'M2'][h % 4],
       leave: rnd(9, 4, 18),
+      weekDeltaPct: weekDeltaPct,
+      sla: { trend: slaTrend, last: slaTrend[slaTrend.length - 1] },
       perf: {
         quality: qualityScore, qualityTrend: trend(33, qualityScore - 4, 3),
         turnaround: turnaroundH, turnaroundTrend: trend(37, turnaroundH + 0.5, 0.6),
@@ -128,6 +138,11 @@
     /* Row 1b: performance analysis tiles + appraisal */
     html += widget('col-8', i++, perfAnalysisHTML(emp, a), 'Performance Analysis', 'Last 7 weeks');
     html += widget('col-4', i++, appraisalHTML(emp, a), 'Appraisal', a.appraisal.cycle);
+
+    /* Row 1c: weekly progress, today's timeline, SLA health */
+    html += widget('col-4', i++, weeklyProgressHTML(emp, a), 'Weekly Progress', '');
+    html += widget('col-4', i++, timelineHTML(emp), 'Event / Task Timeline', "Today's schedule");
+    html += widget('col-4', i++, slaHTML(emp, a), 'SLA Health', '');
 
     /* Row 2: hero, work-time bars, ring, onboarding */
     html += '' +
@@ -238,6 +253,57 @@
         '<div class="mini-stat"><span class="lbl">Next review</span><b style="color:var(--primary)">' + esc(ap.next) + '</b></div>' +
         '<div class="mini-stat"><span class="lbl">Trend</span><b style="color:var(--success-dark)">▲ +' + (ap.overall - ap.prev).toFixed(1) + '</b></div>' +
       '</div></div>' + rows;
+  }
+
+  function weeklyProgressHTML(emp, a) {
+    var C = window.LCCharts || {};
+    var days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    var data = a.week.map(function (mins, d) { var hrs = mins / 60; return { label: days[d], value: hrs, top: hrs ? hrs.toFixed(1) : '', highlight: d === a.peak }; });
+    var up = a.weekDeltaPct >= 0;
+    var chart = C.vbars ? C.vbars(data, { w: 320, h: 150, accent: '#EAB308' }) : '';
+    return '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px">' +
+      '<div style="font-size:28px;font-weight:800;letter-spacing:-.02em;color:var(--text-primary)">' + a.totalH.toFixed(1) + 'h</div>' +
+      '<div style="font-size:12px;font-weight:700;color:' + (up ? 'var(--success-dark)' : 'var(--error)') + '">' + (up ? '▲' : '▼') + ' ' + Math.abs(a.weekDeltaPct) + '% vs last week</div></div>' +
+      '<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px">Hours logged this week</div>' +
+      '<div class="chart-slot">' + chart + '</div>';
+  }
+
+  // Deterministic per-employee "today" schedule — stable per person.
+  function empTimeline(emp) {
+    var pool = [
+      ['Daily standup', 'Team sync · 15 min'], ['1:1 with manager', 'Career check-in'],
+      ['Client review call', 'Quarterly progress'], ['Design walkthrough', 'New feature spec'],
+      ['Budget planning', 'Next quarter allocation'], ['Training session', 'Compliance refresher'],
+      ['Sprint planning', 'Backlog grooming'], ['Town hall', 'Company-wide update']
+    ];
+    var times = ['09:00', '10:30', '11:30', '13:00', '14:30', '16:00'];
+    var base = hash(strHash(emp.id + 'timeline'));
+    var out = [];
+    for (var k = 0; k < 5; k++) {
+      var v = hash(base + k * 0x9E3779B1);
+      var item = pool[(v + k) % pool.length];
+      out.push({ time: times[k], title: item[0], desc: item[1], done: (v % 100) < 45 });
+    }
+    return out;
+  }
+
+  function timelineHTML(emp) {
+    var events = empTimeline(emp);
+    return '<div class="tl">' + events.map(function (e) {
+      return '<div class="tl-item' + (e.done ? ' done' : '') + '"><div class="tl-time">' + esc(e.time) + '</div>' +
+        '<div class="tl-title">' + esc(e.title) + '</div><div class="tl-desc">' + esc(e.desc) + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  function slaHTML(emp, a) {
+    var C = window.LCCharts || {};
+    var s = a.sla.trend.map(function (v, i) { return { date: '2025-' + String(i + 1).padStart(2, '0'), value: v }; });
+    var chart = C.line ? C.line(s, { w: 320, h: 150 }) : '';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">' +
+      '<div style="font-size:24px;font-weight:800;color:var(--text-primary)">' + a.sla.last.toFixed(1) + '%</div>' +
+      '<span class="kpi-delta up">Excellent ↗</span></div>' +
+      '<div style="font-size:12px;color:var(--text-tertiary);margin-bottom:8px">Service-level compliance — 12 weeks</div>' +
+      '<div class="chart-slot">' + chart + '</div>';
   }
 
   function scheduleHTML(emp) {
