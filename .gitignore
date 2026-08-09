@@ -7,3 +7,10 @@ dist/
 build/
 *.log
 R
+
+# Supabase CLI local state — machine-specific, and pooler-url holds a
+# database connection string. Never commit these.
+supabase/.temp/
+supabase/.branches/
+.env
+.env.local
