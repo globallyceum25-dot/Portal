@@ -323,6 +323,30 @@
     }
   }
 
+  /* ---------------- auth notice ----------------
+     Transcription needs a real Supabase session (the offline demo login
+     has no JWT). Surface that up-front rather than only on failure. */
+  function showAuthNotice() {
+    if ($('recAuthNotice')) { $('recAuthNotice').style.display = 'flex'; return; }
+    var lib = $('recLibrary'); if (!lib) return;
+    var n = document.createElement('div');
+    n.id = 'recAuthNotice';
+    n.className = 'rec-auth-notice';
+    n.innerHTML = '<span class="ic">🔑</span><div><b>Sign in to enable transcription</b>' +
+      '<span>Recording and saving work offline. Turning a session into text needs your portal account.</span></div>' +
+      '<a class="ri-btn primary" href="login.html">Sign in</a>';
+    lib.insertBefore(n, lib.querySelector('#recList'));
+  }
+  async function refreshAuthNotice() {
+    try {
+      var sb = await (window.LCSupabaseReady || Promise.resolve(null));
+      var ok = false;
+      if (sb) { var s = await sb.auth.getSession(); ok = !!(s && s.data && s.data.session); }
+      if (!ok) showAuthNotice();
+      else { var n = $('recAuthNotice'); if (n) n.style.display = 'none'; }
+    } catch (e) { /* stay quiet */ }
+  }
+
   /* ---------------- transcription (ElevenLabs via edge function) ---------------- */
   function speakersToText(data) {
     var words = data && data.words;
@@ -346,7 +370,10 @@
     if (!sb) { toast('Offline', 'Transcription needs a connection to the portal service.', 'error'); return; }
     var sess = await sb.auth.getSession();
     if (!sess || !sess.data || !sess.data.session) {
-      toast('Sign in required', 'Transcription runs through your portal account — please sign in with Supabase first.', 'error');
+      toast('Portal account needed',
+        'You are on the offline demo login. Sign in (or use “Create an account”) on the login page, then transcribe — your recording is safely saved here meanwhile.',
+        'error');
+      showAuthNotice();
       return;
     }
 
@@ -400,7 +427,7 @@
   /* ---------------- boot ---------------- */
   function boot() {
     if (!$('recStudio')) return;                 // not on this page
-    setState('idle'); paintTimer(); renderList();
+    setState('idle'); paintTimer(); renderList(); refreshAuthNotice();
 
     $('recStartBtn').addEventListener('click', startRecording);
     $('recPauseBtn').addEventListener('click', togglePause);
