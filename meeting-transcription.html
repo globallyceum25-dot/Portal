@@ -282,6 +282,65 @@
       .studio-timer { font-size:26px; }
     }
 
+    /* ================================================================
+       RECORD-FIRST FLOW — name gate, recordings library, dialog
+       ================================================================ */
+    .step { display:inline-grid; place-items:center; width:20px; height:20px; border-radius:7px; margin-right:7px;
+      background:var(--primary); color:#fff; font-size:11px; font-weight:800; vertical-align:middle; }
+    .rec-name-row { display:flex; flex-direction:column; gap:7px; margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid var(--border-light); }
+    .rec-name-lab { font-size:12.5px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; }
+    .rec-name-lab em { font-style:normal; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em;
+      color:#B45309; background:#FEF3C7; padding:2px 7px; border-radius:5px; margin-left:8px; }
+    .rec-name-in { height:46px; font-size:14.5px; font-weight:600; border-radius:12px; }
+    .rec-name-in:focus { border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-50); }
+    .rec-name-in.invalid { border-color:var(--error,#DC2626); box-shadow:0 0 0 4px rgba(239,68,68,.15); animation:shake .3s; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+    .rec-cap { font-size:10.5px; font-weight:700; color:var(--text-tertiary); }
+    .rec-cap.warn { color:#B45309; }
+    .rec-lang { display:flex; flex-direction:column; gap:4px; font-size:11px; font-weight:700; color:var(--text-secondary); }
+    .rec-lang select { height:44px; width:190px; background-repeat:no-repeat !important; background-position:right 13px center !important; background-size:12px 12px !important; padding-right:34px; }
+
+    /* recordings library */
+    .rec-item { display:flex; align-items:center; gap:13px; flex-wrap:wrap; padding:12px 14px; border:1px solid var(--border); border-radius:14px;
+      background:var(--surface); margin-bottom:9px; transition:transform .18s, box-shadow .18s, border-color .18s;
+      opacity:0; transform:translateY(10px); animation:tmIn .4s cubic-bezier(.2,.7,.3,1) forwards; animation-delay:calc(var(--i,0)*45ms); }
+    .rec-item:hover { transform:translateY(-2px); box-shadow:var(--shadow-sm); border-color:var(--primary-200); }
+    .ri-ic { width:40px; height:40px; border-radius:11px; display:grid; place-items:center; font-size:19px; background:var(--bg-tertiary); flex-shrink:0; }
+    .ri-main { flex:1; min-width:150px; }
+    .ri-name { font-size:13.5px; font-weight:700; color:var(--text-primary); }
+    .ri-meta { font-size:11px; color:var(--text-tertiary); margin-top:2px; font-variant-numeric:tabular-nums; }
+    .ri-tag { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; padding:2px 6px; border-radius:5px; vertical-align:middle; }
+    .ri-tag.auto { color:#B45309; background:#FEF3C7; } .ri-tag.ok { color:#15803D; background:#DCFCE7; }
+    .ri-actions { display:flex; gap:6px; flex-shrink:0; }
+    .ri-btn { height:34px; min-width:34px; padding:0 11px; border-radius:9px; border:1px solid var(--border); background:var(--bg-secondary);
+      color:var(--text-secondary); font-size:12.5px; font-weight:700; cursor:pointer; transition:all .16s; }
+    .ri-btn:hover { color:var(--primary); border-color:var(--primary-200); transform:translateY(-1px); }
+    .ri-btn.primary { background:linear-gradient(135deg,var(--primary),#6D86FF); color:#fff; border:none; }
+    .ri-btn.danger:hover { color:var(--error,#DC2626); border-color:rgba(239,68,68,.4); }
+    .ri-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+    .ri-audio { width:100%; margin-top:8px; }
+    .rec-empty { text-align:center; padding:30px 20px; border:1px dashed var(--border); border-radius:14px; background:var(--bg-secondary); }
+    .rec-empty .re-ic { font-size:30px; margin-bottom:8px; }
+    .rec-empty b { display:block; font-size:14px; color:var(--text-primary); }
+    .rec-empty span { display:block; font-size:12px; color:var(--text-tertiary); margin-top:4px; }
+
+    /* auto-stop dialog */
+    .as-overlay { position:fixed; inset:0; z-index:1400; display:none; align-items:center; justify-content:center; padding:24px;
+      background:rgba(8,11,20,.7); backdrop-filter:blur(6px); }
+    .as-overlay.show { display:flex; animation:tmIn .2s ease; }
+    .as-dialog { width:min(440px,100%); background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:28px; text-align:center;
+      box-shadow:var(--shadow-2xl,0 30px 60px -20px rgba(0,0,0,.5)); animation:tmIn .32s cubic-bezier(.2,.7,.3,1) both; }
+    .as-ic { width:60px; height:60px; margin:0 auto 14px; border-radius:18px; display:grid; place-items:center; font-size:28px;
+      background:linear-gradient(140deg,#F59E0B,#F97316); }
+    .as-dialog h3 { font-size:19px; font-weight:800; color:var(--text-primary); }
+    .as-dialog p { font-size:13px; color:var(--text-secondary); line-height:1.6; margin-top:8px; }
+    .as-actions { display:flex; gap:10px; justify-content:center; margin-top:20px; flex-wrap:wrap; }
+
+    @media (max-width:640px){
+      .ri-actions { width:100%; } .ri-btn { flex:1; }
+      .rec-lang select { width:100%; } .rec-lang { flex:1 1 100%; }
+    }
+
     /* ---- reduced motion ---- */
     @media (prefers-reduced-motion: reduce){
       .studio,.tm-meta,.transcription-workspace,.history-card,.transcript-box p,
@@ -444,29 +503,22 @@
         <span class="breadcrumb-current">Meeting Transcriber</span>
       </nav>
 
-      <div class="page-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-4)">
-        <div>
-          <h1 class="page-title">Live Meeting Minutes Transcriber</h1>
-          <p class="page-subtitle">Transcribe your discussion audio in real-time, generate summary reports and extract key action items.</p>
-        </div>
-        
-        <!-- Sandbox demo mode checkbox switch -->
-        <div class="switch-wrap" title="Play back a pre-configured transcript file to test functionality without voice input.">
-          <span>Sandbox Demo Mode</span>
-          <label class="switch">
-            <input type="checkbox" id="demoModeToggle">
-            <span class="slider"></span>
-          </label>
-        </div>
+      <div class="page-header" style="margin-bottom:var(--space-5)">
+        <h1 class="page-title">Meeting Recorder &amp; Transcriber</h1>
+        <p class="page-subtitle">Record the meeting, save it to this device, then turn it into a speaker-labelled transcript with ElevenLabs.</p>
       </div>
-
-      <!-- Recognition Support Alert Block -->
-      <div id="recognitionSupportStatus" style="margin-bottom: var(--space-4)"></div>
 
       <!-- ========= 1. RECORDING STUDIO ========= -->
       <section class="studio" id="recStudio" data-rec="idle">
-        <div class="studio-stage">
 
+        <!-- Step 1 — name the meeting (required before recording) -->
+        <div class="rec-name-row">
+          <label class="rec-name-lab" for="recMeetingName"><span class="step">1</span> Meeting name <em>required</em></label>
+          <input type="text" id="recMeetingName" class="form-control rec-name-in" maxlength="120"
+                 placeholder="e.g. Portal Upgrade Weekly Progress Review" autocomplete="off">
+        </div>
+
+        <div class="studio-stage">
           <!-- Mic orb with pulse rings -->
           <div class="mic-orb" aria-hidden="true">
             <span class="ring r1"></span><span class="ring r2"></span><span class="ring r3"></span>
@@ -475,64 +527,53 @@
             </span>
           </div>
 
-          <!-- Live waveform -->
-          <div class="wave-panel">
-            <canvas id="visualizerCanvas"></canvas>
-            <div class="wave-meta">
-              <span id="activeListeningLanguageLabel" style="font-size:10.5px; font-weight:700; color:var(--primary); background:var(--primary-50); padding:3px 8px; border-radius:6px; border:1px solid var(--primary-200)">Bilingual (EN + SI)</span>
-              <span class="badge badge-amber" id="demoIndicator" style="display:none; font-size:10px; font-weight:700">DEMO RUNNING</span>
-            </div>
-          </div>
+          <!-- Live level meter -->
+          <div class="wave-panel"><canvas id="visualizerCanvas"></canvas></div>
 
           <!-- Status + timer -->
           <div class="studio-readout">
-            <div class="status-badge" id="transStatusBadge">
-              <span class="status-dot" id="transStatusDot"></span>
-              <span id="transStatusText">Ready</span>
-            </div>
-            <span id="transcriptTimer" class="studio-timer">00:00:00</span>
+            <div class="status-badge" id="recStatusBadge"><span class="status-dot" id="recStatusDot"></span><span id="recStatusText">Ready</span></div>
+            <span id="recTimer" class="studio-timer">00:00:00</span>
+            <span id="recCapNote" class="rec-cap">Maximum 60 minutes per session</span>
           </div>
-
         </div>
 
         <!-- Controls -->
         <div class="studio-controls">
-          <div style="display:flex; flex-direction:column; align-items:flex-start">
-            <select class="form-control form-select" id="transLanguage" style="width:170px; height:44px" title="Transcription Language">
-              <option value="en-US">🇺🇸 English (US)</option>
-              <option value="si-LK">🇱🇰 Sinhalese (සිංහල)</option>
-              <option value="mixed" selected>🔀 Bilingual (EN + SI)</option>
+          <label class="rec-lang">
+            <span>Spoken language</span>
+            <select class="form-control form-select" id="recLanguage">
+              <option value="auto" selected>Detect automatically</option>
+              <option value="en">English</option>
+              <option value="si">Sinhala (සිංහල)</option>
+              <option value="ta">Tamil (தமிழ்)</option>
             </select>
-            <span style="font-size:9.5px; color:var(--text-tertiary); margin-top:3px; font-weight:600">Press <b>Alt + L</b> to switch</span>
-          </div>
+          </label>
 
-          <button class="btn btn-primary" id="startTransBtn" onclick="startTranscription()">
-            <span class="btn-icon">🎙️</span>
-            <span class="btn-label">Start Transcribing</span>
-          </button>
-
-          <button class="btn btn-secondary" id="pauseTransBtn" onclick="pauseTranscription()" style="display:none">
-            <span class="btn-icon">⏸️</span>
-            <span>Pause</span>
-          </button>
-
-          <button class="btn btn-outline" id="stopTransBtn" onclick="stopTranscription(true)" disabled>
-            <span class="btn-icon">⏹️</span>
-            <span>Finish &amp; Summarize</span>
-          </button>
-
-          <button class="btn btn-ghost" onclick="resetTranscription()" style="color:var(--error)" title="Clear Text &amp; Reset">
-            <span>Clear</span>
-          </button>
+          <button class="btn btn-primary" id="recStartBtn"><span class="btn-icon">⏺</span><span class="btn-label">Start recording</span></button>
+          <button class="btn btn-secondary" id="recPauseBtn" style="display:none"><span class="btn-icon">⏸</span><span class="lbl">Pause</span></button>
+          <button class="btn btn-outline" id="recStopBtn" disabled><span class="btn-icon">⏹</span><span>Stop &amp; save</span></button>
         </div>
       </section>
 
-      <!-- ========= 2. MEETING METADATA ========= -->
+      <!-- ========= 2. SAVED RECORDINGS ========= -->
+      <section class="card tm-meta" id="recLibrary" style="margin-bottom:var(--space-5)">
+        <div class="card-header" style="margin-bottom:var(--space-3)">
+          <div>
+            <h3 class="card-title"><span class="step">2</span> Saved recordings</h3>
+            <p class="card-subtitle">Stored on this device only. Transcribe a session to turn it into text.</p>
+          </div>
+          <span class="badge" id="recCount" style="font-size:10.5px">0 recordings</span>
+        </div>
+        <div id="recList"></div>
+      </section>
+
+      <!-- Meeting metadata (used by minutes / tasks) -->
       <section class="card tm-meta" style="margin-bottom:var(--space-5); padding:var(--space-4)">
         <div class="form-two-col" style="margin-bottom:0">
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label" style="font-size:12px">Meeting Title</label>
-            <input type="text" class="form-control" id="meetingTitle" value="Portal Upgrade Weekly Progress Review" style="height:36px; font-size:13px">
+            <input type="text" class="form-control" id="meetingTitle" placeholder="Auto-filled from the recording" style="height:36px; font-size:13px">
           </div>
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label" style="font-size:12px">Attendees</label>
@@ -544,21 +585,18 @@
       <!-- ========= 3. DUAL WORKSPACE PANELS ========= -->
       <section class="transcription-workspace">
         
-        <!-- Left Panel: Live Verbatim Transcript -->
-        <div class="card" style="display:flex; flex-direction:column; gap:var(--space-3)">
+        <!-- Left Panel: Transcript -->
+        <div class="card" id="transcriptPanel" style="display:flex; flex-direction:column; gap:var(--space-3)">
           <div class="card-header" style="margin-bottom:0">
             <div>
-              <h3 class="card-title">🎙️ Verbatim Live Transcript</h3>
-              <p class="card-subtitle">Real-time speech-to-text text segments. Click inside to edit transcripts manually.</p>
+              <h3 class="card-title"><span class="step">3</span> Transcript</h3>
+              <p class="card-subtitle" id="activeMeetingLabel">Transcribe a saved recording to see the text here — you can edit it.</p>
             </div>
-            <div style="display:flex; align-items:center; gap:8px">
-              <span class="live-badge"><span class="d"></span> LIVE</span>
-              <span class="badge editable-pill" style="font-size:10.5px">Editable Box</span>
-            </div>
+            <span class="badge editable-pill" style="font-size:10.5px">Editable</span>
           </div>
 
           <div class="transcript-box" id="transcriptEditor" contenteditable="true">
-            <p class="placeholder-text">Start speaking or click "Sandbox Demo Mode" to see transcription in action...</p>
+            <p class="placeholder-text">No transcript yet. Record a meeting above, then press “Transcribe”.</p>
           </div>
           
           <!-- Save actions -->
@@ -621,6 +659,19 @@
   </div><!-- /MAIN CONTENT -->
 </div><!-- /APP LAYOUT -->
 
+<!-- Auto-stop dialog: shown when the 60-minute cap ended the session for you -->
+<div class="as-overlay" id="autoStopOverlay">
+  <div class="as-dialog">
+    <div class="as-ic">⏱️</div>
+    <h3>Recording limit reached</h3>
+    <p id="autoStopText"></p>
+    <div class="as-actions">
+      <button class="btn btn-secondary" id="autoStopNo">No, I’m done</button>
+      <button class="btn btn-primary" id="autoStopYes">Record another session</button>
+    </div>
+  </div>
+</div>
+
 <!-- Task Manager Modal -->
 <div class="modal-overlay" id="taskManagerModal">
   <div class="modal" style="max-width: 680px">
@@ -656,6 +707,7 @@
 
 <!-- ========= SCRIPTS ========= -->
 <script src="js/main.js"></script>
+<script src="js/recorder.js"></script>
 <script src="js/transcription.js"></script>
 
 <!-- ===== LIVE BACKEND INTEGRATION (Phase 3 meeting pipeline) ===== -->
